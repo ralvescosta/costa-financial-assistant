@@ -12,10 +12,13 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
+	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
 // run wires the dependency container and starts the BFF HTTP server.
@@ -42,6 +45,21 @@ func run(ctx context.Context) error {
 	// ─── JWKS cache ──────────────────────────────────────────────────────────
 	if err := c.Provide(bffmiddleware.NewJWKSCache); err != nil {
 		return fmt.Errorf("bff: provide jwks cache: %w", err)
+	}
+
+	// ─── Files gRPC client ───────────────────────────────────────────────────
+	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (filesv1.FilesServiceClient, error) {
+		conn, err := grpc.NewClient(
+			cfg.Services.FilesGRPCAddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("bff: dial files grpc: %w", err)
+		}
+		logger.Info("files gRPC client connected", zap.String("addr", cfg.Services.FilesGRPCAddr))
+		return filesv1.NewFilesServiceClient(conn), nil
+	}); err != nil {
+		return fmt.Errorf("bff: provide files client: %w", err)
 	}
 
 	// ─── Controllers ─────────────────────────────────────────────────────────

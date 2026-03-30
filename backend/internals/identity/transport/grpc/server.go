@@ -2,14 +2,13 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/services"
+	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 )
 
 // Server implements identityv1.IdentityServiceServer.
@@ -63,7 +62,7 @@ func (s *Server) GetJwksMetadata(ctx context.Context, _ *identityv1.GetJwksMetad
 	jwks, err := s.svc.GetJwksMetadata(ctx)
 	if err != nil {
 		s.logger.Error("GetJwksMetadata failed", zap.Error(err))
-		return nil, status.Errorf(codes.Internal, fmt.Sprintf("jwks fetch failed: %v", err))
+		return nil, status.Errorf(codes.Internal, "jwks fetch failed: %v", err)
 	}
 	return &identityv1.GetJwksMetadataResponse{Jwks: jwks}, nil
 }

@@ -17,13 +17,13 @@
 
 **Purpose**: Initialize app skeletons and baseline tooling.
 
-- [ ] T001 Scaffold React + Vite + TypeScript frontend project in `frontend/package.json`
-- [ ] T002 Configure Tailwind + Vite plugin and base CSS entry in `frontend/vite.config.ts`
-- [ ] T003 [P] Create frontend app shell/routing skeleton in `frontend/src/app/router.tsx`
-- [ ] T004 [P] Add centralized design token scaffold in `frontend/src/styles/tokens.ts`
-- [ ] T005 Create root automation targets (`dev-up`, service run/test/migrate/proto) in `Makefile`
-- [ ] T006 [P] Add deterministic proto generation target in `Makefile`
-- [ ] T007 Add local integration-test DB compose profile in `docker-compose.yml`
+- [X] T001 Scaffold React + Vite + TypeScript frontend project in `frontend/package.json`
+- [X] T002 Configure Tailwind + Vite plugin and base CSS entry in `frontend/vite.config.ts`
+- [X] T003 [P] Create frontend app shell/routing skeleton in `frontend/src/app/router.tsx`
+- [X] T004 [P] Add centralized design token scaffold in `frontend/src/styles/tokens.ts`
+- [X] T005 Create root automation targets (`dev-up`, service run/test/migrate/proto) in `Makefile`
+- [X] T006 [P] Add deterministic proto generation target in `Makefile`
+- [X] T007 Add local integration-test DB compose profile in `docker-compose.yml`
 
 ---
 
@@ -37,29 +37,29 @@
 - [X] T009 Create reversible down migration for tenant bootstrap schema in `backend/internals/onboarding/migrations/000001_create_identity_and_projects.down.sql`
 - [X] T010 Create seed migration for bootstrap user/project/member in `backend/internals/onboarding/migrations/000002_seed_bootstrap_tenant.up.sql`
 - [X] T011 Create down migration for bootstrap seed data in `backend/internals/onboarding/migrations/000002_seed_bootstrap_tenant.down.sql`
-- [ ] T012 [P] Add onboarding v1 domain messages contract in `backend/protos/onboarding/v1/messages.proto`
-- [ ] T013 [P] Add onboarding v1 grpc service contract in `backend/protos/onboarding/v1/grpc.proto`
-- [ ] T014 [P] Add identity v1 domain messages contract in `backend/protos/identity/v1/messages.proto`
-- [ ] T015 [P] Add identity v1 grpc service contract in `backend/protos/identity/v1/grpc.proto`
-- [ ] T016 Add common shared proto messages in `backend/protos/common/v1/messages.proto`
-- [ ] T017 Regenerate protobuf Go artifacts in `backend/protos/generated/`
-- [ ] T018 Implement identity bootstrap JWT + JWKS service wiring in `backend/cmd/identity/container.go`
-- [ ] T019 Implement BFF Echo+Huma bootstrap with otelecho middleware in `backend/cmd/bff/container.go`
-- [ ] T020 [P] Implement JWT/JWKS validation middleware for BFF in `backend/internals/bff/financial/transport/http/middleware/auth_middleware.go`
-- [ ] T021 [P] Implement project-membership and role guard middleware in `backend/internals/bff/financial/transport/http/middleware/project_guard.go`
-- [ ] T022 Implement UnitOfWork for files service in `backend/internals/files/repositories/unit_of_work.go`
-- [ ] T023 Implement ephemeral integration-test DB harness in `backend/tests/integration/testmain_test.go`
-- [ ] T024 [P] Configure frontend query client/provider bootstrap in `frontend/src/app/providers.tsx`
-- [ ] T098 Implement UnitOfWork for bills service in `backend/internals/bills/repositories/unit_of_work.go`
-- [ ] T099 Implement UnitOfWork for payments service in `backend/internals/payments/repositories/unit_of_work.go`
-- [ ] T100 Implement UnitOfWork for onboarding service in `backend/internals/onboarding/repositories/unit_of_work.go`
-- [ ] T101 [P] Implement frontend theme provider with semantic light/dark token mapping in `frontend/src/app/theme/ThemeProvider.tsx`
-- [ ] T102 [P] Implement persisted theme preference + OS fallback bootstrap in `frontend/src/app/theme/themeStorage.ts`
-- [ ] T103 Implement no-reload theme toggle wiring in `frontend/src/components/ThemeToggle.tsx`
-- [ ] T104 [P] Add hook tests for theme preference/bootstrap flows in `frontend/src/hooks/useThemePreference.test.ts`
-- [ ] T105 [P] Add integration test for identity JWKS metadata endpoint contract in `backend/tests/integration/identity_jwks_contract_test.go`
-- [ ] T106 [P] Add integration test matrix for invalid and expired token rejection in `backend/tests/integration/auth_token_rejection_test.go`
-- [ ] T107 Implement JWKS cache/refresh component for auth middleware in `backend/internals/bff/financial/transport/http/middleware/jwks_cache.go`
+- [X] T012 [P] Add onboarding v1 domain messages contract in `backend/protos/onboarding/v1/messages.proto`
+- [X] T013 [P] Add onboarding v1 grpc service contract in `backend/protos/onboarding/v1/grpc.proto`
+- [X] T014 [P] Add identity v1 domain messages contract in `backend/protos/identity/v1/messages.proto`
+- [X] T015 [P] Add identity v1 grpc service contract in `backend/protos/identity/v1/grpc.proto`
+- [X] T016 Add common shared proto messages in `backend/protos/common/v1/messages.proto`
+- [X] T017 Regenerate protobuf Go artifacts in `backend/protos/generated/`
+- [X] T018 Implement identity bootstrap JWT + JWKS service wiring in `backend/cmd/identity/container.go`
+- [X] T019 Implement BFF Echo+Huma bootstrap with otelecho middleware in `backend/cmd/bff/container.go`
+- [X] T020 [P] Implement JWT/JWKS validation middleware for BFF in `backend/internals/bff/transport/http/middleware/auth_middleware.go`
+- [X] T021 [P] Implement project-membership and role guard middleware in `backend/internals/bff/transport/http/middleware/project_guard.go`
+- [X] T022 Implement UnitOfWork for files service in `backend/internals/files/repositories/unit_of_work.go`
+- [X] T023 Implement ephemeral integration-test DB harness in `backend/tests/integration/testmain_test.go`
+- [X] T024 [P] Configure frontend query client/provider bootstrap in `frontend/src/app/providers.tsx`
+- [X] T098 Implement UnitOfWork for bills service in `backend/internals/bills/repositories/unit_of_work.go`
+- [X] T099 Implement UnitOfWork for payments service in `backend/internals/payments/repositories/unit_of_work.go`
+- [X] T100 Implement UnitOfWork for onboarding service in `backend/internals/onboarding/repositories/unit_of_work.go`
+- [X] T101 [P] Implement frontend theme provider with semantic light/dark token mapping in `frontend/src/app/theme/ThemeProvider.tsx`
+- [X] T102 [P] Implement persisted theme preference + OS fallback bootstrap in `frontend/src/app/theme/themeStorage.ts`
+- [X] T103 Implement no-reload theme toggle wiring in `frontend/src/components/ThemeToggle.tsx`
+- [X] T104 [P] Add hook tests for theme preference/bootstrap flows in `frontend/src/hooks/useThemePreference.test.ts`
+- [X] T105 [P] Add integration test for identity JWKS metadata endpoint contract in `backend/tests/integration/identity_jwks_contract_test.go`
+- [X] T106 [P] Add integration test matrix for invalid and expired token rejection in `backend/tests/integration/auth_token_rejection_test.go`
+- [X] T107 Implement JWKS cache/refresh component for auth middleware in `backend/internals/bff/transport/http/middleware/jwks_cache.go`
 
 **Checkpoint**: Foundation complete. User stories can now proceed.
 
@@ -73,22 +73,22 @@
 
 ### Tests for User Story 1
 
-- [ ] T025 [P] [US1] Add BFF integration test for upload + classify flow in `backend/tests/integration/us1_upload_classify_test.go`
-- [ ] T026 [P] [US1] Add files service unit tests (duplicate detection + PDF validation) in `backend/internals/files/services/upload_service_test.go`
-- [ ] T027 [P] [US1] Add hook test for upload flow (BDD + Triple-A) in `frontend/src/hooks/useUploadDocument.test.ts`
-- [ ] T028 [P] [US1] Add hook test for classification flow (BDD + Triple-A) in `frontend/src/hooks/useClassifyDocument.test.ts`
+- [X] T025 [P] [US1] Add BFF integration test for upload + classify flow in `backend/tests/integration/us1_upload_classify_test.go`
+- [X] T026 [P] [US1] Add files service unit tests (duplicate detection + PDF validation) in `backend/internals/files/services/upload_service_test.go`
+- [X] T027 [P] [US1] Add hook test for upload flow (BDD + Triple-A) in `frontend/src/hooks/useUploadDocument.test.ts`
+- [X] T028 [P] [US1] Add hook test for classification flow (BDD + Triple-A) in `frontend/src/hooks/useClassifyDocument.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T029 [P] [US1] Add files v1 message definitions for document upload/classification in `backend/protos/files/v1/messages.proto`
-- [ ] T030 [P] [US1] Add files v1 grpc service methods for upload/classify/list/get in `backend/protos/files/v1/grpc.proto`
-- [ ] T031 [US1] Regenerate files protobuf artifacts in `backend/protos/generated/`
-- [ ] T032 [US1] Implement document repository with project-scoped uniqueness by hash in `backend/internals/files/repositories/document_repository.go`
-- [ ] T033 [US1] Implement upload/classification application service in `backend/internals/files/services/document_service.go`
-- [ ] T034 [US1] Implement BFF documents controller (`upload`, `classify`, `list`, `get`) with Huma metadata in `backend/internals/bff/financial/controllers/documents_controller.go`
-- [ ] T035 [US1] Implement frontend upload hook with classification mutation chain in `frontend/src/hooks/useUploadDocument.ts`
-- [ ] T036 [US1] Implement frontend document list/query hook in `frontend/src/hooks/useDocuments.ts`
-- [ ] T037 [US1] Implement upload/classification screen composition in `frontend/src/pages/UploadPage.tsx`
+- [X] T029 [P] [US1] Add files v1 message definitions for document upload/classification in `backend/protos/files/v1/messages.proto`
+- [X] T030 [P] [US1] Add files v1 grpc service methods for upload/classify/list/get in `backend/protos/files/v1/grpc.proto`
+- [X] T031 [US1] Regenerate files protobuf artifacts in `backend/protos/generated/`
+- [X] T032 [US1] Implement document repository with project-scoped uniqueness by hash in `backend/internals/files/repositories/document_repository.go`
+- [X] T033 [US1] Implement upload/classification application service in `backend/internals/files/services/document_service.go`
+- [X] T034 [US1] Implement BFF documents controller (`upload`, `classify`, `list`, `get`) with Huma metadata in `backend/internals/bff/financial/controllers/documents_controller.go`
+- [X] T035 [US1] Implement frontend upload hook with classification mutation chain in `frontend/src/hooks/useUploadDocument.ts`
+- [X] T036 [US1] Implement frontend document list/query hook in `frontend/src/hooks/useDocuments.ts`
+- [X] T037 [US1] Implement upload/classification screen composition in `frontend/src/pages/UploadPage.tsx`
 
 **Checkpoint**: US1 is independently functional and testable.
 
@@ -184,9 +184,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T069 [P] [US4] Add bills v1 message fields for payment status and cycle views in `backend/protos/bills/v1/messages.proto`
-- [ ] T070 [P] [US4] Add bills v1 grpc methods for dashboard and mark-paid in `backend/protos/bills/v1/grpc.proto`
-- [ ] T071 [US4] Regenerate bills protobuf artifacts in `backend/protos/generated/`
+- [X] T069 [P] [US4] Add bills v1 message fields for payment status and cycle views in `backend/protos/bills/v1/messages.proto`
+- [X] T070 [P] [US4] Add bills v1 grpc methods for dashboard and mark-paid in `backend/protos/bills/v1/grpc.proto`
+- [X] T071 [US4] Regenerate bills protobuf artifacts in `backend/protos/generated/`
 - [ ] T072 [US4] Implement payment cycle preference repository/service in `backend/internals/payments/services/payment_cycle_service.go`
 - [ ] T073 [US4] Implement bill payment service with idempotency-key enforcement in `backend/internals/bills/services/payment_service.go`
 - [ ] T074 [US4] Implement BFF payments controller (`dashboard`, `mark-paid`, preferred day) in `backend/internals/bff/financial/controllers/payments_controller.go`
