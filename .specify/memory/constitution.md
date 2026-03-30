@@ -1,32 +1,24 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.6.0 → 1.7.0
-Bump rationale: MINOR — new Principle X (Multi-Tenancy, Identity & Access) added;
-  Principle V (Test Discipline) materially amended to scope frontend tests to custom
-  hooks only (UI component tests explicitly excluded) and to formalise the ephemeral
-  test-database lifecycle for backend integration tests.
+Version change: 1.7.0 → 1.8.0
+Bump rationale: MINOR — Principle II materially expanded with a mandatory canonical
+  Protobuf repository layout; no principles removed or redefined.
 Modified principles:
-  - I. Modular Monorepo Architecture — service list updated to include onboarding-grpc
-    and identity-grpc.
-  - V. Test Discipline — frontend testing scoped to BDD hook unit tests only; UI
-    component rendering tests are explicitly out of scope. Backend integration test
-    discipline expanded with mandatory ephemeral database pattern
-    (create → migrate up → test → destroy) driven by TestMain or equivalent hook.
-Added principles:
-  - X. Multi-Tenancy, Identity & Access — tenant-aware data model mandatory from day
-    one (project_id FK on all domain tables); projects + project_members RBAC model;
-    onboarding-grpc and identity-grpc service responsibilities defined; JWKS-based JWT
-    validation required across all services; Phase-1 seed-data bootstrap strategy with
-    fake JWT issuance and always-valid JWKS endpoint.
+  - II. SOLID Principles & Clean Architecture — added mandatory proto file layout
+    convention: per-module versioned directories under backend/protos/, separation of
+    domain messages from gRPC transport messages, common/ for shared messages,
+    generated/ for compiled Go output; proto-first design rule now cross-referenced
+    to this layout.
+Added principles: None
 Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — backend features must note tenant FK
-    requirements and identity service context in Technical Context.
-  - .specify/templates/spec-template.md ✅ — feature specs must declare project_id FK
-    in data model sections and reference identity service for auth flows.
-  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for any backend feature
-    must include a task to configure the ephemeral test database for integration tests.
+  - .specify/templates/plan-template.md ✅ — Technical Context for gRPC services must
+    reference the proto directory layout and confirm messages.proto / grpc.proto split.
+  - .specify/templates/spec-template.md ✅ — Feature specs introducing new gRPC services
+    must declare the proto directory path and versioning intent.
+  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for any feature adding a
+    gRPC service must include a task to scaffold the versioned proto directory.
   - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
@@ -87,6 +79,49 @@ Every domain concept that exposes behaviour MUST be modelled as a Go interface d
 struct — standalone (orphan) functions are forbidden inside `internals/`. Only `pkgs/`
 may contain package-level helper functions, because those are shared, domain-agnostic
 utilities with no natural owning struct.
+
+**Protobuf repository layout**:
+All `.proto` files MUST live under `backend/protos/` following this canonical structure:
+
+```
+backend/protos/
+  <module>/
+    v<N>/
+      messages.proto   # domain message types for this module
+      grpc.proto       # gRPC service definition (Request / Response wrappers + service)
+  common/
+    v<N>/
+      *.proto          # shared message types used by more than one module
+  generated/           # Go code generated from all .proto files (committed)
+```
+
+Rules:
+- **One versioned folder per gRPC module** — e.g. `bills/v1/`, `files/v1/`,
+  `identity/v1/`. The folder name uses the major version (`v1`, `v2`, ...); a new
+  folder MUST be created for each breaking API change; old versions are kept until
+  all consumers are migrated.
+- **`messages.proto`** — MUST contain only domain-level message definitions for the
+  module (entities, value objects, enums). These messages are intentionally decoupled
+  from transport so that the generated Go structs can be used across the domain layer
+  without importing gRPC-specific types. `messages.proto` MUST NOT define any `service`
+  or `rpc` blocks.
+- **`grpc.proto`** — MUST contain only the gRPC service definition: `Request` and
+  `Response` wrapper messages (which may embed or compose types from `messages.proto`
+  via import) and the `service` / `rpc` declarations. No standalone domain messages
+  MUST be defined here.
+- **`common/v<N>/`** — MUST contain cross-cutting message types that are referenced
+  by more than one module (e.g., pagination cursors, error envelopes, audit fields).
+  No `service` blocks are allowed in `common/`.
+- **`generated/`** — contains the Go source files produced by `protoc` + `protoc-gen-go`
+  + `protoc-gen-go-grpc`. This directory MUST be committed to the repository so that
+  consumers do not require a local `protoc` installation to build.
+  A `Makefile` target (`proto/generate`) MUST regenerate all files deterministically.
+- Proto files MUST use `proto3` syntax. Packages MUST follow the convention
+  `<module>.v<N>` (e.g., `package bills.v1`).
+- Field names in `.proto` files MUST use `snake_case`; the generated Go field names
+  will be automatically converted to `PascalCase` by `protoc-gen-go`.
+- Breaking changes to an existing versioned proto (renaming or removing fields,
+  changing field numbers) are forbidden; introduce a new version (`v2`, etc.) instead.
 
 ### III. Cloud Native & Containerization (NON-NEGOTIABLE)
 
@@ -645,7 +680,8 @@ A PR is blocked if:
     assert against state they did not set up themselves.
 
 Code review MUST verify that each gRPC service definition is accompanied by updated
-`.proto` files committed to the repository (proto-first design).
+`.proto` files committed under `backend/protos/<module>/v<N>/` following the
+`messages.proto` / `grpc.proto` layout convention defined in Principle II.
 
 All secrets MUST be injected via environment variables; no credentials may be committed
 to the repository.
@@ -665,4 +701,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.7.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.8.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
