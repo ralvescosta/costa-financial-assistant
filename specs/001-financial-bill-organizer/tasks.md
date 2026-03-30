@@ -33,10 +33,10 @@
 
 **⚠️ CRITICAL**: No user-story implementation starts before this phase completes.
 
-- [ ] T008 Create multi-tenant bootstrap schema migration (`users/projects/project_members`) in `backend/internals/migrations/000001_create_identity_and_projects.up.sql`
-- [ ] T009 Create reversible down migration for tenant bootstrap schema in `backend/internals/migrations/000001_create_identity_and_projects.down.sql`
-- [ ] T010 Create seed migration for bootstrap user/project/member in `backend/internals/migrations/000002_seed_bootstrap_tenant.up.sql`
-- [ ] T011 Create down migration for bootstrap seed data in `backend/internals/migrations/000002_seed_bootstrap_tenant.down.sql`
+- [ ] T008 Create multi-tenant bootstrap schema migration (`users/projects/project_members`) in `backend/onboarding/migrations/000001_create_identity_and_projects.up.sql`
+- [ ] T009 Create reversible down migration for tenant bootstrap schema in `backend/onboarding/migrations/000001_create_identity_and_projects.down.sql`
+- [ ] T010 Create seed migration for bootstrap user/project/member in `backend/onboarding/migrations/000002_seed_bootstrap_tenant.up.sql`
+- [ ] T011 Create down migration for bootstrap seed data in `backend/onboarding/migrations/000002_seed_bootstrap_tenant.down.sql`
 - [ ] T012 [P] Add onboarding v1 domain messages contract in `backend/protos/onboarding/v1/messages.proto`
 - [ ] T013 [P] Add onboarding v1 grpc service contract in `backend/protos/onboarding/v1/grpc.proto`
 - [ ] T014 [P] Add identity v1 domain messages contract in `backend/protos/identity/v1/messages.proto`
@@ -47,9 +47,19 @@
 - [ ] T019 Implement BFF Echo+Huma bootstrap with otelecho middleware in `backend/cmd/bff/container.go`
 - [ ] T020 [P] Implement JWT/JWKS validation middleware for BFF in `backend/internals/bff/financial/transport/http/middleware/auth_middleware.go`
 - [ ] T021 [P] Implement project-membership and role guard middleware in `backend/internals/bff/financial/transport/http/middleware/project_guard.go`
-- [ ] T022 Implement shared UnitOfWork transaction coordinator in `backend/internals/repositories/unit_of_work.go`
+- [ ] T022 Implement UnitOfWork for files service in `backend/internals/files/repositories/unit_of_work.go`
 - [ ] T023 Implement ephemeral integration-test DB harness in `backend/tests/integration/testmain_test.go`
 - [ ] T024 [P] Configure frontend query client/provider bootstrap in `frontend/src/app/providers.tsx`
+- [ ] T098 Implement UnitOfWork for bills service in `backend/internals/bills/repositories/unit_of_work.go`
+- [ ] T099 Implement UnitOfWork for payments service in `backend/internals/payments/repositories/unit_of_work.go`
+- [ ] T100 Implement UnitOfWork for onboarding service in `backend/internals/onboarding/repositories/unit_of_work.go`
+- [ ] T101 [P] Implement frontend theme provider with semantic light/dark token mapping in `frontend/src/app/theme/ThemeProvider.tsx`
+- [ ] T102 [P] Implement persisted theme preference + OS fallback bootstrap in `frontend/src/app/theme/themeStorage.ts`
+- [ ] T103 Implement no-reload theme toggle wiring in `frontend/src/components/ThemeToggle.tsx`
+- [ ] T104 [P] Add hook tests for theme preference/bootstrap flows in `frontend/src/hooks/useThemePreference.test.ts`
+- [ ] T105 [P] Add integration test for identity JWKS metadata endpoint contract in `backend/tests/integration/identity_jwks_contract_test.go`
+- [ ] T106 [P] Add integration test matrix for invalid and expired token rejection in `backend/tests/integration/auth_token_rejection_test.go`
+- [ ] T107 Implement JWKS cache/refresh component for auth middleware in `backend/internals/bff/financial/transport/http/middleware/jwks_cache.go`
 
 **Checkpoint**: Foundation complete. User stories can now proceed.
 
@@ -98,8 +108,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Add migration for analysis jobs and extracted statement/bill tables in `backend/internals/migrations/000003_create_analysis_tables.up.sql`
-- [ ] T042 [P] [US2] Add down migration for analysis tables in `backend/internals/migrations/000003_create_analysis_tables.down.sql`
+- [ ] T041 [P] [US2] Add migration for analysis jobs and extracted statement/bill tables in `backend/files/migrations/000001_create_analysis_tables.up.sql`
+- [ ] T042 [P] [US2] Add down migration for analysis tables in `backend/files/migrations/000001_create_analysis_tables.down.sql`
 - [ ] T043 [US2] Implement async analysis job publisher/consumer pipeline in `backend/internals/files/transport/rmq/analysis_consumer.go`
 - [ ] T044 [US2] Implement extraction service for due date/amount/pix/barcode and statement lines in `backend/internals/files/services/extraction_service.go`
 - [ ] T045 [US2] Implement BFF document-detail projection for extracted fields in `backend/internals/bff/financial/controllers/documents_controller.go`
@@ -119,13 +129,13 @@
 ### Tests for User Story 3
 
 - [ ] T048 [P] [US3] Add integration test for bank-account CRUD and attribution guard in `backend/tests/integration/us3_bank_accounts_test.go`
-- [ ] T049 [P] [US3] Add unit tests for bank-account service validation rules in `backend/internals/bff/services/bank_account_service_test.go`
+- [ ] T049 [P] [US3] Add unit tests for bank-account repository validation rules in `backend/internals/bff/repositories/bank_account_repository_test.go`
 - [ ] T050 [P] [US3] Add hook test for bank-account CRUD flows in `frontend/src/hooks/useBankAccounts.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T051 [P] [US3] Add migration for project-scoped bank-account labels in `backend/internals/migrations/000004_create_bank_accounts.up.sql`
-- [ ] T052 [P] [US3] Add down migration for bank-account labels in `backend/internals/migrations/000004_create_bank_accounts.down.sql`
+- [ ] T051 [P] [US3] Add migration for project-scoped bank-account labels in `backend/files/migrations/000002_create_bank_accounts.up.sql`
+- [ ] T052 [P] [US3] Add down migration for bank-account labels in `backend/files/migrations/000002_create_bank_accounts.down.sql`
 - [ ] T053 [US3] Implement bank-account repository with project scope + duplicate checks in `backend/internals/bff/repositories/bank_account_repository.go`
 - [ ] T054 [US3] Implement BFF settings controller for bank-account endpoints in `backend/internals/bff/financial/controllers/settings_controller.go`
 - [ ] T055 [US3] Implement frontend hook for bank-account queries/mutations in `frontend/src/hooks/useBankAccounts.ts`
@@ -201,8 +211,8 @@
 
 ### Implementation for User Story 5
 
-- [ ] T080 [P] [US5] Add migration for reconciliation links and indexes in `backend/internals/migrations/000005_create_reconciliation_tables.up.sql`
-- [ ] T081 [P] [US5] Add down migration for reconciliation tables in `backend/internals/migrations/000005_create_reconciliation_tables.down.sql`
+- [ ] T080 [P] [US5] Add migration for reconciliation links and indexes in `backend/payments/migrations/000001_create_reconciliation_tables.up.sql`
+- [ ] T081 [P] [US5] Add down migration for reconciliation tables in `backend/payments/migrations/000001_create_reconciliation_tables.down.sql`
 - [ ] T082 [US5] Implement reconciliation matching service (auto + ambiguous routing) in `backend/internals/payments/services/reconciliation_service.go`
 - [ ] T083 [US5] Implement BFF reconciliation controller (`summary`, `create-link`) in `backend/internals/bff/financial/controllers/reconciliation_controller.go`
 - [ ] T084 [US5] Implement frontend reconciliation hook in `frontend/src/hooks/useReconciliation.ts`
