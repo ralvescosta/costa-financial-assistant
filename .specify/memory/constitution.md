@@ -1,25 +1,25 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.2.0 → 1.3.0
-Bump rationale: MINOR — one existing principle structurally expanded (canonical layout
-  updated) and one new principle added; no principles removed or redefined.
+Version change: 1.3.0 → 1.4.0
+Bump rationale: MINOR — Principle IX materially expanded with two new mandatory
+  data-access disciplines; no principles removed or redefined.
 Modified principles:
-  - II. SOLID Principles & Clean Architecture — `migrations/` directory added to the
-    canonical Go service layout.
-Added principles:
-  - IX. Data Access & Database Discipline — cache-aside read pattern, mandatory index
-    review for every query, DDL+DML migration tracking, golang-migrate/migrate as the
-    sole migration runner, migrations module in the backend.
+  - II. SOLID Principles & Clean Architecture — `unit_of_work.go` added to canonical
+    `internals/repositories/` layout.
+  - IX. Data Access & Database Discipline — added mandatory idempotency pattern for all
+    mutating resources, and mandatory Unit of Work pattern for multi-step atomic
+    operations using `unit_of_work.go` in the repositories layer.
+Added principles: None
 Removed sections: None
 Templates requiring updates:
   - .specify/templates/plan-template.md ✅ — constitution check gates remain valid;
-    Technical Context for new data-touching features must list golang-migrate and Redis
-    cache-aside as dependencies; Storage field should reference migrations/ structure.
+    Technical Context for features with multi-step writes must now reference Unit of Work
+    and idempotency key design as constraints.
   - .specify/templates/spec-template.md ✅ — no structural changes required.
   - .specify/templates/tasks-template.md ✅ — Phase 2 (Foundational) tasks for any
-    service that touches PostgreSQL MUST include: migration file creation task, index
-    review task, and cache-aside repository implementation task.
+    service with multi-step writes MUST include: `unit_of_work.go` implementation task
+    and idempotency key migration + deduplication logic task.
   - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
@@ -54,6 +54,7 @@ internals/
     *.go            # domain types, errors
     *_test.go       # unit tests alongside source
   repositories/     # data access implementations
+    unit_of_work.go # Unit of Work: transaction boundary coordinator
     *.go
     *_test.go
   transport/
@@ -283,6 +284,54 @@ Rules:
 - The `Makefile` MUST expose `migrate/up/<service>` and `migrate/down/<service>`
   targets for manual control during development.
 
+**Idempotency**:
+Every mutating resource endpoint or message handler — whether HTTP, gRPC, or RabbitMQ
+consumer — MUST be idempotent: processing the same request or message more than once
+MUST produce the same observable state as processing it exactly once.
+Implementation rules:
+- Each mutating operation MUST accept and persist a client-supplied or
+  broker-assigned idempotency key (e.g., `X-Idempotency-Key` header for HTTP,
+  a `idempotency_key` field in the Protobuf message, a `message_id` property for
+  RabbitMQ AMQP messages).
+- The idempotency key MUST be stored in a dedicated column or table alongside the
+  resource; a unique database index MUST be created on this column to enforce
+  deduplication at the persistence layer.
+- On receipt of a duplicate key, the service MUST return the original response
+  (or acknowledgement) without re-executing the operation.
+- Idempotency key expiry policy (TTL or retention window) MUST be defined per resource
+  and documented in the corresponding migration or spec.
+- RabbitMQ consumers MUST check the idempotency key before processing and acknowledge
+  duplicate messages without re-processing.
+
+**Unit of Work / Atomicity**:
+Whenever a business operation must modify more than one aggregate, table, or external
+system (e.g., write to PostgreSQL + invalidate Redis + publish a RabbitMQ event), the
+operation MUST be wrapped in a transaction boundary coordinated by the Unit of Work
+pattern.
+Each service MUST implement a `UnitOfWork` interface and its concrete implementation
+in `internals/repositories/unit_of_work.go`:
+```go
+type UnitOfWork interface {
+    Begin(ctx context.Context) (UnitOfWork, error)
+    Commit(ctx context.Context) error
+    Rollback(ctx context.Context) error
+    // Repository accessors scoped to this transaction, e.g.:
+    BillRepository() BillRepository
+    FileRepository() FileRepository
+}
+```
+Rules:
+- The `UnitOfWork` struct MUST hold the active `*sql.Tx` (or equivalent) and expose
+  transactional repository instances bound to that transaction.
+- Service methods that require atomicity MUST accept a `UnitOfWork` factory via
+  dependency injection (`uber/dig`) and call `Begin` → business logic → `Commit`;
+  `Rollback` MUST be deferred immediately after `Begin`.
+- Direct use of `*sql.DB` or `*sql.Tx` outside of repository implementations and
+  `unit_of_work.go` is forbidden in `internals/`.
+- Cache invalidation and outbox/event publishing that must be atomic with a database
+  write MUST be coordinated inside the same Unit of Work scope using the
+  transactional outbox pattern or equivalent.
+
 ## Technology Stack
 
 ### Backend
@@ -357,6 +406,13 @@ A PR is blocked if:
 20. An existing migration file is edited after being merged (corrections require a new
     migration file).
 21. A service startup sequence does not run `golang-migrate` before accepting traffic.
+22. A mutating HTTP/gRPC endpoint or RabbitMQ consumer is implemented without an
+    idempotency key check and a unique index on the idempotency key column.
+23. A business operation that modifies more than one aggregate or interacts with more
+    than one persistence/messaging system does not use `UnitOfWork` from
+    `internals/repositories/unit_of_work.go`.
+24. A service method directly holds or passes a `*sql.Tx` outside of repository
+    implementations and `unit_of_work.go`.
 
 Code review MUST verify that each gRPC service definition is accompanied by updated
 `.proto` files committed to the repository (proto-first design).
@@ -379,4 +435,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.3.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.4.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
