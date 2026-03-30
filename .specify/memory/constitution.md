@@ -1,24 +1,26 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: (initial template) → 1.0.0
-Modified principles: N/A — first ratification, all principles newly defined.
-Added sections:
-  - Core Principles (7 principles)
-  - Technology Stack
-  - Development Workflow
-  - Governance
-Removed sections: N/A
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR — three existing principles materially expanded with new mandatory
+  tooling and testing discipline rules; no principles removed or redefined.
+Modified principles:
+  - III. Cloud Native & Containerization — added grafana/otel-lgtm to required docker-compose
+    services.
+  - V. Test Discipline — added mandatory BDD + Triple-A (Arrange-Act-Assert) structure for
+    all unit tests.
+  - VI. Observability & Structured Logging — replaced ambiguous logger choice with zap
+    (go.uber.org/zap) as the single mandatory logger; added full OpenTelemetry instrumentation
+    requirement (logs via zap OTel hook, metrics, traces) for all backend services.
+Added sections: None
+Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — path conventions and constitution check gates
-    aligned with monorepo structure and 7 principles; no structural edits needed,
-    constitution check guidance is principle-driven.
-  - .specify/templates/spec-template.md ✅ — no structural changes required; existing
-    scaffold is compatible with this constitution.
-  - .specify/templates/tasks-template.md ✅ — path conventions updated mentally to reflect
-    monorepo layout (backend/, frontend/); no file edits required as template uses
-    advisory comments.
-  - .github/agents/*.md ✅ — no outdated CLAUDE-only references found in template files.
+  - .specify/templates/plan-template.md ✅ — constitution check gates still valid; Technical
+    Context section for new features should now list OTel SDK and zap as primary dependencies.
+  - .specify/templates/spec-template.md ✅ — no structural changes required.
+  - .specify/templates/tasks-template.md ✅ — Phase 2 (Foundational) tasks for new backend
+    services MUST now include OTel SDK bootstrap and zap logger setup tasks.
+  - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
 
@@ -76,7 +78,9 @@ All services MUST follow the 12-factor app methodology:
 configuration via environment variables, stateless processes, explicit dependency
 declaration, disposability.
 A `docker-compose.yml` MUST exist at the repository root providing all local-dev
-dependencies: PostgreSQL, RabbitMQ, and a file-storage service (e.g., MinIO).
+dependencies: PostgreSQL, RabbitMQ, a file-storage service (e.g., MinIO), and the
+`grafana/otel-lgtm` image which bundles the full Grafana observability stack
+(Loki, Grafana, Tempo, Mimir/Prometheus) for local telemetry validation.
 Backend services MUST expose health-check endpoints consumable by container orchestrators.
 
 ### IV. Frontend Component-First & Hook Isolation (NON-NEGOTIABLE)
@@ -94,6 +98,12 @@ more custom hook files. Co-locating them in the same file is forbidden.
 ### V. Test Discipline
 
 Unit tests are MANDATORY for all service and repository implementations in the backend.
+All unit tests MUST follow BDD (Behaviour-Driven Development) style and the
+Triple-A structure — every test body MUST contain explicit Arrange, Act, and Assert
+phases, separated by blank lines and optionally labeled with inline comments
+(`// Arrange`, `// Act`, `// Assert`) to make intent unambiguous.
+Test names MUST describe behaviour in the form `TestSubject_WhenCondition_ThenOutcome`
+or an equivalent BDD-readable sentence.
 Mocks MUST be auto-generated using `uber/mock` (`mockgen`) and placed in `mocks/`;
 hand-written mocks are forbidden.
 Integration tests MUST cover inter-service gRPC contracts and any RabbitMQ event contracts.
@@ -102,14 +112,29 @@ Tests MUST live alongside source (`*_test.go` for Go; `*.test.tsx` for React).
 No production code may be merged that reduces existing test coverage without explicit
 documented justification.
 
-### VI. Observability & Structured Logging
+### VI. Observability & Structured Logging (NON-NEGOTIABLE)
 
-All backend services MUST emit structured, leveled logs (e.g., using `slog` or `zap`).
+All backend services MUST use `go.uber.org/zap` as the sole structured logger.
+No other logging library (`slog`, `logrus`, `log`, etc.) is permitted in service code;
+shared `pkgs/` utilities MUST accept a `*zap.Logger` parameter rather than hard-coding
+a logger.
+The zap logger MUST be configured with an OpenTelemetry log hook so that all log
+emissions are forwarded to the OTel log pipeline
+(use `go.opentelemetry.io/contrib/bridges/otelzap` or equivalent bridge).
+Every backend service MUST instrument the full OpenTelemetry signal triad:
+- **Logs**: via the zap→OTel bridge, exported to the OTLP endpoint.
+- **Metrics**: via the OTel Metrics SDK (`go.opentelemetry.io/otel/metric`),
+  exported to the OTLP endpoint; expose a Prometheus scrape endpoint as a secondary
+  exporter where operationally justified.
+- **Traces**: via the OTel Trace SDK (`go.opentelemetry.io/otel/trace`), exported
+  to the OTLP endpoint; spans MUST be created at service method boundaries and
+  at transport layer entry/exit points.
+OTel SDK bootstrap (resource attributes, exporters, batch processors) MUST be
+initialised in `cmd/container.go` via `dig` and shut down gracefully on process exit.
 Errors MUST be wrapped with contextual information at every layer boundary
 (use `fmt.Errorf("...: %w", err)` or equivalent).
-Correlation/trace IDs MUST be propagated across gRPC calls and RabbitMQ messages.
-Services MUST expose Prometheus-compatible metrics endpoints where runtime telemetry
-is relevant to the domain.
+Trace/span context MUST be propagated across gRPC calls (via gRPC interceptors) and
+RabbitMQ messages (via message headers using the W3C TraceContext propagation format).
 
 ### VII. Infrastructure-as-Code & Makefile Discipline
 
@@ -131,8 +156,15 @@ No manual steps outside documented `make` targets are acceptable for onboarding.
 - **Database**: PostgreSQL (primary persistent store)
 - **Cache**: Redis (optional, use where cache benefit is measurable)
 - **Async messaging**: RabbitMQ (use only when async decoupling is architecturally justified)
+- **Logging**: `go.uber.org/zap` (sole logger; no alternatives permitted)
+- **Observability**: OpenTelemetry Go SDK — `go.opentelemetry.io/otel` (traces + metrics)
+  + `go.opentelemetry.io/contrib/bridges/otelzap` (log bridge)
+  + OTLP exporter (`go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc`,
+  `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc`,
+  `go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc`)
 - **Mock generation**: `uber/mock` (`mockgen`)
-- **Testing**: standard `testing` package + `testify` for assertions
+- **Testing**: standard `testing` package + `testify` for assertions;
+  all unit tests MUST follow BDD + Triple-A structure
 
 ### Frontend
 
@@ -145,6 +177,8 @@ No manual steps outside documented `make` targets are acceptable for onboarding.
 
 - **Containerization**: Docker + `docker buildx` for multi-platform images
 - **Local dev orchestration**: Docker Compose
+  - Required services: PostgreSQL, RabbitMQ, MinIO, `grafana/otel-lgtm`
+    (Loki + Grafana + Tempo + Mimir/Prometheus bundled)
 - **Build automation**: GNU Make
 
 ## Development Workflow
@@ -181,4 +215,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.1.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
