@@ -1,25 +1,32 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.5.0 → 1.6.0
-Bump rationale: MINOR — Principle IV materially expanded with two new mandatory
-  design-system disciplines; no principles removed or redefined.
+Version change: 1.6.0 → 1.7.0
+Bump rationale: MINOR — new Principle X (Multi-Tenancy, Identity & Access) added;
+  Principle V (Test Discipline) materially amended to scope frontend tests to custom
+  hooks only (UI component tests explicitly excluded) and to formalise the ephemeral
+  test-database lifecycle for backend integration tests.
 Modified principles:
-  - IV. Frontend Component-First, Hook Isolation & Design System — added mandatory
-    pre-defined typography scale (font size, weight, and line-height tokens); all text
-    formatting MUST reference semantic typography tokens only. Added mandatory
-    mobile-first responsive layout rule with defined breakpoints; all screens MUST be
-    designed and coded mobile-first using min-width media queries.
-Added principles: None
+  - I. Modular Monorepo Architecture — service list updated to include onboarding-grpc
+    and identity-grpc.
+  - V. Test Discipline — frontend testing scoped to BDD hook unit tests only; UI
+    component rendering tests are explicitly out of scope. Backend integration test
+    discipline expanded with mandatory ephemeral database pattern
+    (create → migrate up → test → destroy) driven by TestMain or equivalent hook.
+Added principles:
+  - X. Multi-Tenancy, Identity & Access — tenant-aware data model mandatory from day
+    one (project_id FK on all domain tables); projects + project_members RBAC model;
+    onboarding-grpc and identity-grpc service responsibilities defined; JWKS-based JWT
+    validation required across all services; Phase-1 seed-data bootstrap strategy with
+    fake JWT issuance and always-valid JWKS endpoint.
 Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — Technical Context for frontend features
-    must now reference the typography token file and confirm breakpoints are covered.
-  - .specify/templates/spec-template.md ✅ — Design Constraints section in feature specs
-    should reference typography scale and responsive rules.
-  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for frontend features
-    must now include tasks to add typography tokens to the token file and confirm
-    responsive breakpoints are configured.
+  - .specify/templates/plan-template.md ✅ — backend features must note tenant FK
+    requirements and identity service context in Technical Context.
+  - .specify/templates/spec-template.md ✅ — feature specs must declare project_id FK
+    in data model sections and reference identity service for auth flows.
+  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for any backend feature
+    must include a task to configure the ephemeral test database for integration tests.
   - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
@@ -32,8 +39,9 @@ Deferred TODOs: None — all fields resolved.
 
 The entire project MUST live in a single monorepo.
 Frontend and backend are top-level modules with no shared source coupling.
-Backend services (BFF API, files-grpc, bills-grpc, scheduler-grpc, and future services)
-MUST be independently deployable units with no cross-service direct imports.
+Backend services (BFF API, files-grpc, bills-grpc, scheduler-grpc, onboarding-grpc,
+identity-grpc, and future services) MUST be independently deployable units with no
+cross-service direct imports.
 Circular dependencies between modules are forbidden.
 Each microservice owns its own domain; shared utilities MUST live in `pkgs/` and MUST NOT
 encode domain logic.
@@ -225,19 +233,49 @@ Responsive rules:
 
 ### V. Test Discipline
 
-Unit tests are MANDATORY for all service and repository implementations in the backend.
-All unit tests MUST follow BDD (Behaviour-Driven Development) style and the
-Triple-A structure — every test body MUST contain explicit Arrange, Act, and Assert
-phases, separated by blank lines and optionally labeled with inline comments
+**Backend unit tests**:
+Unit tests are MANDATORY for all service and repository implementations where logic is
+non-trivial. All unit tests MUST follow BDD (Behaviour-Driven Development) style and
+the Triple-A structure — every test body MUST contain explicit Arrange, Act, and Assert
+phases, separated by blank lines and labeled with inline comments
 (`// Arrange`, `// Act`, `// Assert`) to make intent unambiguous.
 Test names MUST describe behaviour in the form `TestSubject_WhenCondition_ThenOutcome`
 or an equivalent BDD-readable sentence.
 Mocks MUST be auto-generated using `uber/mock` (`mockgen`) and placed in `mocks/`;
 hand-written mocks are forbidden.
-Integration tests MUST cover inter-service gRPC contracts and any RabbitMQ event contracts.
-Frontend component tests are REQUIRED for all reusable components.
-Tests MUST live alongside source (`*_test.go` for Go; `*.test.tsx` for React).
-No production code may be merged that reduces existing test coverage without explicit
+
+**Backend integration tests**:
+Integration tests MUST stimulate the transport layer (gRPC handler or HTTP handler)
+end-to-end and verify that the full request/response cycle works correctly, including
+middleware, validation, persistence, and event publishing.
+Integration tests that require database access MUST use an **ephemeral test database**:
+1. Provision a dedicated database instance (via Docker Compose test profile or a test
+   environment variable pointing to an isolated schema).
+2. Run all `golang-migrate` migrations (`migrate up`) against it before any test runs.
+3. Execute the integration test suite.
+4. Tear down the database after all tests complete (`migrate down` / container destroy).
+The ephemeral database lifecycle MUST be managed in `TestMain`; individual tests MUST
+NOT assume pre-existing database state — each test MUST set up and clean up its own
+fixtures.
+Integration tests MUST cover inter-service gRPC contracts and any RabbitMQ event
+contracts.
+
+**Frontend tests**:
+Frontend testing is **scoped to custom hooks only** — UI component rendering tests are
+explicitly out of scope and MUST NOT be written.
+Every custom hook (`use*.ts`) that contains non-trivial logic MUST have a corresponding
+test file (`use*.test.ts`).
+Hook tests MUST follow BDD style using `describe` / `it` blocks:
+- Outer `describe` = subject (hook name).
+- Inner `describe` = scenario / condition.
+- `it` = expected outcome in plain language.
+All hook tests MUST follow the Triple-A structure (Arrange / Act / Assert) within each
+`it` block.
+Hook tests MUST mock all external calls (API, browser APIs, third-party libraries) at
+the hook boundary; no test may make real network requests.
+
+Tests MUST live alongside source (`*_test.go` for Go; `use*.test.ts` for React hooks).
+No production code may be merged that removes an existing test without explicit
 documented justification.
 
 ### VI. Observability & Structured Logging (NON-NEGOTIABLE)
@@ -449,6 +487,62 @@ Rules:
   write MUST be coordinated inside the same Unit of Work scope using the
   transactional outbox pattern or equivalent.
 
+### X. Multi-Tenancy, Identity & Access (NON-NEGOTIABLE)
+
+The system is designed as a **multi-tenant** platform from inception.
+Even though the initial deployment serves a single user, every data model MUST be
+tenant-aware from day one so that onboarding additional users requires zero schema
+changes.
+
+**Tenant data model**:
+- A `users` table MUST exist as the authoritative user registry
+  (UUID PK, email, display name, status, timestamps).
+- A `projects` table MUST exist. Every registered user owns one or more projects.
+  Each project carries a `type` column (e.g., `personal`, `conjugal`, `shared`) and
+  an `owner_id` FK to `users`.
+- A `project_members` table MUST exist to model collaboration: the project owner may
+  invite other users; each row carries a `role` column with exactly three values:
+  - `read_only` — may query data; MUST NOT mutate.
+  - `update` — may mutate existing records; MUST NOT create new top-level resources.
+  - `write` — full create / update / delete access within the project scope.
+- **Every domain table** (bills, statements, transactions, bank accounts, file uploads,
+  etc.) MUST carry a `project_id` FK to `projects`. No table that holds user-scoped
+  data may exist without tracing back to a tenant owner. Pure reference or lookup
+  tables (e.g., currency codes, country codes) are exempt with explicit justification.
+- All repository queries that touch tenant-owned data MUST include the caller's
+  `project_id` (or a validated project membership check) in the `WHERE` clause.
+  Cross-tenant data access is forbidden and MUST be enforced at the repository layer.
+
+**Service responsibilities**:
+- `onboarding-grpc`: owns the user and project lifecycle — create account, create
+  project, invite collaborator, update member role, remove member, deactivate account.
+- `identity-grpc`: owns token issuance and identity verification — signs JWTs with
+  claims (`sub`, `project_id`, `role`, `iat`, `exp`), exposes the public JWKS endpoint,
+  handles token refresh. No other service may issue tokens or embed issuer-specific
+  signing logic.
+
+**Phase-1 bootstrap** (mandatory interim strategy until full auth flow is implemented):
+1. Seed migration files in `migrations/` MUST insert at least one `users` row and one
+   `projects` row with stable, well-known UUIDs. These records serve as the default
+   development tenant and are the fixture baseline for all integration tests.
+2. `identity-grpc` MUST issue JWTs in Phase-1 whose claims (`sub`, `project_id`,
+   `role`) are sourced from service configuration rather than a real auth challenge.
+   No login screen or credential verification is required in Phase-1.
+3. `identity-grpc` MUST expose `GET /jwks` returning a valid JWKS document containing
+   the public key whose corresponding private key signs all Phase-1 JWTs, so the
+   validation path across all services is identical to production from day one.
+4. Every service MUST validate incoming JWTs by fetching and caching the JWKS from
+   `identity-grpc`. Accepting unvalidated tokens or bypassing JWT validation in
+   non-test code paths is forbidden.
+5. When the full identity flow (registration, login, Keycloak / external IdP) is
+   implemented, only `identity-grpc` changes internally; all consuming services
+   continue JWKS-based validation with zero modifications.
+
+**JWT signing key management**:
+The private key used by `identity-grpc` to sign tokens MUST be loaded via
+`pkgs/secrets` at startup (never hardcoded in source). The `GET /jwks` endpoint
+MUST serve only the public-key portion of the signing key pair.
+
 ## Technology Stack
 
 ### Backend
@@ -472,6 +566,8 @@ Rules:
 - **Secrets**: `pkgs/secrets` interface; providers: `github.com/hashicorp/vault/api`
   (HashiCorp Vault) and `github.com/aws/aws-sdk-go-v2/service/secretsmanager`
   (AWS Secrets Manager)
+- **JWT** (`identity-grpc` only): `github.com/golang-jwt/jwt/v5` for token issuance
+  and local JWKS-validated parsing; no other service may use this for token signing
 - **Mock generation**: `uber/mock` (`mockgen`)
 - **Testing**: standard `testing` package + `testify` for assertions;
   all unit tests MUST follow BDD + Triple-A structure
@@ -493,7 +589,7 @@ Rules:
 
 ## Development Workflow
 
-Every feature branch MUST be reviewed against all nine core principles before merge.
+Every feature branch MUST be reviewed against all ten core principles before merge.
 A PR is blocked if:
 
 1. A backend service violates the `cmd/internals/pkgs/mocks/migrations` directory contract.
@@ -538,6 +634,15 @@ A PR is blocked if:
     line-height value instead of a semantic typography token from the token file.
 28. A screen or component layout is not implemented mobile-first (base styles for
     320px minimum; breakpoints via `min-width` only; touch targets ≥ 44×44px).
+29. A new domain table is introduced without a `project_id` FK to `projects`
+    establishing tenant isolation; pure reference / lookup tables require explicit
+    documented justification to be exempt.
+30. A service other than `identity-grpc` issues JWTs or contains token-signing logic;
+    all services MUST validate tokens exclusively via the JWKS endpoint of
+    `identity-grpc`.
+31. A backend integration test that requires database access does not use an ephemeral
+    test database (provision → `migrate up` → test → destroy), OR individual tests
+    assert against state they did not set up themselves.
 
 Code review MUST verify that each gRPC service definition is accompanied by updated
 `.proto` files committed to the repository (proto-first design).
@@ -560,4 +665,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.6.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.7.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
