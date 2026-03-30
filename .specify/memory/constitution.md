@@ -1,24 +1,26 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.7.0 → 1.8.0
-Bump rationale: MINOR — Principle II materially expanded with a mandatory canonical
-  Protobuf repository layout; no principles removed or redefined.
+Version change: 1.8.0 → 1.9.0
+Bump rationale: MINOR — BFF HTTP framework rules added (Echo + Huma v2, MVC pattern,
+  OpenAPI documentation mandate); Principle VI trace propagation rule updated to
+  reference otelecho instead of the generic otelhttp middleware.
 Modified principles:
-  - II. SOLID Principles & Clean Architecture — added mandatory proto file layout
-    convention: per-module versioned directories under backend/protos/, separation of
-    domain messages from gRPC transport messages, common/ for shared messages,
-    generated/ for compiled Go output; proto-first design rule now cross-referenced
-    to this layout.
+  - I. Modular Monorepo Architecture — new sub-section "BFF HTTP Framework & MVC"
+    added defining Echo v4 + Huma v2 as the mandatory BFF stack, the MVC layer
+    structure, OpenAPI documentation requirements, and server bootstrap rules.
+  - VI. Observability & Structured Logging — HTTP trace propagation rule updated
+    from otelhttp to otelecho (echo.labstack.com/v4 OTel middleware) to match the
+    mandated BFF framework.
 Added principles: None
 Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — Technical Context for gRPC services must
-    reference the proto directory layout and confirm messages.proto / grpc.proto split.
-  - .specify/templates/spec-template.md ✅ — Feature specs introducing new gRPC services
-    must declare the proto directory path and versioning intent.
-  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for any feature adding a
-    gRPC service must include a task to scaffold the versioned proto directory.
+  - .specify/templates/plan-template.md ✅ — BFF feature Technical Context must
+    reference Echo + Huma router and MVC layer paths.
+  - .specify/templates/spec-template.md ✅ — BFF endpoint specs should declare the
+    Huma Input/Output struct types and document OpenAPI operation metadata.
+  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for BFF features must
+    include a task to register the Huma route and verify the OpenAPI document.
   - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
@@ -37,6 +39,55 @@ cross-service direct imports.
 Circular dependencies between modules are forbidden.
 Each microservice owns its own domain; shared utilities MUST live in `pkgs/` and MUST NOT
 encode domain logic.
+
+**BFF HTTP Framework & MVC**:
+The BFF API service MUST be built with `github.com/labstack/echo/v4` as the HTTP router
+and `github.com/danielgtaylor/huma/v2` as the OpenAPI-first handler layer, integrated
+via `github.com/danielgtaylor/huma/v2/adapters/humaecho`.
+No alternative HTTP framework (Gin, Chi, Fiber, net/http ServeMux, etc.) may be used
+in the BFF service.
+
+Server bootstrap MUST follow this structure, wired through `cmd/container.go` via `dig`:
+```go
+e := echo.New()
+e.HideBanner = true
+e.Use(middleware.Recover())
+e.Use(otelecho.Middleware(serviceName))   // OTel trace propagation
+apiServer := humaecho.New(e, huma.DefaultConfig(serviceName, version))
+```
+`serviceName` and `version` MUST be supplied from the typed config struct
+(loaded by `pkgs/configs`); hardcoding them is forbidden.
+
+The BFF MUST follow the **MVC pattern** with these mandatory layers:
+```
+internals/
+  <domain>/
+    controllers/     # HTTP layer: register Huma routes, parse Input structs,
+                     # call service, return Output structs; NO business logic here
+    services/        # business logic — domain operations, orchestration
+    interfaces/      # Go interfaces for services and repositories
+    *.go             # domain types, errors
+  repositories/      # data access implementations
+```
+- A **Controller** file (`*_controller.go`) in `controllers/` MUST be responsible for
+  one domain resource. Each handler function MUST be a method on a controller struct
+  and MUST register itself via a `Register(api huma.API)` method called from
+  `cmd/container.go`.
+- Controllers MUST NOT contain business logic. They translate HTTP Input structs to
+  domain calls on the service interface and translate the result to an Output struct.
+- Services MUST NOT import `huma` or `echo` packages. The service layer is
+  transport-agnostic.
+
+**OpenAPI documentation**:
+Every Huma route registration MUST supply a fully populated `huma.Operation` with:
+- `OperationID` — unique, kebab-case, descriptive (e.g., `create-bill`, `get-statement`).
+- `Summary` — one-sentence human description.
+- `Tags` — at minimum one tag grouping the resource (e.g., `["bills"]`).
+- `Description` — expanded behaviour description including side effects.
+Input structs MUST use `huma` validation tags (`minimum`, `maximum`, `pattern`,
+`required`, `doc`) so the generated OpenAPI schema is accurate and complete.
+The OpenAPI document MUST be accessible at `/openapi.json` (provided automatically
+by Huma); no additional documentation format is required.
 
 ### II. SOLID Principles & Clean Architecture (NON-NEGOTIABLE)
 
@@ -352,9 +403,11 @@ This ensures `trace_id` and `span_id` fields appear on every log record.
 **Trace propagation**:
 - gRPC: both server and client MUST use `go.opentelemetry.io/contrib/instrumentation/
   google.golang.org/grpc/otelgrpc` interceptors (unary + streaming).
-- HTTP (BFF): MUST use `go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp`
-  middleware on every route so inbound W3C `traceparent` headers are extracted and
-  outbound calls carry propagated context.
+- HTTP (BFF): MUST use `github.com/labstack/echo-contrib/otelecho` (the Echo-native
+  OTel middleware, `otelecho.Middleware(serviceName)`) registered on the Echo instance
+  before all route handlers so inbound W3C `traceparent` headers are extracted and
+  outbound calls carry propagated context. The generic `otelhttp` wrapper MUST NOT be
+  used on an Echo server.
 - RabbitMQ: trace context MUST be injected into and extracted from message headers using
   the W3C TraceContext propagation format.
 
@@ -585,6 +638,9 @@ MUST serve only the public-key portion of the signing key pair.
 - **Language**: Go (latest stable release at time of development)
 - **CLI framework**: `cobra` (github.com/spf13/cobra)
 - **Dependency injection**: `uber/dig` (go.uber.org/dig)
+- **HTTP framework (BFF only)**: `github.com/labstack/echo/v4` (router) +
+  `github.com/danielgtaylor/huma/v2` + `humaecho` adapter (OpenAPI-first handlers) +
+  `github.com/labstack/echo-contrib/otelecho` (OTel trace middleware)
 - **gRPC**: `google.golang.org/grpc` + Protocol Buffers
 - **Database**: PostgreSQL (primary persistent store)
 - **Cache**: Redis (optional, use where cache benefit is measurable)
@@ -640,7 +696,10 @@ A PR is blocked if:
 11. A log call does not pass a `context.Context` carrying the active OTel span
     (breaking log-trace correlation).
 12. A new gRPC service is introduced without `otelgrpc` interceptors on both sides.
-13. A new HTTP route in the BFF is introduced without the OTel HTTP middleware.
+13. A new HTTP route in the BFF is introduced without the `otelecho.Middleware`
+    registered on the Echo instance, or the route is registered outside of a
+    controller struct's `Register(api huma.API)` method, or the Huma operation
+    definition omits `OperationID`, `Summary`, `Tags`, or `Description`.
 14. A new independently-deployed service ships without `up` and `build_info` health metrics.
 15. A configuration value is hardcoded instead of loaded from the `.env` / config struct.
 16. A secret value appears in plaintext in any committed `.env` file
@@ -701,4 +760,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.8.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.9.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
