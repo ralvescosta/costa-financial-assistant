@@ -112,6 +112,24 @@ The user can access a dashboard that visualises their complete financial history
 
 ---
 
+### User Story 7 - Project-Based Collaboration and Access Control (Priority: P2)
+
+The user works inside a project workspace (e.g., personal, conjugal, shared). The project owner can invite collaborators and assign permissions (`read_only`, `update`, `write`). All documents, bills, statements, reconciliations, and dashboard views are strictly scoped to the active project.
+
+**Why this priority**: Project scoping and access rules are now foundational platform requirements. They must be in place early to prevent data-mixing and to support the transition from single-user bootstrap to true multi-user collaboration.
+
+**Independent Test**: Can be tested by creating two projects, assigning collaborators with different roles, uploading data in both projects, and verifying that each collaborator sees only permitted data and actions within the selected project.
+
+**Acceptance Scenarios**:
+
+1. **Given** a new account context is initialized, **When** the user accesses the app for the first time, **Then** a default project exists and all financial data created during that session is tied to that project.
+2. **Given** a project owner invites a collaborator as `read_only`, **When** the collaborator opens the payment dashboard, **Then** they can view bills and status but cannot mark bills as paid or edit records.
+3. **Given** a project owner assigns `update` permission, **When** that collaborator edits existing bill metadata, **Then** changes are allowed, but creating new top-level records is blocked.
+4. **Given** a collaborator has `write` permission, **When** they upload a new PDF in the active project, **Then** the upload and downstream analysis are allowed.
+5. **Given** a user switches from Project A to Project B, **When** dashboards and document lists load, **Then** no Project A records are visible in Project B views.
+
+---
+
 ### Edge Cases
 
 - What happens when a bill PDF contains no extractable Pix QR code or barcode (e.g., older format bills)? The system must store what it can extract and mark the missing fields explicitly as "not found" rather than failing the entire analysis.
@@ -121,6 +139,9 @@ The user can access a dashboard that visualises their complete financial history
 - What happens when an uploaded PDF has no machine-readable content (scanned image-only PDF)? The analysis must flag it as requiring OCR or unsupported and notify the user.
 - What happens when a bank account label is referenced by documents but the user tries to delete it? The system must warn and prevent or require re-attribution.
 - What happens when the document storage backend is temporarily unavailable during upload? The upload must fail gracefully with a user-friendly error; no orphaned metadata records must be left.
+- What happens when a `read_only` collaborator attempts to mark a bill as paid or edit labels? The system must deny the action and return a clear permission error.
+- What happens when a valid document hash exists in another project? Duplicate detection must be project-scoped so the upload is only blocked for duplicates within the same project.
+- What happens when a request token is missing project context or has invalid project membership? The system must reject the request before any data access.
 
 ## Requirements *(mandatory)*
 
@@ -178,6 +199,21 @@ The user can access a dashboard that visualises their complete financial history
   MUST honour the OS-level `prefers-color-scheme` setting.
 - **FR-032**: Theme switching MUST apply instantly without a page reload.
 
+**Multi-Tenancy, Collaboration, and Identity Foundation**
+- **FR-033**: System MUST model tenant ownership through `users`, `projects`, and `project_members` records, where each project has an owner and a project type (`personal`, `conjugal`, `shared`).
+- **FR-034**: System MUST support project collaboration by allowing a project owner to invite members and assign one of three roles: `read_only`, `update`, or `write`.
+- **FR-035**: System MUST enforce role permissions consistently across all bill-organizer capabilities: `read_only` can view only; `update` can modify existing records but cannot create new top-level resources; `write` can create, modify, and delete within project scope.
+- **FR-036**: Every project-owned domain record (documents, bills, statements, transaction lines, reconciliations, payment-cycle settings, and dashboards) MUST be linked to exactly one project and must not be accessible outside that project.
+- **FR-037**: All reads and writes MUST be scoped to the active project context, and any cross-project access attempt MUST be denied.
+- **FR-038**: Phase-1 operation MUST work without an end-user login flow by using seeded bootstrap account/project data and a bootstrap identity context suitable for development and initial rollout.
+- **FR-039**: System MUST provide verifiable token-key metadata for internal token validation and MUST reject requests with invalid or expired identity context.
+- **FR-040**: Duplicate-file detection by content hash MUST be enforced per project scope (same hash in different projects is allowed; same hash in the same project is flagged as duplicate).
+
+**BFF API Contract and Documentation**
+- **FR-041**: The HTTP API contract MUST be published as machine-readable OpenAPI documentation and must stay synchronized with runtime endpoint behavior.
+- **FR-042**: Every API operation MUST include unique operation metadata (identifier, summary, grouped tag, and behavior description) to support discoverability and integration.
+- **FR-043**: Request and response payload rules (required fields, input constraints, and validation failures) MUST be documented for every API operation.
+
 ### Key Entities
 
 - **Document**: A stored PDF file with its classification (bill or account statement), storage reference, upload timestamp, file hash, analysis status, and attributed label.
@@ -187,6 +223,10 @@ The user can access a dashboard that visualises their complete financial history
 - **BankAccount**: A user-registered label for a bank account — name only, no sensitive data.
 - **BillType**: A user-managed or system-provided label for a category of bill (e.g., "Credit Card – Nubank", "Energy – CEMIG", "Internet – Claro").
 - **PaymentCycle**: Tracks which bills belong to a given month/cycle, the user's preferred payment day for that cycle, and the overall reconciliation status.
+- **User**: A person account that can own projects and/or collaborate in projects.
+- **Project**: A tenant boundary for financial data (type: personal, conjugal, shared) containing all project-scoped records.
+- **ProjectMember**: The association between User and Project with role-based permission (`read_only`, `update`, `write`).
+- **IdentityContext**: The validated request identity envelope containing at minimum user and active-project context used for authorization and data scoping.
 
 ## Success Criteria *(mandatory)*
 
@@ -200,19 +240,29 @@ The user can access a dashboard that visualises their complete financial history
 - **SC-006**: A user can open the payment dashboard and scan or copy a Pix QR code to complete a payment without leaving the app, reducing bill-payment effort by eliminating the need to locate physical or email copies of bills.
 - **SC-007**: The financial history dashboard loads and renders 12 months of data in under 3 seconds.
 - **SC-008**: Duplicate PDF uploads are detected 100% of the time before any data is persisted for the duplicate.
+- **SC-009**: In validation tests with at least two projects, 0 records from Project A are visible when querying Project B (strict project isolation).
+- **SC-010**: Role enforcement accuracy reaches 100% in access-control acceptance tests (`read_only`, `update`, `write`) across upload, payment marking, and reconciliation actions.
+- **SC-011**: API consumers can retrieve complete endpoint documentation from the published API contract and successfully execute documented happy-path requests for all major flows (upload, analysis status, dashboard, reconciliation).
 
 ## Assumptions
 
-- The initial target user is a single individual managing their own personal finances (multi-user / household sharing is out of scope for v1).
-- Authentication and user account management already exist or will be addressed in a separate foundational feature; this specification assumes an authenticated user context.
+- The platform is architected for multi-tenant usage from day one; Phase-1 rollout may start with one seeded user and one seeded default project.
+- A full end-user registration/login experience is deferred, but identity context and project-scoped authorization are in scope through bootstrap identity flows.
 - The application will be used primarily in Brazil; bill formats (Pix, boleto/barcode) are those common to Brazilian financial institutions.
 - The file storage backend default for v1 is S3-compatible object storage; the architecture must be provider-agnostic so the provider can be changed via environment configuration without code changes.
 - Image-only (non-machine-readable) scanned PDFs require OCR to extract data; OCR integration is out of scope for v1 — these documents will be flagged as "requires OCR" and the user notified.
 - The user is responsible for registering their own bill-type and bank account labels; the system does not automatically create these from analysed content.
 - All financial data is for personal tracking and display purposes only; the system does not initiate any payments, banking operations, or connections to financial institution APIs.
 - Mobile-responsive web interface is in scope; native mobile app is out of scope for v1.
-- The preferred payment day setting is a single global day per user, not per-bill-type (multi-day scheduling is out of scope for v1).
+- The preferred payment day setting is scoped to a project and remains a single day per project in v1 (multi-day scheduling is out of scope).
 - Data retention: all ingested documents and extracted data are retained indefinitely unless explicitly deleted by the user.
+
+## API & Architecture Constraints
+
+- The BFF HTTP layer MUST expose feature endpoints and runtime API documentation in a contract-first manner.
+- The BFF endpoint layer MUST follow MVC separation: controller layer handles HTTP input/output mapping, service layer owns business logic, and repository layer owns persistence concerns.
+- OpenAPI documentation MUST be available from the running service and include operation metadata for all financial-bill-organizer endpoints.
+- Observability and trace propagation for BFF requests MUST be applied uniformly at middleware level, not ad hoc per endpoint.
 
 ## Design Constraints
 
