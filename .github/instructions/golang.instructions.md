@@ -66,8 +66,8 @@ applyTo: "**/*.go"
 - Create detached contexts (`context.Background()`) inside request paths.
 
 **Example input → expected Copilot output**:
-- Input: "Add repository call in service processing."
-- Expected output: forward `ctx` from `Process(...)` in `internal/services/enrichment/service.go` into repository method calls and handle returned errors explicitly.
+- Input: "Add repository call in document service."
+- Expected output: forward `ctx` from the service method in `backend/internals/files/services/document_service.go` into repository method calls and handle returned errors explicitly.
 
 ---
 
@@ -79,17 +79,17 @@ applyTo: "**/*.go"
 
 **Copilot MUST**:
 - Keep interfaces small and purpose-specific.
-- Place service/repository contracts under `internal/services/interfaces/...` when they are shared.
-- Use constructor injection against interfaces.
+- Define interfaces in the consuming package (`backend/internals/<service>/services/` or `backend/internals/bff/financial/controllers/`) so the layer depends on an abstraction it owns.
+- Use constructor injection against interfaces in `backend/cmd/<service>/container.go`.
 
 **Copilot MUST NOT**:
 - Create broad "do everything" interfaces.
-- Bind upper layers to concrete implementations.
-- Add methods that are not used by consumers.
+- Bind upper layers to concrete repository or client implementations.
+- Add interface methods that are not used by any consumer.
 
 **Example input → expected Copilot output**:
-- Input: "Add a new service dependency to enrichment consumer."
-- Expected output: wire the dependency through interface-based constructor signatures in `internal/transport/rmq/consumers/enrichment.go` and `cmd/container.go`.
+- Input: "Add a new repository dependency to the document service."
+- Expected output: define a narrow repository interface in `backend/internals/files/services/document_service.go`, implement it in `backend/internals/files/repositories/document_repository.go`, and wire via `backend/cmd/files/container.go`.
 
 ---
 
@@ -111,4 +111,26 @@ applyTo: "**/*.go"
 
 **Example input → expected Copilot output**:
 - Input: "Add new package imports for container wiring."
-- Expected output: follow grouped import pattern used in `cmd/container.go` and keep only used imports.
+- Expected output: follow the three-group import pattern used in `backend/cmd/bff/container.go` and keep only consumed imports.
+
+---
+
+## Rule: Project Toolchain Requirements
+
+**Description**: Use the designated toolchain libraries consistently.
+
+**When it applies**: Adding CLI commands, configuration loading, DI wiring, or migrations.
+
+**Copilot MUST**:
+- Use `go.uber.org/dig` for all dependency injection wiring in `backend/cmd/<service>/container.go`.
+- Use `github.com/spf13/cobra` for all CLI command definitions in `backend/cmd/<service>/cmd.go`.
+- Use `github.com/spf13/viper` for configuration loading via `backend/pkgs/configs/`; resolve `${SECRET_KEY}` sentinel values through `backend/pkgs/secrets/`.
+- Use `github.com/golang-migrate/migrate/v4` for database migrations; never alter schema outside migration files.
+- Use `go.uber.org/zap` for all structured logging.
+- Use `github.com/danielgtaylor/huma/v2` + `github.com/danielgtaylor/huma/v2/humaecho` for all BFF route registration.
+
+**Copilot MUST NOT**:
+- Use `flag`, `os.Args`, or alternative CLI libraries.
+- Access environment variables directly in business logic — always read through `viper`/config.
+- Inline raw SQL schema DDL outside migration files.
+- Use `fmt.Printf` or the standard `log` package for operational logging.

@@ -21,8 +21,8 @@ applyTo: "**/*.go"
 - Rename stable domain concepts without explicit request.
 
 **Example input → expected Copilot output**:
-- Input: "Add helper for transaction duplication check."
-- Expected output: choose explicit naming such as `wasProcessed`/`checkWasProcessed`, consistent with `EventsRepository.WasProcessed` usage.
+- Input: "Add helper for duplicate upload detection."
+- Expected output: choose explicit naming such as `isDuplicateUpload`/`detectDuplicate`, consistent with domain terms in `backend/internals/files/repositories/document_repository.go` (e.g., `FindByProjectAndHash`).
 
 ---
 
@@ -44,7 +44,7 @@ applyTo: "**/*.go"
 
 **Example input → expected Copilot output**:
 - Input: "Extend consumer with extra validation and processing."
-- Expected output: keep validation in consumer method and delegate business processing to service (`enrichmentService.Process`).
+- Expected output: keep input validation in the RMQ consumer handler and delegate domain logic to `backend/internals/files/services/document_service.go`.
 
 ---
 
@@ -87,8 +87,8 @@ applyTo: "**/*.go"
 - Produce contradictory wording across similar flows.
 
 **Example input → expected Copilot output**:
-- Input: "Handle config retrieval error in consumer."
-- Expected output: include operation context in internal log and return existing domain-safe error path.
+- Input: "Handle config retrieval error in analysis consumer."
+- Expected output: include operation context in internal log and return an existing domain-safe error for unknown configuration keys.
 
 ---
 

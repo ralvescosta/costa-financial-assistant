@@ -228,7 +228,7 @@ applyTo: "**/*"
 **When it applies**: When generating code or answering questions.
 
 **Copilot MUST KNOW**:
-- `.github/copilot-instructions.md`: Main entry point, global rules
+- `.github/agents/copilot-instructions.md`: Main entry point, global rules, tech stack, commands, structure overview
 - `.github/instructions/project-structure.instructions.md`: Directory structure
 - `.github/instructions/architecture.instructions.md`: SOLID, clean architecture
 - `.github/instructions/golang.instructions.md`: Go-specific rules, tooling

@@ -11,19 +11,19 @@ applyTo: "**/*.go"
 **When it applies**: Generating or modifying logging statements.
 
 **Copilot MUST**:
-- Use structured logging patterns consistent with `logrus` usage in this repository.
-- Attach `context.Context` using `logrus.WithContext(ctx)` in request/message paths.
-- Include stable identifiers in fields (for example transaction IDs, client key, operation).
+- Use `go.uber.org/zap` as the sole logging library for all backend services.
+- Inject a `*zap.Logger` (or `zap.SugaredLogger`) via constructor so it is available as a struct field.
+- Attach stable identifiers as named fields: `zap.String("document_id", id)`, `zap.String("project_id", projectID)`, `zap.Error(err)`.
 - Use appropriate levels (`Debug`, `Info`, `Warn`, `Error`).
 
 **Copilot MUST NOT**:
-- Use `fmt.Printf`/ad-hoc print logging for runtime events.
-- Log large raw payloads without filtering.
-- Use `Fatal`/`Panic` in library/business code paths.
+- Use `fmt.Printf`, `log.Println`, or `logrus` for runtime events.
+- Log large raw payloads without field-level filtering.
+- Use `Fatal`/`Panic` in library or business logic paths.
 
 **Example input → expected Copilot output**:
-- Input: "Log enrichment processing failures."
-- Expected output: in `internal/services/enrichment/service.go`, log with `WithContext(ctx).WithError(err)` and relevant fields before returning the error.
+- Input: "Log document upload failure."
+- Expected output: in `backend/internals/files/services/document_service.go`, log with `s.logger.Error("upload failed", zap.String("document_id", id), zap.Error(err))` before returning the error.
 
 ---
 
@@ -44,8 +44,8 @@ applyTo: "**/*.go"
 - Add spans for trivial local-only operations.
 
 **Example input → expected Copilot output**:
-- Input: "Add query instrumentation in events repository."
-- Expected output: follow `internal/repositories/events_repository.go` pattern with tracer span start/end and `span.RecordError(err)` on failure.
+- Input: "Add query instrumentation in document repository."
+- Expected output: follow `backend/internals/files/repositories/document_repository.go` pattern with `tracer.Start(ctx, "document.findByHash")` span start/end and `span.RecordError(err)` on failure.
 
 ---
 
@@ -67,8 +67,8 @@ applyTo: "**/*.go"
 - Hide failures by logging `Debug` only.
 
 **Example input → expected Copilot output**:
-- Input: "Message already processed; add log."
-- Expected output: in `internal/services/enrichment/service.go`, keep this as `Info`, then return `nil`.
+- Input: "Document already classified; add log."
+- Expected output: in `backend/internals/files/services/document_service.go`, log this at `Info` level with `zap.String("document_id", id)`, then return `nil` or a domain-safe result.
 
 ---
 
@@ -89,5 +89,5 @@ applyTo: "**/*.go"
 - Embed sensitive fields in free-text log messages.
 
 **Example input → expected Copilot output**:
-- Input: "Add debug log for inbound interchange message."
-- Expected output: log safe message identifiers and routing metadata, not full payload object.
+- Input: "Add debug log for inbound analysis job message."
+- Expected output: log safe identifiers (document_id, job_id, project_id) and routing metadata only — never log raw PDF binary, Pix QR payloads, or extracted financial amounts.
