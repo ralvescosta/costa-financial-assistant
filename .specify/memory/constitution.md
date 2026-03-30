@@ -1,25 +1,26 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.3.0 → 1.4.0
-Bump rationale: MINOR — Principle IX materially expanded with two new mandatory
-  data-access disciplines; no principles removed or redefined.
+Version change: 1.8.0 → 1.9.0
+Bump rationale: MINOR — BFF HTTP framework rules added (Echo + Huma v2, MVC pattern,
+  OpenAPI documentation mandate); Principle VI trace propagation rule updated to
+  reference otelecho instead of the generic otelhttp middleware.
 Modified principles:
-  - II. SOLID Principles & Clean Architecture — `unit_of_work.go` added to canonical
-    `internals/repositories/` layout.
-  - IX. Data Access & Database Discipline — added mandatory idempotency pattern for all
-    mutating resources, and mandatory Unit of Work pattern for multi-step atomic
-    operations using `unit_of_work.go` in the repositories layer.
+  - I. Modular Monorepo Architecture — new sub-section "BFF HTTP Framework & MVC"
+    added defining Echo v4 + Huma v2 as the mandatory BFF stack, the MVC layer
+    structure, OpenAPI documentation requirements, and server bootstrap rules.
+  - VI. Observability & Structured Logging — HTTP trace propagation rule updated
+    from otelhttp to otelecho (echo.labstack.com/v4 OTel middleware) to match the
+    mandated BFF framework.
 Added principles: None
 Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — constitution check gates remain valid;
-    Technical Context for features with multi-step writes must now reference Unit of Work
-    and idempotency key design as constraints.
-  - .specify/templates/spec-template.md ✅ — no structural changes required.
-  - .specify/templates/tasks-template.md ✅ — Phase 2 (Foundational) tasks for any
-    service with multi-step writes MUST include: `unit_of_work.go` implementation task
-    and idempotency key migration + deduplication logic task.
+  - .specify/templates/plan-template.md ✅ — BFF feature Technical Context must
+    reference Echo + Huma router and MVC layer paths.
+  - .specify/templates/spec-template.md ✅ — BFF endpoint specs should declare the
+    Huma Input/Output struct types and document OpenAPI operation metadata.
+  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for BFF features must
+    include a task to register the Huma route and verify the OpenAPI document.
   - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
@@ -32,11 +33,61 @@ Deferred TODOs: None — all fields resolved.
 
 The entire project MUST live in a single monorepo.
 Frontend and backend are top-level modules with no shared source coupling.
-Backend services (BFF API, files-grpc, bills-grpc, scheduler-grpc, and future services)
-MUST be independently deployable units with no cross-service direct imports.
+Backend services (BFF API, files-grpc, bills-grpc, scheduler-grpc, onboarding-grpc,
+identity-grpc, and future services) MUST be independently deployable units with no
+cross-service direct imports.
 Circular dependencies between modules are forbidden.
 Each microservice owns its own domain; shared utilities MUST live in `pkgs/` and MUST NOT
 encode domain logic.
+
+**BFF HTTP Framework & MVC**:
+The BFF API service MUST be built with `github.com/labstack/echo/v4` as the HTTP router
+and `github.com/danielgtaylor/huma/v2` as the OpenAPI-first handler layer, integrated
+via `github.com/danielgtaylor/huma/v2/adapters/humaecho`.
+No alternative HTTP framework (Gin, Chi, Fiber, net/http ServeMux, etc.) may be used
+in the BFF service.
+
+Server bootstrap MUST follow this structure, wired through `cmd/container.go` via `dig`:
+```go
+e := echo.New()
+e.HideBanner = true
+e.Use(middleware.Recover())
+e.Use(otelecho.Middleware(serviceName))   // OTel trace propagation
+apiServer := humaecho.New(e, huma.DefaultConfig(serviceName, version))
+```
+`serviceName` and `version` MUST be supplied from the typed config struct
+(loaded by `pkgs/configs`); hardcoding them is forbidden.
+
+The BFF MUST follow the **MVC pattern** with these mandatory layers:
+```
+internals/
+  <domain>/
+    controllers/     # HTTP layer: register Huma routes, parse Input structs,
+                     # call service, return Output structs; NO business logic here
+    services/        # business logic — domain operations, orchestration
+    interfaces/      # Go interfaces for services and repositories
+    *.go             # domain types, errors
+  repositories/      # data access implementations
+```
+- A **Controller** file (`*_controller.go`) in `controllers/` MUST be responsible for
+  one domain resource. Each handler function MUST be a method on a controller struct
+  and MUST register itself via a `Register(api huma.API)` method called from
+  `cmd/container.go`.
+- Controllers MUST NOT contain business logic. They translate HTTP Input structs to
+  domain calls on the service interface and translate the result to an Output struct.
+- Services MUST NOT import `huma` or `echo` packages. The service layer is
+  transport-agnostic.
+
+**OpenAPI documentation**:
+Every Huma route registration MUST supply a fully populated `huma.Operation` with:
+- `OperationID` — unique, kebab-case, descriptive (e.g., `create-bill`, `get-statement`).
+- `Summary` — one-sentence human description.
+- `Tags` — at minimum one tag grouping the resource (e.g., `["bills"]`).
+- `Description` — expanded behaviour description including side effects.
+Input structs MUST use `huma` validation tags (`minimum`, `maximum`, `pattern`,
+`required`, `doc`) so the generated OpenAPI schema is accurate and complete.
+The OpenAPI document MUST be accessible at `/openapi.json` (provided automatically
+by Huma); no additional documentation format is required.
 
 ### II. SOLID Principles & Clean Architecture (NON-NEGOTIABLE)
 
@@ -80,6 +131,49 @@ struct — standalone (orphan) functions are forbidden inside `internals/`. Only
 may contain package-level helper functions, because those are shared, domain-agnostic
 utilities with no natural owning struct.
 
+**Protobuf repository layout**:
+All `.proto` files MUST live under `backend/protos/` following this canonical structure:
+
+```
+backend/protos/
+  <module>/
+    v<N>/
+      messages.proto   # domain message types for this module
+      grpc.proto       # gRPC service definition (Request / Response wrappers + service)
+  common/
+    v<N>/
+      *.proto          # shared message types used by more than one module
+  generated/           # Go code generated from all .proto files (committed)
+```
+
+Rules:
+- **One versioned folder per gRPC module** — e.g. `bills/v1/`, `files/v1/`,
+  `identity/v1/`. The folder name uses the major version (`v1`, `v2`, ...); a new
+  folder MUST be created for each breaking API change; old versions are kept until
+  all consumers are migrated.
+- **`messages.proto`** — MUST contain only domain-level message definitions for the
+  module (entities, value objects, enums). These messages are intentionally decoupled
+  from transport so that the generated Go structs can be used across the domain layer
+  without importing gRPC-specific types. `messages.proto` MUST NOT define any `service`
+  or `rpc` blocks.
+- **`grpc.proto`** — MUST contain only the gRPC service definition: `Request` and
+  `Response` wrapper messages (which may embed or compose types from `messages.proto`
+  via import) and the `service` / `rpc` declarations. No standalone domain messages
+  MUST be defined here.
+- **`common/v<N>/`** — MUST contain cross-cutting message types that are referenced
+  by more than one module (e.g., pagination cursors, error envelopes, audit fields).
+  No `service` blocks are allowed in `common/`.
+- **`generated/`** — contains the Go source files produced by `protoc` + `protoc-gen-go`
+  + `protoc-gen-go-grpc`. This directory MUST be committed to the repository so that
+  consumers do not require a local `protoc` installation to build.
+  A `Makefile` target (`proto/generate`) MUST regenerate all files deterministically.
+- Proto files MUST use `proto3` syntax. Packages MUST follow the convention
+  `<module>.v<N>` (e.g., `package bills.v1`).
+- Field names in `.proto` files MUST use `snake_case`; the generated Go field names
+  will be automatically converted to `PascalCase` by `protoc-gen-go`.
+- Breaking changes to an existing versioned proto (renaming or removing fields,
+  changing field numbers) are forbidden; introduce a new version (`v2`, etc.) instead.
+
 ### III. Cloud Native & Containerization (NON-NEGOTIABLE)
 
 Every service and the frontend MUST be containerized via Docker.
@@ -94,7 +188,7 @@ dependencies: PostgreSQL, RabbitMQ, a file-storage service (e.g., MinIO), and th
 (Loki, Grafana, Tempo, Mimir/Prometheus) for local telemetry validation.
 Backend services MUST expose health-check endpoints consumable by container orchestrators.
 
-### IV. Frontend Component-First & Hook Isolation (NON-NEGOTIABLE)
+### IV. Frontend Component-First, Hook Isolation & Design System (NON-NEGOTIABLE)
 
 The frontend MUST use React at the current LTS version.
 Every screen MUST be a pure composition of reusable components; no business logic is
@@ -106,21 +200,168 @@ Business logic, state management, and data-fetching MUST be encapsulated in cust
 Each feature MUST ship at minimum two artifacts: a presentation file (screen) and one or
 more custom hook files. Co-locating them in the same file is forbidden.
 
+**Design Token System & Color Palette**:
+The frontend MUST maintain a single, centralised design token file
+(e.g., `src/styles/tokens.ts` or `src/theme/tokens.ts`) that is the authoritative
+source for every color, spacing, typography scale, border radius, shadow, and z-index
+value used anywhere in the application. No color or visual constant may be hardcoded
+outside this file.
+
+The color palette MUST be defined following best-practice token layering:
+1. **Primitive tokens** — raw named values that define the complete palette
+   (e.g., `blue500: '#3B82F6'`, `neutral900: '#111827'`). These MUST NOT be referenced
+   directly in components.
+2. **Semantic tokens** — purpose-driven aliases that map to primitives and carry meaning
+   (e.g., `colorPrimary`, `colorSurface`, `colorTextPrimary`, `colorBorder`,
+   `colorDanger`, `colorSuccess`). Components MUST reference only semantic tokens.
+3. **Component tokens** — optional, component-scoped tokens that map to semantic tokens
+   (e.g., `buttonPrimaryBackground`) for components that need fine-grained control.
+
+The palette MUST include at minimum the following semantic token categories:
+- Background surfaces (`colorBackground`, `colorSurface`, `colorSurfaceElevated`)
+- Text (`colorTextPrimary`, `colorTextSecondary`, `colorTextDisabled`,
+  `colorTextInverse`)
+- Brand / interactive (`colorPrimary`, `colorPrimaryHover`, `colorPrimaryActive`)
+- Status (`colorSuccess`, `colorWarning`, `colorDanger`, `colorInfo`)
+- Border & divider (`colorBorder`, `colorBorderFocus`, `colorDivider`)
+- Overlay / shadow (`colorOverlay`)
+
+**Dark mode and light mode are both MANDATORY**.
+The theme system MUST expose a `light` and a `dark` variant; each variant MUST define
+values for every semantic token. No semantic token may be left undefined in either theme.
+The active theme MUST be toggled by the user and the preference MUST be persisted
+(e.g., in `localStorage`). The system MUST also respect the OS-level
+`prefers-color-scheme` preference on first load when no stored preference exists.
+Theme switching MUST NOT require a page reload.
+
+The token file and theme definitions MUST be version-controlled alongside source;
+design changes that alter semantic token names are breaking changes and require a
+constitution patch at minimum.
+
+**Typography Scale**:
+The centralised design token file MUST define a complete typography scale.
+No font size, font weight, or line-height value may be hardcoded in a component or
+style file outside the token file.
+
+The scale MUST follow a two-layer structure matching the color token approach:
+1. **Primitive font-size tokens** — raw rem values
+   (e.g., `fontSizeXs: '0.75rem'`, `fontSizeBase: '1rem'`). These MUST NOT be
+   referenced directly in components.
+2. **Semantic typography tokens** — role-named aliases mapped to primitives
+   (e.g., `fontSizeBody`, `fontSizeHeading1`, `fontSizeCaption`). Components MUST
+   reference only these semantic tokens.
+
+The scale MUST include at minimum the following primitive tokens:
+
+| Token | Value | px equiv | Use |
+|---|---|---|---|
+| `fontSizeXs` | `0.75rem` | 12px | Captions, badges, fine print |
+| `fontSizeSm` | `0.875rem` | 14px | Secondary labels, metadata |
+| `fontSizeBase` | `1rem` | 16px | Body text (default) |
+| `fontSizeLg` | `1.125rem` | 18px | Large body, card content |
+| `fontSizeXl` | `1.25rem` | 20px | Section sub-headings |
+| `fontSize2xl` | `1.5rem` | 24px | Page sub-headings |
+| `fontSize3xl` | `1.875rem` | 30px | Page primary headings |
+| `fontSize4xl` | `2.25rem` | 36px | Hero / display numbers |
+
+And at minimum the following semantic tokens:
+
+| Semantic token | → Primitive |
+|---|---|
+| `fontSizeCaption` | `fontSizeXs` |
+| `fontSizeBodySmall` | `fontSizeSm` |
+| `fontSizeBody` | `fontSizeBase` |
+| `fontSizeLabel` | `fontSizeSm` |
+| `fontSizeHeading4` | `fontSizeLg` |
+| `fontSizeHeading3` | `fontSizeXl` |
+| `fontSizeHeading2` | `fontSize2xl` |
+| `fontSizeHeading1` | `fontSize3xl` |
+| `fontSizeDisplay` | `fontSize4xl` |
+
+Font weight tokens MUST also be defined:
+`fontWeightRegular` (400), `fontWeightMedium` (500), `fontWeightSemibold` (600),
+`fontWeightBold` (700).
+
+Line-height tokens MUST also be defined:
+`lineHeightTight` (1.25), `lineHeightSnug` (1.375), `lineHeightNormal` (1.5),
+`lineHeightRelaxed` (1.625).
+
+All font-size values in the token file MUST use `rem` units; `px` is forbidden for
+font sizes to ensure accessibility and browser zoom compatibility.
+
+**Mobile-First Responsive Layout**:
+All frontend screens and components MUST be designed and implemented mobile-first:
+base styles target the smallest viewport (320px minimum) and breakpoints are applied
+using `min-width` media queries exclusively. `max-width` media queries for layout
+breakpoints are forbidden.
+
+The following breakpoints MUST be defined as tokens and used consistently:
+
+| Token | Min-width | Target |
+|---|---|---|
+| `breakpointSm` | `480px` | Large phones |
+| `breakpointMd` | `768px` | Tablets |
+| `breakpointLg` | `1024px` | Laptops / small desktops |
+| `breakpointXl` | `1280px` | Desktops |
+| `breakpoint2xl` | `1536px` | Large / wide desktops |
+
+Responsive rules:
+- Every screen MUST be functional and usable at 320px viewport width without horizontal
+  scrolling or content clipping.
+- Touch targets (buttons, links, interactive elements) MUST be at minimum 44×44 CSS
+  pixels to comply with WCAG 2.5.5 and platform HIG guidelines.
+- Images and media MUST use relative sizing (e.g., `max-width: 100%`, `width: 100%`)
+  and MUST NOT have fixed pixel dimensions that break at narrow viewports.
+- Layouts MUST be tested at a minimum of these widths: 320px, 375px, 768px, 1024px,
+  1280px before merge.
+- Screen density: all icons and image assets MUST be provided in SVG or at 1×/2×/3×
+  resolutions to support standard, Retina, and high-DPI displays.
+
 ### V. Test Discipline
 
-Unit tests are MANDATORY for all service and repository implementations in the backend.
-All unit tests MUST follow BDD (Behaviour-Driven Development) style and the
-Triple-A structure — every test body MUST contain explicit Arrange, Act, and Assert
-phases, separated by blank lines and optionally labeled with inline comments
+**Backend unit tests**:
+Unit tests are MANDATORY for all service and repository implementations where logic is
+non-trivial. All unit tests MUST follow BDD (Behaviour-Driven Development) style and
+the Triple-A structure — every test body MUST contain explicit Arrange, Act, and Assert
+phases, separated by blank lines and labeled with inline comments
 (`// Arrange`, `// Act`, `// Assert`) to make intent unambiguous.
 Test names MUST describe behaviour in the form `TestSubject_WhenCondition_ThenOutcome`
 or an equivalent BDD-readable sentence.
 Mocks MUST be auto-generated using `uber/mock` (`mockgen`) and placed in `mocks/`;
 hand-written mocks are forbidden.
-Integration tests MUST cover inter-service gRPC contracts and any RabbitMQ event contracts.
-Frontend component tests are REQUIRED for all reusable components.
-Tests MUST live alongside source (`*_test.go` for Go; `*.test.tsx` for React).
-No production code may be merged that reduces existing test coverage without explicit
+
+**Backend integration tests**:
+Integration tests MUST stimulate the transport layer (gRPC handler or HTTP handler)
+end-to-end and verify that the full request/response cycle works correctly, including
+middleware, validation, persistence, and event publishing.
+Integration tests that require database access MUST use an **ephemeral test database**:
+1. Provision a dedicated database instance (via Docker Compose test profile or a test
+   environment variable pointing to an isolated schema).
+2. Run all `golang-migrate` migrations (`migrate up`) against it before any test runs.
+3. Execute the integration test suite.
+4. Tear down the database after all tests complete (`migrate down` / container destroy).
+The ephemeral database lifecycle MUST be managed in `TestMain`; individual tests MUST
+NOT assume pre-existing database state — each test MUST set up and clean up its own
+fixtures.
+Integration tests MUST cover inter-service gRPC contracts and any RabbitMQ event
+contracts.
+
+**Frontend tests**:
+Frontend testing is **scoped to custom hooks only** — UI component rendering tests are
+explicitly out of scope and MUST NOT be written.
+Every custom hook (`use*.ts`) that contains non-trivial logic MUST have a corresponding
+test file (`use*.test.ts`).
+Hook tests MUST follow BDD style using `describe` / `it` blocks:
+- Outer `describe` = subject (hook name).
+- Inner `describe` = scenario / condition.
+- `it` = expected outcome in plain language.
+All hook tests MUST follow the Triple-A structure (Arrange / Act / Assert) within each
+`it` block.
+Hook tests MUST mock all external calls (API, browser APIs, third-party libraries) at
+the hook boundary; no test may make real network requests.
+
+Tests MUST live alongside source (`*_test.go` for Go; `use*.test.ts` for React hooks).
+No production code may be merged that removes an existing test without explicit
 documented justification.
 
 ### VI. Observability & Structured Logging (NON-NEGOTIABLE)
@@ -162,9 +403,11 @@ This ensures `trace_id` and `span_id` fields appear on every log record.
 **Trace propagation**:
 - gRPC: both server and client MUST use `go.opentelemetry.io/contrib/instrumentation/
   google.golang.org/grpc/otelgrpc` interceptors (unary + streaming).
-- HTTP (BFF): MUST use `go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp`
-  middleware on every route so inbound W3C `traceparent` headers are extracted and
-  outbound calls carry propagated context.
+- HTTP (BFF): MUST use `github.com/labstack/echo-contrib/otelecho` (the Echo-native
+  OTel middleware, `otelecho.Middleware(serviceName)`) registered on the Echo instance
+  before all route handlers so inbound W3C `traceparent` headers are extracted and
+  outbound calls carry propagated context. The generic `otelhttp` wrapper MUST NOT be
+  used on an Echo server.
 - RabbitMQ: trace context MUST be injected into and extracted from message headers using
   the W3C TraceContext propagation format.
 
@@ -332,6 +575,62 @@ Rules:
   write MUST be coordinated inside the same Unit of Work scope using the
   transactional outbox pattern or equivalent.
 
+### X. Multi-Tenancy, Identity & Access (NON-NEGOTIABLE)
+
+The system is designed as a **multi-tenant** platform from inception.
+Even though the initial deployment serves a single user, every data model MUST be
+tenant-aware from day one so that onboarding additional users requires zero schema
+changes.
+
+**Tenant data model**:
+- A `users` table MUST exist as the authoritative user registry
+  (UUID PK, email, display name, status, timestamps).
+- A `projects` table MUST exist. Every registered user owns one or more projects.
+  Each project carries a `type` column (e.g., `personal`, `conjugal`, `shared`) and
+  an `owner_id` FK to `users`.
+- A `project_members` table MUST exist to model collaboration: the project owner may
+  invite other users; each row carries a `role` column with exactly three values:
+  - `read_only` — may query data; MUST NOT mutate.
+  - `update` — may mutate existing records; MUST NOT create new top-level resources.
+  - `write` — full create / update / delete access within the project scope.
+- **Every domain table** (bills, statements, transactions, bank accounts, file uploads,
+  etc.) MUST carry a `project_id` FK to `projects`. No table that holds user-scoped
+  data may exist without tracing back to a tenant owner. Pure reference or lookup
+  tables (e.g., currency codes, country codes) are exempt with explicit justification.
+- All repository queries that touch tenant-owned data MUST include the caller's
+  `project_id` (or a validated project membership check) in the `WHERE` clause.
+  Cross-tenant data access is forbidden and MUST be enforced at the repository layer.
+
+**Service responsibilities**:
+- `onboarding-grpc`: owns the user and project lifecycle — create account, create
+  project, invite collaborator, update member role, remove member, deactivate account.
+- `identity-grpc`: owns token issuance and identity verification — signs JWTs with
+  claims (`sub`, `project_id`, `role`, `iat`, `exp`), exposes the public JWKS endpoint,
+  handles token refresh. No other service may issue tokens or embed issuer-specific
+  signing logic.
+
+**Phase-1 bootstrap** (mandatory interim strategy until full auth flow is implemented):
+1. Seed migration files in `migrations/` MUST insert at least one `users` row and one
+   `projects` row with stable, well-known UUIDs. These records serve as the default
+   development tenant and are the fixture baseline for all integration tests.
+2. `identity-grpc` MUST issue JWTs in Phase-1 whose claims (`sub`, `project_id`,
+   `role`) are sourced from service configuration rather than a real auth challenge.
+   No login screen or credential verification is required in Phase-1.
+3. `identity-grpc` MUST expose `GET /jwks` returning a valid JWKS document containing
+   the public key whose corresponding private key signs all Phase-1 JWTs, so the
+   validation path across all services is identical to production from day one.
+4. Every service MUST validate incoming JWTs by fetching and caching the JWKS from
+   `identity-grpc`. Accepting unvalidated tokens or bypassing JWT validation in
+   non-test code paths is forbidden.
+5. When the full identity flow (registration, login, Keycloak / external IdP) is
+   implemented, only `identity-grpc` changes internally; all consuming services
+   continue JWKS-based validation with zero modifications.
+
+**JWT signing key management**:
+The private key used by `identity-grpc` to sign tokens MUST be loaded via
+`pkgs/secrets` at startup (never hardcoded in source). The `GET /jwks` endpoint
+MUST serve only the public-key portion of the signing key pair.
+
 ## Technology Stack
 
 ### Backend
@@ -339,6 +638,9 @@ Rules:
 - **Language**: Go (latest stable release at time of development)
 - **CLI framework**: `cobra` (github.com/spf13/cobra)
 - **Dependency injection**: `uber/dig` (go.uber.org/dig)
+- **HTTP framework (BFF only)**: `github.com/labstack/echo/v4` (router) +
+  `github.com/danielgtaylor/huma/v2` + `humaecho` adapter (OpenAPI-first handlers) +
+  `github.com/labstack/echo-contrib/otelecho` (OTel trace middleware)
 - **gRPC**: `google.golang.org/grpc` + Protocol Buffers
 - **Database**: PostgreSQL (primary persistent store)
 - **Cache**: Redis (optional, use where cache benefit is measurable)
@@ -355,6 +657,8 @@ Rules:
 - **Secrets**: `pkgs/secrets` interface; providers: `github.com/hashicorp/vault/api`
   (HashiCorp Vault) and `github.com/aws/aws-sdk-go-v2/service/secretsmanager`
   (AWS Secrets Manager)
+- **JWT** (`identity-grpc` only): `github.com/golang-jwt/jwt/v5` for token issuance
+  and local JWKS-validated parsing; no other service may use this for token signing
 - **Mock generation**: `uber/mock` (`mockgen`)
 - **Testing**: standard `testing` package + `testify` for assertions;
   all unit tests MUST follow BDD + Triple-A structure
@@ -376,7 +680,7 @@ Rules:
 
 ## Development Workflow
 
-Every feature branch MUST be reviewed against all nine core principles before merge.
+Every feature branch MUST be reviewed against all ten core principles before merge.
 A PR is blocked if:
 
 1. A backend service violates the `cmd/internals/pkgs/mocks/migrations` directory contract.
@@ -392,7 +696,10 @@ A PR is blocked if:
 11. A log call does not pass a `context.Context` carrying the active OTel span
     (breaking log-trace correlation).
 12. A new gRPC service is introduced without `otelgrpc` interceptors on both sides.
-13. A new HTTP route in the BFF is introduced without the OTel HTTP middleware.
+13. A new HTTP route in the BFF is introduced without the `otelecho.Middleware`
+    registered on the Echo instance, or the route is registered outside of a
+    controller struct's `Register(api huma.API)` method, or the Huma operation
+    definition omits `OperationID`, `Summary`, `Tags`, or `Description`.
 14. A new independently-deployed service ships without `up` and `build_info` health metrics.
 15. A configuration value is hardcoded instead of loaded from the `.env` / config struct.
 16. A secret value appears in plaintext in any committed `.env` file
@@ -413,9 +720,27 @@ A PR is blocked if:
     `internals/repositories/unit_of_work.go`.
 24. A service method directly holds or passes a `*sql.Tx` outside of repository
     implementations and `unit_of_work.go`.
+25. A frontend component or style file references a hardcoded color, spacing, or other
+    visual constant instead of a semantic token from the centralised design token file.
+26. A new semantic token is introduced without a corresponding value defined in both
+    the `light` and `dark` theme variants.
+27. A frontend component or style file uses a hardcoded font size, font weight, or
+    line-height value instead of a semantic typography token from the token file.
+28. A screen or component layout is not implemented mobile-first (base styles for
+    320px minimum; breakpoints via `min-width` only; touch targets ≥ 44×44px).
+29. A new domain table is introduced without a `project_id` FK to `projects`
+    establishing tenant isolation; pure reference / lookup tables require explicit
+    documented justification to be exempt.
+30. A service other than `identity-grpc` issues JWTs or contains token-signing logic;
+    all services MUST validate tokens exclusively via the JWKS endpoint of
+    `identity-grpc`.
+31. A backend integration test that requires database access does not use an ephemeral
+    test database (provision → `migrate up` → test → destroy), OR individual tests
+    assert against state they did not set up themselves.
 
 Code review MUST verify that each gRPC service definition is accompanied by updated
-`.proto` files committed to the repository (proto-first design).
+`.proto` files committed under `backend/protos/<module>/v<N>/` following the
+`messages.proto` / `grpc.proto` layout convention defined in Principle II.
 
 All secrets MUST be injected via environment variables; no credentials may be committed
 to the repository.
@@ -435,4 +760,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.4.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.9.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
