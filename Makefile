@@ -50,7 +50,7 @@ frontend/build: ## Build frontend for production
 # ─── Backend service targets ─────────────────────────────────────────────────
 define SERVICE_TARGETS
 svc/run/$(1): ## Run backend service: $(1)
-	@cd backend && go run ./cmd/$(1)/...
+	@cd backend && go run . $(1)
 
 svc/test/$(1): ## Run unit tests for backend service: $(1)
 	@cd backend && go test -race -count=1 ./internals/$(1)/...

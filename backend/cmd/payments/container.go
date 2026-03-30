@@ -1,4 +1,4 @@
-package migrations
+package payments
 
 import "context"
 
