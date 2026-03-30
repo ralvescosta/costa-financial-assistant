@@ -275,3 +275,78 @@ The application MUST use a design token system with two layers:
 - The bill payment dashboard MUST use `colorDanger` / `colorDangerEmphasis` for overdue bills and `colorSuccess` / `colorSuccessEmphasis` for paid bills to provide immediate visual affordance.
 - The financial history charts MUST use the primary palette (`colorPrimary`, `colorSuccess`, `colorWarning`, `colorDanger`) consistently across all chart series.
 - Interactive elements (buttons, links, inputs) MUST have hover, active, focus, and disabled states each mapped to an appropriate semantic token.
+
+### Typography Scale
+
+All text rendered in the application MUST reference semantic typography tokens from
+the centralised design token file. Hardcoded font-size, font-weight, or line-height
+values in component or style files are forbidden.
+
+**Primitive font-size scale** (rem-based; browser root = 16px):
+
+| Token | Value | px equiv | Intended use |
+|---|---|---|---|
+| `fontSizeXs` | `0.75rem` | 12px | Captions, badges, status text |
+| `fontSizeSm` | `0.875rem` | 14px | Secondary labels, metadata, hints |
+| `fontSizeBase` | `1rem` | 16px | Primary body text, input values |
+| `fontSizeLg` | `1.125rem` | 18px | Card content, emphasised body |
+| `fontSizeXl` | `1.25rem` | 20px | Section sub-headings |
+| `fontSize2xl` | `1.5rem` | 24px | Page sub-headings |
+| `fontSize3xl` | `1.875rem` | 30px | Page primary headings |
+| `fontSize4xl` | `2.25rem` | 36px | Hero / dashboard display numbers |
+
+**Semantic typography tokens** (components reference these):
+
+| Semantic token | Primitive | Weight | Line-height |
+|---|---|---|---|
+| `fontSizeCaption` | `fontSizeXs` | `fontWeightRegular` | `lineHeightSnug` |
+| `fontSizeBodySmall` | `fontSizeSm` | `fontWeightRegular` | `lineHeightNormal` |
+| `fontSizeBody` | `fontSizeBase` | `fontWeightRegular` | `lineHeightNormal` |
+| `fontSizeLabel` | `fontSizeSm` | `fontWeightMedium` | `lineHeightTight` |
+| `fontSizeHeading4` | `fontSizeLg` | `fontWeightSemibold` | `lineHeightSnug` |
+| `fontSizeHeading3` | `fontSizeXl` | `fontWeightSemibold` | `lineHeightSnug` |
+| `fontSizeHeading2` | `fontSize2xl` | `fontWeightBold` | `lineHeightTight` |
+| `fontSizeHeading1` | `fontSize3xl` | `fontWeightBold` | `lineHeightTight` |
+| `fontSizeDisplay` | `fontSize4xl` | `fontWeightBold` | `lineHeightTight` |
+
+Application-specific typography conventions:
+- Dashboard summary totals and balance figures MUST use `fontSizeDisplay` or `fontSizeHeading1`.
+- Bill amounts in the payment dashboard MUST use `fontSizeHeading3` or larger.
+- Due dates paired with status colours MUST use `fontSizeLabel`.
+- Chart axis labels and legends MUST use `fontSizeCaption`.
+- Form input values and helper text MUST use `fontSizeBody` and `fontSizeBodySmall` respectively.
+
+Font weight tokens: `fontWeightRegular` (400), `fontWeightMedium` (500),
+`fontWeightSemibold` (600), `fontWeightBold` (700).
+
+Line-height tokens: `lineHeightTight` (1.25), `lineHeightSnug` (1.375),
+`lineHeightNormal` (1.5), `lineHeightRelaxed` (1.625).
+
+### Layout & Responsiveness
+
+All screens and components MUST follow a **mobile-first** approach: base styles
+target the smallest viewport (minimum 320px) and breakpoints are applied using
+`min-width` media queries exclusively. `max-width` layout breakpoints are forbidden.
+
+**Breakpoints**:
+
+| Token | Min-width | Target |
+|---|---|---|
+| `breakpointSm` | `480px` | Large phones |
+| `breakpointMd` | `768px` | Tablets |
+| `breakpointLg` | `1024px` | Laptops / small desktops |
+| `breakpointXl` | `1280px` | Desktops |
+| `breakpoint2xl` | `1536px` | Large / wide desktops |
+
+Screen-by-screen responsive layout mandates:
+- **PDF Upload & Classification**: single-column card at 320px; two-column grid at `breakpointMd`+.
+- **Payment Dashboard**: bill cards stacked vertically on mobile; 2-column grid at `breakpointMd`+; 3-column at `breakpointLg`+; QR code minimum `200×200px` at all breakpoints.
+- **Financial History Dashboard**: charts full-width single-column on mobile; multi-panel side-by-side at `breakpointLg`+.
+- **Document Library**: list view on mobile; table view at `breakpointMd`+.
+
+Universal responsive rules:
+- Every screen MUST be functional without horizontal scroll at 320px viewport width.
+- Touch targets MUST be at minimum `44×44 CSS px` (WCAG 2.5.5).
+- Body font size MUST be at minimum `fontSizeBase` (16px) on all viewports.
+- All images and icons MUST use SVG or provide `1×`/`2×`/`3×` raster variants for standard, Retina, and high-DPI displays.
+- No container MUST have a fixed width that produces horizontal overflow narrower than `breakpointSm` (480px).
