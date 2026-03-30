@@ -318,10 +318,12 @@ func (x *GetDocumentRequest) GetDocumentId() string {
 }
 
 type GetDocumentResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Document        *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
+	BillRecord      *BillRecord            `protobuf:"bytes,2,opt,name=bill_record,json=billRecord,proto3" json:"bill_record,omitempty"`                // present when kind=bill and status=analysed
+	StatementRecord *StatementRecord       `protobuf:"bytes,3,opt,name=statement_record,json=statementRecord,proto3" json:"statement_record,omitempty"` // present when kind=statement and status=analysed
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *GetDocumentResponse) Reset() {
@@ -357,6 +359,20 @@ func (*GetDocumentResponse) Descriptor() ([]byte, []int) {
 func (x *GetDocumentResponse) GetDocument() *Document {
 	if x != nil {
 		return x.Document
+	}
+	return nil
+}
+
+func (x *GetDocumentResponse) GetBillRecord() *BillRecord {
+	if x != nil {
+		return x.BillRecord
+	}
+	return nil
+}
+
+func (x *GetDocumentResponse) GetStatementRecord() *StatementRecord {
+	if x != nil {
+		return x.StatementRecord
 	}
 	return nil
 }
@@ -508,9 +524,12 @@ const file_files_v1_grpc_proto_rawDesc = "" +
 	"\x12GetDocumentRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x1f\n" +
 	"\vdocument_id\x18\x02 \x01(\tR\n" +
-	"documentId\"E\n" +
+	"documentId\"\xc2\x01\n" +
 	"\x13GetDocumentResponse\x12.\n" +
-	"\bdocument\x18\x01 \x01(\v2\x12.files.v1.DocumentR\bdocument\"\xf2\x01\n" +
+	"\bdocument\x18\x01 \x01(\v2\x12.files.v1.DocumentR\bdocument\x125\n" +
+	"\vbill_record\x18\x02 \x01(\v2\x14.files.v1.BillRecordR\n" +
+	"billRecord\x12D\n" +
+	"\x10statement_record\x18\x03 \x01(\v2\x19.files.v1.StatementRecordR\x0fstatementRecord\"\xf2\x01\n" +
 	"\x14ListDocumentsRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12=\n" +
 	"\rstatus_filter\x18\x02 \x01(\x0e2\x18.files.v1.AnalysisStatusR\fstatusFilter\x127\n" +
@@ -556,9 +575,11 @@ var file_files_v1_grpc_proto_goTypes = []any{
 	(*v1.AuditMetadata)(nil),         // 9: common.v1.AuditMetadata
 	(*Document)(nil),                 // 10: files.v1.Document
 	(DocumentKind)(0),                // 11: files.v1.DocumentKind
-	(AnalysisStatus)(0),              // 12: files.v1.AnalysisStatus
-	(*v1.Pagination)(nil),            // 13: common.v1.Pagination
-	(*v1.PaginationResult)(nil),      // 14: common.v1.PaginationResult
+	(*BillRecord)(nil),               // 12: files.v1.BillRecord
+	(*StatementRecord)(nil),          // 13: files.v1.StatementRecord
+	(AnalysisStatus)(0),              // 14: files.v1.AnalysisStatus
+	(*v1.Pagination)(nil),            // 15: common.v1.Pagination
+	(*v1.PaginationResult)(nil),      // 16: common.v1.PaginationResult
 }
 var file_files_v1_grpc_proto_depIdxs = []int32{
 	8,  // 0: files.v1.UploadDocumentRequest.ctx:type_name -> common.v1.ProjectContext
@@ -570,25 +591,27 @@ var file_files_v1_grpc_proto_depIdxs = []int32{
 	10, // 6: files.v1.ClassifyDocumentResponse.document:type_name -> files.v1.Document
 	8,  // 7: files.v1.GetDocumentRequest.ctx:type_name -> common.v1.ProjectContext
 	10, // 8: files.v1.GetDocumentResponse.document:type_name -> files.v1.Document
-	8,  // 9: files.v1.ListDocumentsRequest.ctx:type_name -> common.v1.ProjectContext
-	12, // 10: files.v1.ListDocumentsRequest.status_filter:type_name -> files.v1.AnalysisStatus
-	11, // 11: files.v1.ListDocumentsRequest.kind_filter:type_name -> files.v1.DocumentKind
-	13, // 12: files.v1.ListDocumentsRequest.pagination:type_name -> common.v1.Pagination
-	10, // 13: files.v1.ListDocumentsResponse.documents:type_name -> files.v1.Document
-	14, // 14: files.v1.ListDocumentsResponse.pagination:type_name -> common.v1.PaginationResult
-	0,  // 15: files.v1.FilesService.UploadDocument:input_type -> files.v1.UploadDocumentRequest
-	2,  // 16: files.v1.FilesService.ClassifyDocument:input_type -> files.v1.ClassifyDocumentRequest
-	4,  // 17: files.v1.FilesService.GetDocument:input_type -> files.v1.GetDocumentRequest
-	6,  // 18: files.v1.FilesService.ListDocuments:input_type -> files.v1.ListDocumentsRequest
-	1,  // 19: files.v1.FilesService.UploadDocument:output_type -> files.v1.UploadDocumentResponse
-	3,  // 20: files.v1.FilesService.ClassifyDocument:output_type -> files.v1.ClassifyDocumentResponse
-	5,  // 21: files.v1.FilesService.GetDocument:output_type -> files.v1.GetDocumentResponse
-	7,  // 22: files.v1.FilesService.ListDocuments:output_type -> files.v1.ListDocumentsResponse
-	19, // [19:23] is the sub-list for method output_type
-	15, // [15:19] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	12, // 9: files.v1.GetDocumentResponse.bill_record:type_name -> files.v1.BillRecord
+	13, // 10: files.v1.GetDocumentResponse.statement_record:type_name -> files.v1.StatementRecord
+	8,  // 11: files.v1.ListDocumentsRequest.ctx:type_name -> common.v1.ProjectContext
+	14, // 12: files.v1.ListDocumentsRequest.status_filter:type_name -> files.v1.AnalysisStatus
+	11, // 13: files.v1.ListDocumentsRequest.kind_filter:type_name -> files.v1.DocumentKind
+	15, // 14: files.v1.ListDocumentsRequest.pagination:type_name -> common.v1.Pagination
+	10, // 15: files.v1.ListDocumentsResponse.documents:type_name -> files.v1.Document
+	16, // 16: files.v1.ListDocumentsResponse.pagination:type_name -> common.v1.PaginationResult
+	0,  // 17: files.v1.FilesService.UploadDocument:input_type -> files.v1.UploadDocumentRequest
+	2,  // 18: files.v1.FilesService.ClassifyDocument:input_type -> files.v1.ClassifyDocumentRequest
+	4,  // 19: files.v1.FilesService.GetDocument:input_type -> files.v1.GetDocumentRequest
+	6,  // 20: files.v1.FilesService.ListDocuments:input_type -> files.v1.ListDocumentsRequest
+	1,  // 21: files.v1.FilesService.UploadDocument:output_type -> files.v1.UploadDocumentResponse
+	3,  // 22: files.v1.FilesService.ClassifyDocument:output_type -> files.v1.ClassifyDocumentResponse
+	5,  // 23: files.v1.FilesService.GetDocument:output_type -> files.v1.GetDocumentResponse
+	7,  // 24: files.v1.FilesService.ListDocuments:output_type -> files.v1.ListDocumentsResponse
+	21, // [21:25] is the sub-list for method output_type
+	17, // [17:21] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_files_v1_grpc_proto_init() }

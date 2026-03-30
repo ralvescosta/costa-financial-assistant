@@ -117,9 +117,15 @@ func newFilesClient(t *testing.T, db *sql.DB) filesv1.FilesServiceClient {
 	logger := zaptest.NewLogger(t)
 
 	repo := filesrepo.NewDocumentRepository(db, logger)
+	jobRepo := filesrepo.NewAnalysisJobRepository(db, logger)
+	billRepo := filesrepo.NewBillRecordRepository(db, logger)
+	stmtRepo := filesrepo.NewStatementRecordRepository(db, logger)
 	uow := filesrepo.NewUnitOfWork(db)
+	extractor := filessvc.NewStubPDFExtractor()
+
 	svc := filessvc.NewDocumentService(repo, uow, logger)
-	srv := filesgrpc.NewServer(svc, logger)
+	extSvc := filessvc.NewExtractionService(repo, jobRepo, billRepo, stmtRepo, uow, extractor, logger)
+	srv := filesgrpc.NewServer(svc, extSvc, logger)
 
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)

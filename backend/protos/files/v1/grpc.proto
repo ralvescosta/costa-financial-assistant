@@ -55,7 +55,9 @@ message GetDocumentRequest {
 }
 
 message GetDocumentResponse {
-  Document document = 1;
+  Document        document         = 1;
+  BillRecord      bill_record      = 2; // present when kind=bill and status=analysed
+  StatementRecord statement_record = 3; // present when kind=statement and status=analysed
 }
 
 // ─── ListDocuments ───────────────────────────────────────────────────────────

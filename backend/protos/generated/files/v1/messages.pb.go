@@ -261,6 +261,466 @@ func (x *Document) GetUpdatedAt() string {
 	return ""
 }
 
+// BillRecord holds structured extraction output from a classified bill PDF.
+type BillRecord struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ProjectId     string                 `protobuf:"bytes,2,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
+	DocumentId    string                 `protobuf:"bytes,3,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	DueDate       string                 `protobuf:"bytes,4,opt,name=due_date,json=dueDate,proto3" json:"due_date,omitempty"`                       // ISO date (YYYY-MM-DD)
+	AmountDue     string                 `protobuf:"bytes,5,opt,name=amount_due,json=amountDue,proto3" json:"amount_due,omitempty"`                 // decimal string
+	PixPayload    string                 `protobuf:"bytes,6,opt,name=pix_payload,json=pixPayload,proto3" json:"pix_payload,omitempty"`              // nullable; empty string when not found
+	PixQrImageRef string                 `protobuf:"bytes,7,opt,name=pix_qr_image_ref,json=pixQrImageRef,proto3" json:"pix_qr_image_ref,omitempty"` // nullable; storage reference to QR image
+	Barcode       string                 `protobuf:"bytes,8,opt,name=barcode,proto3" json:"barcode,omitempty"`                                      // nullable; empty string when not found
+	PaymentStatus string                 `protobuf:"bytes,9,opt,name=payment_status,json=paymentStatus,proto3" json:"payment_status,omitempty"`     // "unpaid", "paid", "overdue"
+	PaidAt        string                 `protobuf:"bytes,10,opt,name=paid_at,json=paidAt,proto3" json:"paid_at,omitempty"`                         // nullable ISO timestamp
+	CreatedAt     string                 `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BillRecord) Reset() {
+	*x = BillRecord{}
+	mi := &file_files_v1_messages_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BillRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BillRecord) ProtoMessage() {}
+
+func (x *BillRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_messages_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BillRecord.ProtoReflect.Descriptor instead.
+func (*BillRecord) Descriptor() ([]byte, []int) {
+	return file_files_v1_messages_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *BillRecord) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BillRecord) GetProjectId() string {
+	if x != nil {
+		return x.ProjectId
+	}
+	return ""
+}
+
+func (x *BillRecord) GetDocumentId() string {
+	if x != nil {
+		return x.DocumentId
+	}
+	return ""
+}
+
+func (x *BillRecord) GetDueDate() string {
+	if x != nil {
+		return x.DueDate
+	}
+	return ""
+}
+
+func (x *BillRecord) GetAmountDue() string {
+	if x != nil {
+		return x.AmountDue
+	}
+	return ""
+}
+
+func (x *BillRecord) GetPixPayload() string {
+	if x != nil {
+		return x.PixPayload
+	}
+	return ""
+}
+
+func (x *BillRecord) GetPixQrImageRef() string {
+	if x != nil {
+		return x.PixQrImageRef
+	}
+	return ""
+}
+
+func (x *BillRecord) GetBarcode() string {
+	if x != nil {
+		return x.Barcode
+	}
+	return ""
+}
+
+func (x *BillRecord) GetPaymentStatus() string {
+	if x != nil {
+		return x.PaymentStatus
+	}
+	return ""
+}
+
+func (x *BillRecord) GetPaidAt() string {
+	if x != nil {
+		return x.PaidAt
+	}
+	return ""
+}
+
+func (x *BillRecord) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *BillRecord) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+// TransactionLine is an individual entry from an account balance statement.
+type TransactionLine struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ProjectId            string                 `protobuf:"bytes,2,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
+	StatementId          string                 `protobuf:"bytes,3,opt,name=statement_id,json=statementId,proto3" json:"statement_id,omitempty"`
+	TransactionDate      string                 `protobuf:"bytes,4,opt,name=transaction_date,json=transactionDate,proto3" json:"transaction_date,omitempty"` // ISO date
+	Description          string                 `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	Amount               string                 `protobuf:"bytes,6,opt,name=amount,proto3" json:"amount,omitempty"`                                                         // decimal string
+	Direction            string                 `protobuf:"bytes,7,opt,name=direction,proto3" json:"direction,omitempty"`                                                   // "credit" or "debit"
+	ReconciliationStatus string                 `protobuf:"bytes,8,opt,name=reconciliation_status,json=reconciliationStatus,proto3" json:"reconciliation_status,omitempty"` // "unmatched", "matched_auto", "matched_manual", "ambiguous"
+	CreatedAt            string                 `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *TransactionLine) Reset() {
+	*x = TransactionLine{}
+	mi := &file_files_v1_messages_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TransactionLine) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TransactionLine) ProtoMessage() {}
+
+func (x *TransactionLine) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_messages_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TransactionLine.ProtoReflect.Descriptor instead.
+func (*TransactionLine) Descriptor() ([]byte, []int) {
+	return file_files_v1_messages_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *TransactionLine) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetProjectId() string {
+	if x != nil {
+		return x.ProjectId
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetStatementId() string {
+	if x != nil {
+		return x.StatementId
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetTransactionDate() string {
+	if x != nil {
+		return x.TransactionDate
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetDirection() string {
+	if x != nil {
+		return x.Direction
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetReconciliationStatus() string {
+	if x != nil {
+		return x.ReconciliationStatus
+	}
+	return ""
+}
+
+func (x *TransactionLine) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+// StatementRecord holds structured extraction output from a bank statement PDF.
+type StatementRecord struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ProjectId     string                 `protobuf:"bytes,2,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
+	DocumentId    string                 `protobuf:"bytes,3,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	BankAccountId string                 `protobuf:"bytes,4,opt,name=bank_account_id,json=bankAccountId,proto3" json:"bank_account_id,omitempty"`
+	PeriodStart   string                 `protobuf:"bytes,5,opt,name=period_start,json=periodStart,proto3" json:"period_start,omitempty"` // ISO date
+	PeriodEnd     string                 `protobuf:"bytes,6,opt,name=period_end,json=periodEnd,proto3" json:"period_end,omitempty"`       // ISO date
+	Lines         []*TransactionLine     `protobuf:"bytes,7,rep,name=lines,proto3" json:"lines,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StatementRecord) Reset() {
+	*x = StatementRecord{}
+	mi := &file_files_v1_messages_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StatementRecord) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatementRecord) ProtoMessage() {}
+
+func (x *StatementRecord) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_messages_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatementRecord.ProtoReflect.Descriptor instead.
+func (*StatementRecord) Descriptor() ([]byte, []int) {
+	return file_files_v1_messages_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *StatementRecord) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *StatementRecord) GetProjectId() string {
+	if x != nil {
+		return x.ProjectId
+	}
+	return ""
+}
+
+func (x *StatementRecord) GetDocumentId() string {
+	if x != nil {
+		return x.DocumentId
+	}
+	return ""
+}
+
+func (x *StatementRecord) GetBankAccountId() string {
+	if x != nil {
+		return x.BankAccountId
+	}
+	return ""
+}
+
+func (x *StatementRecord) GetPeriodStart() string {
+	if x != nil {
+		return x.PeriodStart
+	}
+	return ""
+}
+
+func (x *StatementRecord) GetPeriodEnd() string {
+	if x != nil {
+		return x.PeriodEnd
+	}
+	return ""
+}
+
+func (x *StatementRecord) GetLines() []*TransactionLine {
+	if x != nil {
+		return x.Lines
+	}
+	return nil
+}
+
+func (x *StatementRecord) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *StatementRecord) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+// AnalysisJob tracks the async processing lifecycle for a document.
+type AnalysisJob struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ProjectId     string                 `protobuf:"bytes,2,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
+	DocumentId    string                 `protobuf:"bytes,3,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	JobType       string                 `protobuf:"bytes,4,opt,name=job_type,json=jobType,proto3" json:"job_type,omitempty"` // "extract_bill", "extract_statement"
+	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`                  // "queued", "running", "succeeded", "failed", "dead_lettered"
+	AttemptCount  int32                  `protobuf:"varint,6,opt,name=attempt_count,json=attemptCount,proto3" json:"attempt_count,omitempty"`
+	LastError     string                 `protobuf:"bytes,7,opt,name=last_error,json=lastError,proto3" json:"last_error,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnalysisJob) Reset() {
+	*x = AnalysisJob{}
+	mi := &file_files_v1_messages_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnalysisJob) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnalysisJob) ProtoMessage() {}
+
+func (x *AnalysisJob) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_messages_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnalysisJob.ProtoReflect.Descriptor instead.
+func (*AnalysisJob) Descriptor() ([]byte, []int) {
+	return file_files_v1_messages_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AnalysisJob) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AnalysisJob) GetProjectId() string {
+	if x != nil {
+		return x.ProjectId
+	}
+	return ""
+}
+
+func (x *AnalysisJob) GetDocumentId() string {
+	if x != nil {
+		return x.DocumentId
+	}
+	return ""
+}
+
+func (x *AnalysisJob) GetJobType() string {
+	if x != nil {
+		return x.JobType
+	}
+	return ""
+}
+
+func (x *AnalysisJob) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *AnalysisJob) GetAttemptCount() int32 {
+	if x != nil {
+		return x.AttemptCount
+	}
+	return 0
+}
+
+func (x *AnalysisJob) GetLastError() string {
+	if x != nil {
+		return x.LastError
+	}
+	return ""
+}
+
+func (x *AnalysisJob) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *AnalysisJob) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 var File_files_v1_messages_proto protoreflect.FileDescriptor
 
 const file_files_v1_messages_proto_rawDesc = "" +
@@ -284,7 +744,70 @@ const file_files_v1_messages_proto_rawDesc = "" +
 	"\vuploaded_at\x18\v \x01(\tR\n" +
 	"uploadedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\f \x01(\tR\tupdatedAt*b\n" +
+	"updated_at\x18\f \x01(\tR\tupdatedAt\"\xf8\x02\n" +
+	"\n" +
+	"BillRecord\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x02 \x01(\tR\tprojectId\x12\x1f\n" +
+	"\vdocument_id\x18\x03 \x01(\tR\n" +
+	"documentId\x12\x19\n" +
+	"\bdue_date\x18\x04 \x01(\tR\adueDate\x12\x1d\n" +
+	"\n" +
+	"amount_due\x18\x05 \x01(\tR\tamountDue\x12\x1f\n" +
+	"\vpix_payload\x18\x06 \x01(\tR\n" +
+	"pixPayload\x12'\n" +
+	"\x10pix_qr_image_ref\x18\a \x01(\tR\rpixQrImageRef\x12\x18\n" +
+	"\abarcode\x18\b \x01(\tR\abarcode\x12%\n" +
+	"\x0epayment_status\x18\t \x01(\tR\rpaymentStatus\x12\x17\n" +
+	"\apaid_at\x18\n" +
+	" \x01(\tR\x06paidAt\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\v \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\f \x01(\tR\tupdatedAt\"\xba\x02\n" +
+	"\x0fTransactionLine\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x02 \x01(\tR\tprojectId\x12!\n" +
+	"\fstatement_id\x18\x03 \x01(\tR\vstatementId\x12)\n" +
+	"\x10transaction_date\x18\x04 \x01(\tR\x0ftransactionDate\x12 \n" +
+	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x16\n" +
+	"\x06amount\x18\x06 \x01(\tR\x06amount\x12\x1c\n" +
+	"\tdirection\x18\a \x01(\tR\tdirection\x123\n" +
+	"\x15reconciliation_status\x18\b \x01(\tR\x14reconciliationStatus\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\t \x01(\tR\tcreatedAt\"\xba\x02\n" +
+	"\x0fStatementRecord\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x02 \x01(\tR\tprojectId\x12\x1f\n" +
+	"\vdocument_id\x18\x03 \x01(\tR\n" +
+	"documentId\x12&\n" +
+	"\x0fbank_account_id\x18\x04 \x01(\tR\rbankAccountId\x12!\n" +
+	"\fperiod_start\x18\x05 \x01(\tR\vperiodStart\x12\x1d\n" +
+	"\n" +
+	"period_end\x18\x06 \x01(\tR\tperiodEnd\x12/\n" +
+	"\x05lines\x18\a \x03(\v2\x19.files.v1.TransactionLineR\x05lines\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\"\x92\x02\n" +
+	"\vAnalysisJob\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x02 \x01(\tR\tprojectId\x12\x1f\n" +
+	"\vdocument_id\x18\x03 \x01(\tR\n" +
+	"documentId\x12\x19\n" +
+	"\bjob_type\x18\x04 \x01(\tR\ajobType\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12#\n" +
+	"\rattempt_count\x18\x06 \x01(\x05R\fattemptCount\x12\x1d\n" +
+	"\n" +
+	"last_error\x18\a \x01(\tR\tlastError\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt*b\n" +
 	"\fDocumentKind\x12\x1d\n" +
 	"\x19DOCUMENT_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12DOCUMENT_KIND_BILL\x10\x01\x12\x1b\n" +
@@ -309,20 +832,25 @@ func file_files_v1_messages_proto_rawDescGZIP() []byte {
 }
 
 var file_files_v1_messages_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_files_v1_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_files_v1_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_files_v1_messages_proto_goTypes = []any{
-	(DocumentKind)(0),   // 0: files.v1.DocumentKind
-	(AnalysisStatus)(0), // 1: files.v1.AnalysisStatus
-	(*Document)(nil),    // 2: files.v1.Document
+	(DocumentKind)(0),       // 0: files.v1.DocumentKind
+	(AnalysisStatus)(0),     // 1: files.v1.AnalysisStatus
+	(*Document)(nil),        // 2: files.v1.Document
+	(*BillRecord)(nil),      // 3: files.v1.BillRecord
+	(*TransactionLine)(nil), // 4: files.v1.TransactionLine
+	(*StatementRecord)(nil), // 5: files.v1.StatementRecord
+	(*AnalysisJob)(nil),     // 6: files.v1.AnalysisJob
 }
 var file_files_v1_messages_proto_depIdxs = []int32{
 	0, // 0: files.v1.Document.kind:type_name -> files.v1.DocumentKind
 	1, // 1: files.v1.Document.analysis_status:type_name -> files.v1.AnalysisStatus
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 2: files.v1.StatementRecord.lines:type_name -> files.v1.TransactionLine
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_files_v1_messages_proto_init() }
@@ -336,7 +864,7 @@ func file_files_v1_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_files_v1_messages_proto_rawDesc), len(file_files_v1_messages_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   1,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

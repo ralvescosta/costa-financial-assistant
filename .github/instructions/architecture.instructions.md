@@ -25,7 +25,7 @@ applyTo: "**/*"
 
 **Correct layer order**:
 ```
-backend/internals/bff/financial/controllers/documents_controller.go
+backend/internals/bff/transport/http/controllers/documents_controller.go
   → backend/internals/files/services/document_service.go
     → backend/internals/files/repositories/document_repository.go
 ```
@@ -41,16 +41,16 @@ backend/internals/bff/financial/controllers/documents_controller.go
 **Copilot MUST**:
 - Register every route via `huma.Register` with `OperationID`, `Summary`, `Description`, and `Tags`.
 - Wire `otelecho` as the first middleware for distributed trace propagation.
-- Keep all business decisions in `backend/internals/bff/financial/services/` away from controllers.
-- Place JWT validation and JWKS cache logic in `backend/internals/bff/financial/transport/http/middleware/`.
-- Place project-membership and role guard logic in `backend/internals/bff/financial/transport/http/middleware/project_guard.go`.
+- Keep all business decisions in `backend/internals/bff/services/` away from controllers.
+- Place JWT validation and JWKS cache logic in `backend/internals/bff/transport/http/middleware/`.
+- Place project-membership and role guard logic in `backend/internals/bff/transport/http/middleware/project_guard.go`.
 
 **Copilot MUST NOT**:
 - Register raw Echo routes that skip Huma operation metadata.
 - Embed business rules in controller-level handler closures.
 - Use any HTTP framework other than Echo (no Gin, Fiber, Chi).
 
-**Reference files**: `backend/cmd/bff/container.go` (bootstrap), `backend/internals/bff/financial/controllers/` (controllers).
+**Reference files**: `backend/cmd/bff/container.go` (bootstrap), `backend/internals/bff/transport/http/controllers/` (controllers).
 
 ---
 
@@ -151,7 +151,7 @@ backend/internals/bff/financial/controllers/documents_controller.go
 **When it applies**: Adding or modifying tables, columns, indexes, or enums.
 
 **Copilot MUST**:
-- Create `.up.sql` and `.down.sql` pairs under `backend/<service>/migrations/`.
+- Create `.up.sql` and `.down.sql` pairs under `backend/internals/<service>/migrations/`.
 - Use a sequential numeric prefix and descriptive slug: `000001_create_documents.up.sql`.
 - Write all indexes with `CREATE INDEX IF NOT EXISTS`.
 - Apply migrations via `make migrate/up/<service>`.

@@ -17,13 +17,14 @@ import (
 // Server implements filesv1.FilesServiceServer.
 type Server struct {
 	filesv1.UnimplementedFilesServiceServer
-	svc    services.DocumentServiceIface
-	logger *zap.Logger
+	svc      services.DocumentServiceIface
+	extSvc   services.ExtractionServiceIface
+	logger   *zap.Logger
 }
 
 // NewServer constructs a files gRPC server.
-func NewServer(svc services.DocumentServiceIface, logger *zap.Logger) *Server {
-	return &Server{svc: svc, logger: logger}
+func NewServer(svc services.DocumentServiceIface, extSvc services.ExtractionServiceIface, logger *zap.Logger) *Server {
+	return &Server{svc: svc, extSvc: extSvc, logger: logger}
 }
 
 // UploadDocument registers a PDF upload and persists metadata.
@@ -79,7 +80,7 @@ func (s *Server) ClassifyDocument(ctx context.Context, req *filesv1.ClassifyDocu
 	return &filesv1.ClassifyDocumentResponse{Document: doc}, nil
 }
 
-// GetDocument returns a single project-scoped document.
+// GetDocument returns a project-scoped document with optional extracted bill/statement data.
 func (s *Server) GetDocument(ctx context.Context, req *filesv1.GetDocumentRequest) (*filesv1.GetDocumentResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
@@ -88,7 +89,7 @@ func (s *Server) GetDocument(ctx context.Context, req *filesv1.GetDocumentReques
 		return nil, status.Error(codes.InvalidArgument, "document_id is required")
 	}
 
-	doc, err := s.svc.GetDocument(ctx, req.GetCtx().GetProjectId(), req.GetDocumentId())
+	doc, billRecord, stmtRecord, err := s.extSvc.GetDocumentDetail(ctx, req.GetCtx().GetProjectId(), req.GetDocumentId())
 	if err != nil {
 		if errors.Is(err, repositories.ErrDocumentNotFound) {
 			return nil, status.Error(codes.NotFound, "document not found")
@@ -98,7 +99,11 @@ func (s *Server) GetDocument(ctx context.Context, req *filesv1.GetDocumentReques
 			zap.Error(err))
 		return nil, status.Error(codes.Internal, "get document failed")
 	}
-	return &filesv1.GetDocumentResponse{Document: doc}, nil
+	return &filesv1.GetDocumentResponse{
+		Document:        doc,
+		BillRecord:      billRecord,
+		StatementRecord: stmtRecord,
+	}, nil
 }
 
 // ListDocuments returns project-scoped documents with keyset pagination.

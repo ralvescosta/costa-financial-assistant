@@ -37,3 +37,58 @@ message Document {
   string         uploaded_at      = 11;
   string         updated_at       = 12;
 }
+
+// BillRecord holds structured extraction output from a classified bill PDF.
+message BillRecord {
+  string id               = 1;
+  string project_id       = 2;
+  string document_id      = 3;
+  string due_date         = 4; // ISO date (YYYY-MM-DD)
+  string amount_due       = 5; // decimal string
+  string pix_payload      = 6; // nullable; empty string when not found
+  string pix_qr_image_ref = 7; // nullable; storage reference to QR image
+  string barcode          = 8; // nullable; empty string when not found
+  string payment_status   = 9; // "unpaid", "paid", "overdue"
+  string paid_at          = 10; // nullable ISO timestamp
+  string created_at       = 11;
+  string updated_at       = 12;
+}
+
+// TransactionLine is an individual entry from an account balance statement.
+message TransactionLine {
+  string id                    = 1;
+  string project_id            = 2;
+  string statement_id          = 3;
+  string transaction_date      = 4; // ISO date
+  string description           = 5;
+  string amount                = 6; // decimal string
+  string direction             = 7; // "credit" or "debit"
+  string reconciliation_status = 8; // "unmatched", "matched_auto", "matched_manual", "ambiguous"
+  string created_at            = 9;
+}
+
+// StatementRecord holds structured extraction output from a bank statement PDF.
+message StatementRecord {
+  string                  id              = 1;
+  string                  project_id      = 2;
+  string                  document_id     = 3;
+  string                  bank_account_id = 4;
+  string                  period_start    = 5; // ISO date
+  string                  period_end      = 6; // ISO date
+  repeated TransactionLine lines          = 7;
+  string                  created_at      = 8;
+  string                  updated_at      = 9;
+}
+
+// AnalysisJob tracks the async processing lifecycle for a document.
+message AnalysisJob {
+  string id            = 1;
+  string project_id    = 2;
+  string document_id   = 3;
+  string job_type      = 4; // "extract_bill", "extract_statement"
+  string status        = 5; // "queued", "running", "succeeded", "failed", "dead_lettered"
+  int32  attempt_count = 6;
+  string last_error    = 7;
+  string created_at    = 8;
+  string updated_at    = 9;
+}

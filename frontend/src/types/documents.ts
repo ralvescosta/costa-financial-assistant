@@ -48,3 +48,39 @@ export interface ListDocumentsResponse {
     totalCount?: number
   }
 }
+
+export interface BillRecord {
+  id: string
+  dueDate: string
+  amountDue: string
+  pixPayload?: string
+  pixQrImageRef?: string
+  barcode?: string
+  paymentStatus: string
+  paidAt?: string
+}
+
+export interface TransactionLine {
+  id: string
+  transactionDate: string
+  description: string
+  amount: string
+  direction: string
+  reconciliationStatus: string
+}
+
+export interface StatementRecord {
+  id: string
+  bankAccountId?: string
+  periodStart: string
+  periodEnd: string
+  lines: TransactionLine[]
+}
+
+export interface DocumentDetail extends Document {
+  billRecord?: BillRecord
+  statementRecord?: StatementRecord
+}
+
+export interface GetDocumentResponse extends DocumentDetail { }
+

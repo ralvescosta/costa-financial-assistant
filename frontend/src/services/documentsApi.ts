@@ -2,6 +2,7 @@ import type {
   UploadDocumentResponse,
   ClassifyDocumentResponse,
   ListDocumentsResponse,
+  GetDocumentResponse,
   DocumentKind,
 } from '@/types/documents'
 
@@ -64,4 +65,16 @@ export async function listDocuments(
     throw new Error(body?.title ?? `List documents failed: ${res.status}`)
   }
   return res.json() as Promise<ListDocumentsResponse>
+}
+
+/**
+ * Fetches full document detail including extracted bill or statement data.
+ */
+export async function getDocument(documentId: string): Promise<GetDocumentResponse> {
+  const res = await fetch(`${BASE}/documents/${encodeURIComponent(documentId)}`)
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as { title?: string } | null
+    throw new Error(body?.title ?? `Get document failed: ${res.status}`)
+  }
+  return res.json() as Promise<GetDocumentResponse>
 }

@@ -55,6 +55,44 @@ type documentResponse struct {
 	UpdatedAt       string `json:"updatedAt"`
 }
 
+// billRecordResponse is the JSON shape returned for an extracted bill.
+type billRecordResponse struct {
+	ID            string `json:"id"`
+	DueDate       string `json:"dueDate"`
+	AmountDue     string `json:"amountDue"`
+	PixPayload    string `json:"pixPayload,omitempty"`
+	PixQRImageRef string `json:"pixQrImageRef,omitempty"`
+	Barcode       string `json:"barcode,omitempty"`
+	PaymentStatus string `json:"paymentStatus"`
+	PaidAt        string `json:"paidAt,omitempty"`
+}
+
+// transactionLineResponse is a single line from a bank statement.
+type transactionLineResponse struct {
+	ID                  string `json:"id"`
+	TransactionDate     string `json:"transactionDate"`
+	Description         string `json:"description"`
+	Amount              string `json:"amount"`
+	Direction           string `json:"direction"`
+	ReconciliationStatus string `json:"reconciliationStatus"`
+}
+
+// statementRecordResponse is the JSON shape returned for an extracted statement.
+type statementRecordResponse struct {
+	ID            string                    `json:"id"`
+	BankAccountID string                    `json:"bankAccountId,omitempty"`
+	PeriodStart   string                    `json:"periodStart"`
+	PeriodEnd     string                    `json:"periodEnd"`
+	Lines         []transactionLineResponse `json:"lines"`
+}
+
+// documentDetailResponse extends documentResponse with optional extraction data.
+type documentDetailResponse struct {
+	documentResponse
+	BillRecord      *billRecordResponse      `json:"billRecord,omitempty"`
+	StatementRecord *statementRecordResponse `json:"statementRecord,omitempty"`
+}
+
 // listDocumentsResponse is the JSON body for the list endpoint.
 type listDocumentsResponse struct {
 	Items         []documentResponse `json:"items"`
@@ -232,7 +270,7 @@ func (c *DocumentsController) handleList(ctx context.Context, input *listDocumen
 
 func (c *DocumentsController) handleGet(ctx context.Context, input *struct {
 	DocumentID string `path:"documentId" doc:"Document UUID"`
-}) (*struct{ Body documentResponse }, error) {
+}) (*struct{ Body documentDetailResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -248,7 +286,18 @@ func (c *DocumentsController) handleGet(ctx context.Context, input *struct {
 		return nil, c.grpcToHumaError(err, "get document failed")
 	}
 
-	return &struct{ Body documentResponse }{Body: protoToResponse(resp.Document)}, nil
+	body := documentDetailResponse{
+		documentResponse: protoToResponse(resp.Document),
+	}
+
+	if resp.BillRecord != nil {
+		body.BillRecord = protoBillToResponse(resp.BillRecord)
+	}
+	if resp.StatementRecord != nil {
+		body.StatementRecord = protoStatementToResponse(resp.StatementRecord)
+	}
+
+	return &struct{ Body documentDetailResponse }{Body: body}, nil
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -267,6 +316,46 @@ func protoToResponse(d *filesv1.Document) documentResponse {
 		StorageProvider: d.StorageProvider,
 		UploadedAt:      d.UploadedAt,
 		UpdatedAt:       d.UpdatedAt,
+	}
+}
+
+func protoBillToResponse(b *filesv1.BillRecord) *billRecordResponse {
+	if b == nil {
+		return nil
+	}
+	return &billRecordResponse{
+		ID:            b.Id,
+		DueDate:       b.DueDate,
+		AmountDue:     b.AmountDue,
+		PixPayload:    b.PixPayload,
+		PixQRImageRef: b.PixQrImageRef,
+		Barcode:       b.Barcode,
+		PaymentStatus: b.PaymentStatus,
+		PaidAt:        b.PaidAt,
+	}
+}
+
+func protoStatementToResponse(s *filesv1.StatementRecord) *statementRecordResponse {
+	if s == nil {
+		return nil
+	}
+	lines := make([]transactionLineResponse, 0, len(s.Lines))
+	for _, l := range s.Lines {
+		lines = append(lines, transactionLineResponse{
+			ID:                   l.Id,
+			TransactionDate:      l.TransactionDate,
+			Description:          l.Description,
+			Amount:               l.Amount,
+			Direction:            l.Direction,
+			ReconciliationStatus: l.ReconciliationStatus,
+		})
+	}
+	return &statementRecordResponse{
+		ID:            s.Id,
+		BankAccountID: s.BankAccountId,
+		PeriodStart:   s.PeriodStart,
+		PeriodEnd:     s.PeriodEnd,
+		Lines:         lines,
 	}
 }
 
