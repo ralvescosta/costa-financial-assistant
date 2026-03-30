@@ -1,29 +1,25 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.1.0 → 1.2.0
-Bump rationale: MINOR — two existing principles materially expanded and one new principle
-  added; no principles removed or redefined.
+Version change: 1.2.0 → 1.3.0
+Bump rationale: MINOR — one existing principle structurally expanded (canonical layout
+  updated) and one new principle added; no principles removed or redefined.
 Modified principles:
-  - II. SOLID Principles & Clean Architecture — added mandatory interface+struct rule and
-    orphan-function prohibition in internals/.
-  - VI. Observability & Structured Logging — added error logging rules (error field +
-    contextual fields), mandatory OTel trace context in every log call, explicit trace
-    propagation requirements for gRPC and HTTP, custom per-module health metrics, and
-    BFF per-endpoint metrics best practices.
+  - II. SOLID Principles & Clean Architecture — `migrations/` directory added to the
+    canonical Go service layout.
 Added principles:
-  - VIII. Configuration & Secrets Management — .env files per environment, pkgs/configs
-    (viper), pkgs/secrets interface with HashiCorp Vault and AWS Secrets Manager
-    implementations, ${} sentinel pattern for secret resolution at startup.
+  - IX. Data Access & Database Discipline — cache-aside read pattern, mandatory index
+    review for every query, DDL+DML migration tracking, golang-migrate/migrate as the
+    sole migration runner, migrations module in the backend.
 Removed sections: None
 Templates requiring updates:
   - .specify/templates/plan-template.md ✅ — constitution check gates remain valid;
-    Technical Context for new features must now list viper, secrets provider, and
-    per-module metrics as dependencies.
+    Technical Context for new data-touching features must list golang-migrate and Redis
+    cache-aside as dependencies; Storage field should reference migrations/ structure.
   - .specify/templates/spec-template.md ✅ — no structural changes required.
-  - .specify/templates/tasks-template.md ✅ — Phase 2 (Foundational) tasks for new backend
-    services MUST include: pkgs/configs loader task, pkgs/secrets interface + provider
-    task, OTel custom metrics registration task, and BFF metrics middleware task.
+  - .specify/templates/tasks-template.md ✅ — Phase 2 (Foundational) tasks for any
+    service that touches PostgreSQL MUST include: migration file creation task, index
+    review task, and cache-aside repository implementation task.
   - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
@@ -63,6 +59,9 @@ internals/
   transport/
     grpc/           # gRPC handlers
     rmq/            # RabbitMQ consumers/producers (.gitkeep if unused)
+migrations/         # SQL migration files managed by golang-migrate
+  <NNN>_<description>.up.sql
+  <NNN>_<description>.down.sql
 pkgs/               # shared, domain-agnostic utilities
 mocks/              # auto-generated mocks (uber/mock)
 ```
@@ -236,6 +235,54 @@ Security constraints:
 - `.env.example` MUST list every required key with a placeholder value, serving as
   the canonical documentation of the service's configuration surface.
 
+### IX. Data Access & Database Discipline (NON-NEGOTIABLE)
+
+**Cache-aside pattern**:
+Every repository read operation that is eligible for caching MUST implement the
+cache-aside pattern:
+1. Check Redis for a cached result using a deterministic cache key.
+2. On cache hit: deserialise and return the cached value.
+3. On cache miss: query PostgreSQL, store the result in Redis with an appropriate TTL,
+   then return the result.
+Write operations (INSERT / UPDATE / DELETE) MUST invalidate or update affected cache
+entries atomically with the database write where consistency requires it.
+Cache keys MUST follow the convention `<service>:<entity>:<identifier>` to prevent
+collisions across services.
+
+**Index discipline**:
+Before writing any repository query, the developer MUST:
+1. Identify every column referenced in `WHERE`, `ORDER BY`, `JOIN ON`, or `GROUP BY`
+   clauses of that query.
+2. Verify that a suitable index exists in the migration history for those columns.
+3. If no adequate index exists, a new migration file MUST be created to add it
+   **before or alongside** the feature that introduces the query.
+Index creation migrations MUST be idempotent (`CREATE INDEX IF NOT EXISTS`).
+Removing an index requires a corresponding `.down.sql` entry.
+
+**Migration strategy**:
+The sole migration runner is `github.com/golang-migrate/migrate/v4`.
+Each backend service that owns a database schema MUST have a `migrations/` directory
+at the service root (part of the canonical layout defined in Principle II) containing
+sequentially numbered SQL files:
+```
+migrations/
+  000001_create_<table>.up.sql
+  000001_create_<table>.down.sql
+  000002_add_<column_or_index>.up.sql
+  000002_add_<column_or_index>.down.sql
+```
+Rules:
+- Both DDL (schema changes: `CREATE TABLE`, `ALTER TABLE`, `CREATE INDEX`, etc.) and
+  DML seed/reference data changes (`INSERT`, `UPDATE` on reference tables) MUST be
+  tracked as versioned migration files — never applied manually.
+- Every `.up.sql` MUST have a corresponding `.down.sql` that fully reverses the change.
+- Migration files are immutable once merged; existing files MUST NOT be edited.
+  Corrections require a new migration.
+- Migrations MUST be applied automatically at service startup via the
+  `golang-migrate` programmatic API, before the service begins accepting traffic.
+- The `Makefile` MUST expose `migrate/up/<service>` and `migrate/down/<service>`
+  targets for manual control during development.
+
 ## Technology Stack
 
 ### Backend
@@ -253,6 +300,8 @@ Security constraints:
   + OTLP exporter (`go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc`,
   `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc`,
   `go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc`)
+- **Database migrations**: `github.com/golang-migrate/migrate/v4` (sole migration runner;
+  applied automatically at service startup)
 - **Configuration**: `github.com/spf13/viper` (env file loading into typed struct)
 - **Secrets**: `pkgs/secrets` interface; providers: `github.com/hashicorp/vault/api`
   (HashiCorp Vault) and `github.com/aws/aws-sdk-go-v2/service/secretsmanager`
@@ -278,10 +327,10 @@ Security constraints:
 
 ## Development Workflow
 
-Every feature branch MUST be reviewed against all eight core principles before merge.
+Every feature branch MUST be reviewed against all nine core principles before merge.
 A PR is blocked if:
 
-1. A backend service violates the `cmd/internals/pkgs/mocks` directory contract.
+1. A backend service violates the `cmd/internals/pkgs/mocks/migrations` directory contract.
 2. A new concrete dependency is injected manually instead of via `dig`.
 3. Frontend screen files contain business logic or inline state management outside hooks.
 4. Mocks are hand-written rather than generated.
@@ -299,6 +348,15 @@ A PR is blocked if:
 15. A configuration value is hardcoded instead of loaded from the `.env` / config struct.
 16. A secret value appears in plaintext in any committed `.env` file
     (must use `${}` sentinel and be resolved via `pkgs/secrets` at startup).
+17. A new repository read operation skips the cache-aside check for Redis before
+    querying PostgreSQL (unless the entity is explicitly documented as non-cacheable).
+18. A new query is introduced without a corresponding index review; if no suitable index
+    exists, a migration adding one MUST be part of the same PR.
+19. A schema or data change is applied without a versioned migration file in `migrations/`;
+    direct DDL/DML executed outside the migration runner is forbidden.
+20. An existing migration file is edited after being merged (corrections require a new
+    migration file).
+21. A service startup sequence does not run `golang-migrate` before accepting traffic.
 
 Code review MUST verify that each gRPC service definition is accompanied by updated
 `.proto` files committed to the repository (proto-first design).
@@ -321,4 +379,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.2.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.3.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
