@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package common.v1;
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1;commonv1";
+
+// Pagination carries cursor-based pagination parameters for list requests.
+message Pagination {
+  int32  page_size   = 1;
+  string page_token  = 2;
+}
+
+// PaginationResult carries the next page token to be forwarded to the caller.
+message PaginationResult {
+  string next_page_token    = 1;
+  int32  total_count        = 2;
+}
+
+// Money represents an amount in a given ISO-4217 currency code.
+message Money {
+  string currency_code = 1; // e.g. "BRL"
+  int64  units         = 2; // whole units (e.g. reais)
+  int32  nanos         = 3; // fractional units (0–999_999_999)
+}
+
+// ProjectContext carries the verified tenant scope for all domain operations.
+message ProjectContext {
+  string project_id = 1;
+  string user_id    = 2;
+  string role       = 3; // read_only | update | write
+}
+
+// ErrorEnvelope wraps structured error details for gRPC responses.
+message ErrorEnvelope {
+  string code    = 1; // machine-readable error code
+  string message = 2; // human-readable description
+  repeated string details = 3;
+}
+
+// AuditMetadata carries optional attribution fields for mutating operations.
+message AuditMetadata {
+  string performed_by = 1; // user_id
+  string idempotency_key = 2;
+}

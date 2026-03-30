@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package onboarding.v1;
+
+import "common/v1/messages.proto";
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1;onboardingv1";
+
+// ProjectType classifies the nature of a project tenant.
+enum ProjectType {
+  PROJECT_TYPE_UNSPECIFIED = 0;
+  PROJECT_TYPE_PERSONAL    = 1;
+  PROJECT_TYPE_CONJUGAL    = 2;
+  PROJECT_TYPE_SHARED      = 3;
+}
+
+// ProjectMemberRole defines permission levels within a project.
+enum ProjectMemberRole {
+  PROJECT_MEMBER_ROLE_UNSPECIFIED = 0;
+  PROJECT_MEMBER_ROLE_READ_ONLY   = 1;
+  PROJECT_MEMBER_ROLE_UPDATE      = 2;
+  PROJECT_MEMBER_ROLE_WRITE       = 3;
+}
+
+// User is a lightweight identity representation used in onboarding projections.
+message User {
+  string id           = 1;
+  string email        = 2;
+  string display_name = 3;
+  string status       = 4;
+  string created_at   = 5;
+}
+
+// Project is a tenant boundary that owns all financial domain data.
+message Project {
+  string      id         = 1;
+  string      owner_id   = 2;
+  string      name       = 3;
+  ProjectType type       = 4;
+  string      created_at = 5;
+  string      updated_at = 6;
+}
+
+// ProjectMember represents a user's membership and role within a project.
+message ProjectMember {
+  string            id          = 1;
+  string            project_id  = 2;
+  string            user_id     = 3;
+  ProjectMemberRole role        = 4;
+  string            invited_by  = 5;
+  string            created_at  = 6;
+  string            updated_at  = 7;
+}

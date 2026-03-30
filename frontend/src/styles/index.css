@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Primitive palette tokens ─────────────────────────────────── */
+:root {
+  /* Brand */
+  --palette-indigo-600: #4f46e5;
+  --palette-indigo-700: #4338ca;
+  --palette-indigo-50:  #eef2ff;
+
+  /* Neutrals */
+  --palette-white:      #ffffff;
+  --palette-gray-50:    #f9fafb;
+  --palette-gray-100:   #f3f4f6;
+  --palette-gray-200:   #e5e7eb;
+  --palette-gray-400:   #9ca3af;
+  --palette-gray-600:   #4b5563;
+  --palette-gray-900:   #111827;
+
+  /* Semantic */
+  --palette-red-600:    #dc2626;
+  --palette-red-50:     #fef2f2;
+  --palette-green-600:  #16a34a;
+  --palette-green-50:   #f0fdf4;
+  --palette-amber-500:  #f59e0b;
+  --palette-amber-50:   #fffbeb;
+}
+
+/* ─── Light theme semantic tokens ───────────────────────────────── */
+:root {
+  --color-primary:        var(--palette-indigo-600);
+  --color-primary-hover:  var(--palette-indigo-700);
+  --color-surface:        var(--palette-white);
+  --color-surface-raised: var(--palette-gray-50);
+  --color-border:         var(--palette-gray-200);
+  --color-text-primary:   var(--palette-gray-900);
+  --color-text-secondary: var(--palette-gray-600);
+  --color-text-disabled:  var(--palette-gray-400);
+  --color-danger:         var(--palette-red-600);
+  --color-danger-bg:      var(--palette-red-50);
+  --color-success:        var(--palette-green-600);
+  --color-success-bg:     var(--palette-green-50);
+  --color-warning:        var(--palette-amber-500);
+  --color-warning-bg:     var(--palette-amber-50);
+  --color-overlay:        rgba(0, 0, 0, 0.4);
+}
+
+/* ─── Dark theme semantic tokens ────────────────────────────────── */
+.dark {
+  --color-primary:        var(--palette-indigo-50);
+  --color-primary-hover:  var(--palette-indigo-600);
+  --color-surface:        #1e1e2e;
+  --color-surface-raised: #2a2a3d;
+  --color-border:         #3a3a5c;
+  --color-text-primary:   #e2e8f0;
+  --color-text-secondary: #a0aec0;
+  --color-text-disabled:  #718096;
+  --color-danger:         #fc8181;
+  --color-danger-bg:      #3b1a1a;
+  --color-success:        #68d391;
+  --color-success-bg:     #1a3b1a;
+  --color-warning:        #f6e05e;
+  --color-warning-bg:     #3b2f1a;
+  --color-overlay:        rgba(0, 0, 0, 0.7);
+}
+
+/* ─── Base resets ───────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

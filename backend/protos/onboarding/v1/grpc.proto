@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package onboarding.v1;
+
+import "onboarding/v1/messages.proto";
+import "common/v1/messages.proto";
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1;onboardingv1";
+
+// OnboardingService manages project lifecycle and member collaboration.
+service OnboardingService {
+  // CreateProject creates a new project tenant owned by the caller.
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse);
+
+  // InviteProjectMember adds a user to a project with a given role.
+  rpc InviteProjectMember(InviteProjectMemberRequest) returns (InviteProjectMemberResponse);
+
+  // UpdateProjectMemberRole changes the role of an existing project member.
+  rpc UpdateProjectMemberRole(UpdateProjectMemberRoleRequest) returns (UpdateProjectMemberRoleResponse);
+
+  // ListProjectMembers returns all members of a given project.
+  rpc ListProjectMembers(ListProjectMembersRequest) returns (ListProjectMembersResponse);
+
+  // GetProject returns a single project by ID.
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse);
+}
+
+// ─── CreateProject ───────────────────────────────────────────────────────────
+message CreateProjectRequest {
+  common.v1.ProjectContext ctx  = 1;
+  string                   name = 2;
+  ProjectType              type = 3;
+}
+
+message CreateProjectResponse {
+  Project project = 1;
+}
+
+// ─── InviteProjectMember ─────────────────────────────────────────────────────
+message InviteProjectMemberRequest {
+  common.v1.ProjectContext ctx           = 1;
+  string                   invitee_email = 2;
+  ProjectMemberRole        role          = 3;
+  common.v1.AuditMetadata  audit         = 4;
+}
+
+message InviteProjectMemberResponse {
+  ProjectMember member = 1;
+}
+
+// ─── UpdateProjectMemberRole ─────────────────────────────────────────────────
+message UpdateProjectMemberRoleRequest {
+  common.v1.ProjectContext ctx        = 1;
+  string                   member_id  = 2;
+  ProjectMemberRole        new_role   = 3;
+  common.v1.AuditMetadata  audit      = 4;
+}
+
+message UpdateProjectMemberRoleResponse {
+  ProjectMember member = 1;
+}
+
+// ─── ListProjectMembers ──────────────────────────────────────────────────────
+message ListProjectMembersRequest {
+  common.v1.ProjectContext ctx        = 1;
+  common.v1.Pagination     pagination = 2;
+}
+
+message ListProjectMembersResponse {
+  repeated ProjectMember       members    = 1;
+  common.v1.PaginationResult   pagination = 2;
+}
+
+// ─── GetProject ──────────────────────────────────────────────────────────────
+message GetProjectRequest {
+  common.v1.ProjectContext ctx = 1;
+}
+
+message GetProjectResponse {
+  Project project = 1;
+}

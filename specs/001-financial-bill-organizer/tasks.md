@@ -33,10 +33,10 @@
 
 **⚠️ CRITICAL**: No user-story implementation starts before this phase completes.
 
-- [ ] T008 Create multi-tenant bootstrap schema migration (`users/projects/project_members`) in `backend/onboarding/migrations/000001_create_identity_and_projects.up.sql`
-- [ ] T009 Create reversible down migration for tenant bootstrap schema in `backend/onboarding/migrations/000001_create_identity_and_projects.down.sql`
-- [ ] T010 Create seed migration for bootstrap user/project/member in `backend/onboarding/migrations/000002_seed_bootstrap_tenant.up.sql`
-- [ ] T011 Create down migration for bootstrap seed data in `backend/onboarding/migrations/000002_seed_bootstrap_tenant.down.sql`
+- [X] T008 Create multi-tenant bootstrap schema migration (`users/projects/project_members`) in `backend/internals/onboarding/migrations/000001_create_identity_and_projects.up.sql`
+- [X] T009 Create reversible down migration for tenant bootstrap schema in `backend/internals/onboarding/migrations/000001_create_identity_and_projects.down.sql`
+- [X] T010 Create seed migration for bootstrap user/project/member in `backend/internals/onboarding/migrations/000002_seed_bootstrap_tenant.up.sql`
+- [X] T011 Create down migration for bootstrap seed data in `backend/internals/onboarding/migrations/000002_seed_bootstrap_tenant.down.sql`
 - [ ] T012 [P] Add onboarding v1 domain messages contract in `backend/protos/onboarding/v1/messages.proto`
 - [ ] T013 [P] Add onboarding v1 grpc service contract in `backend/protos/onboarding/v1/grpc.proto`
 - [ ] T014 [P] Add identity v1 domain messages contract in `backend/protos/identity/v1/messages.proto`

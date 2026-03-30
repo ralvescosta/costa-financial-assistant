@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package bills.v1;
+
+import "common/v1/messages.proto";
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1;billsv1";
+
+// PaymentStatus tracks the lifecycle of a bill payment.
+enum PaymentStatus {
+  PAYMENT_STATUS_UNSPECIFIED = 0;
+  PAYMENT_STATUS_UNPAID      = 1;
+  PAYMENT_STATUS_PAID        = 2;
+  PAYMENT_STATUS_OVERDUE     = 3;
+}
+
+// BillRecord holds structured extraction data and the payment lifecycle of a bill.
+message BillRecord {
+  string        id              = 1;
+  string        project_id      = 2;
+  string        document_id     = 3;
+  string        bill_type_id    = 4;
+  string        due_date        = 5; // ISO-8601 date
+  string        amount_due      = 6; // decimal string e.g. "1234.56"
+  string        pix_payload     = 7;
+  string        pix_qr_image_ref = 8;
+  string        barcode         = 9;
+  PaymentStatus payment_status  = 10;
+  string        paid_at         = 11;
+  string        marked_paid_by  = 12;
+  string        created_at      = 13;
+  string        updated_at      = 14;
+}
+
+// BillType is a project-scoped categorisation label for bills.
+message BillType {
+  string id         = 1;
+  string project_id = 2;
+  string name       = 3;
+  string created_by = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}
+
+// PaymentDashboardEntry is a projection used in the payment dashboard view.
+message PaymentDashboardEntry {
+  BillRecord bill       = 1;
+  BillType   bill_type  = 2;
+  bool       is_overdue = 3;
+  int32      days_until_due = 4; // negative when overdue
+}
