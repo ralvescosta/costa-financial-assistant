@@ -1,25 +1,25 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.3.0 → 1.4.0
-Bump rationale: MINOR — Principle IX materially expanded with two new mandatory
-  data-access disciplines; no principles removed or redefined.
+Version change: 1.5.0 → 1.6.0
+Bump rationale: MINOR — Principle IV materially expanded with two new mandatory
+  design-system disciplines; no principles removed or redefined.
 Modified principles:
-  - II. SOLID Principles & Clean Architecture — `unit_of_work.go` added to canonical
-    `internals/repositories/` layout.
-  - IX. Data Access & Database Discipline — added mandatory idempotency pattern for all
-    mutating resources, and mandatory Unit of Work pattern for multi-step atomic
-    operations using `unit_of_work.go` in the repositories layer.
+  - IV. Frontend Component-First, Hook Isolation & Design System — added mandatory
+    pre-defined typography scale (font size, weight, and line-height tokens); all text
+    formatting MUST reference semantic typography tokens only. Added mandatory
+    mobile-first responsive layout rule with defined breakpoints; all screens MUST be
+    designed and coded mobile-first using min-width media queries.
 Added principles: None
 Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — constitution check gates remain valid;
-    Technical Context for features with multi-step writes must now reference Unit of Work
-    and idempotency key design as constraints.
-  - .specify/templates/spec-template.md ✅ — no structural changes required.
-  - .specify/templates/tasks-template.md ✅ — Phase 2 (Foundational) tasks for any
-    service with multi-step writes MUST include: `unit_of_work.go` implementation task
-    and idempotency key migration + deduplication logic task.
+  - .specify/templates/plan-template.md ✅ — Technical Context for frontend features
+    must now reference the typography token file and confirm breakpoints are covered.
+  - .specify/templates/spec-template.md ✅ — Design Constraints section in feature specs
+    should reference typography scale and responsive rules.
+  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for frontend features
+    must now include tasks to add typography tokens to the token file and confirm
+    responsive breakpoints are configured.
   - .github/agents/*.md ✅ — no outdated agent-specific references found.
 Deferred TODOs: None — all fields resolved.
 -->
@@ -94,7 +94,7 @@ dependencies: PostgreSQL, RabbitMQ, a file-storage service (e.g., MinIO), and th
 (Loki, Grafana, Tempo, Mimir/Prometheus) for local telemetry validation.
 Backend services MUST expose health-check endpoints consumable by container orchestrators.
 
-### IV. Frontend Component-First & Hook Isolation (NON-NEGOTIABLE)
+### IV. Frontend Component-First, Hook Isolation & Design System (NON-NEGOTIABLE)
 
 The frontend MUST use React at the current LTS version.
 Every screen MUST be a pure composition of reusable components; no business logic is
@@ -105,6 +105,123 @@ Business logic, state management, and data-fetching MUST be encapsulated in cust
 (`use*.ts` files); the corresponding screen file contains only JSX/TSX and style bindings.
 Each feature MUST ship at minimum two artifacts: a presentation file (screen) and one or
 more custom hook files. Co-locating them in the same file is forbidden.
+
+**Design Token System & Color Palette**:
+The frontend MUST maintain a single, centralised design token file
+(e.g., `src/styles/tokens.ts` or `src/theme/tokens.ts`) that is the authoritative
+source for every color, spacing, typography scale, border radius, shadow, and z-index
+value used anywhere in the application. No color or visual constant may be hardcoded
+outside this file.
+
+The color palette MUST be defined following best-practice token layering:
+1. **Primitive tokens** — raw named values that define the complete palette
+   (e.g., `blue500: '#3B82F6'`, `neutral900: '#111827'`). These MUST NOT be referenced
+   directly in components.
+2. **Semantic tokens** — purpose-driven aliases that map to primitives and carry meaning
+   (e.g., `colorPrimary`, `colorSurface`, `colorTextPrimary`, `colorBorder`,
+   `colorDanger`, `colorSuccess`). Components MUST reference only semantic tokens.
+3. **Component tokens** — optional, component-scoped tokens that map to semantic tokens
+   (e.g., `buttonPrimaryBackground`) for components that need fine-grained control.
+
+The palette MUST include at minimum the following semantic token categories:
+- Background surfaces (`colorBackground`, `colorSurface`, `colorSurfaceElevated`)
+- Text (`colorTextPrimary`, `colorTextSecondary`, `colorTextDisabled`,
+  `colorTextInverse`)
+- Brand / interactive (`colorPrimary`, `colorPrimaryHover`, `colorPrimaryActive`)
+- Status (`colorSuccess`, `colorWarning`, `colorDanger`, `colorInfo`)
+- Border & divider (`colorBorder`, `colorBorderFocus`, `colorDivider`)
+- Overlay / shadow (`colorOverlay`)
+
+**Dark mode and light mode are both MANDATORY**.
+The theme system MUST expose a `light` and a `dark` variant; each variant MUST define
+values for every semantic token. No semantic token may be left undefined in either theme.
+The active theme MUST be toggled by the user and the preference MUST be persisted
+(e.g., in `localStorage`). The system MUST also respect the OS-level
+`prefers-color-scheme` preference on first load when no stored preference exists.
+Theme switching MUST NOT require a page reload.
+
+The token file and theme definitions MUST be version-controlled alongside source;
+design changes that alter semantic token names are breaking changes and require a
+constitution patch at minimum.
+
+**Typography Scale**:
+The centralised design token file MUST define a complete typography scale.
+No font size, font weight, or line-height value may be hardcoded in a component or
+style file outside the token file.
+
+The scale MUST follow a two-layer structure matching the color token approach:
+1. **Primitive font-size tokens** — raw rem values
+   (e.g., `fontSizeXs: '0.75rem'`, `fontSizeBase: '1rem'`). These MUST NOT be
+   referenced directly in components.
+2. **Semantic typography tokens** — role-named aliases mapped to primitives
+   (e.g., `fontSizeBody`, `fontSizeHeading1`, `fontSizeCaption`). Components MUST
+   reference only these semantic tokens.
+
+The scale MUST include at minimum the following primitive tokens:
+
+| Token | Value | px equiv | Use |
+|---|---|---|---|
+| `fontSizeXs` | `0.75rem` | 12px | Captions, badges, fine print |
+| `fontSizeSm` | `0.875rem` | 14px | Secondary labels, metadata |
+| `fontSizeBase` | `1rem` | 16px | Body text (default) |
+| `fontSizeLg` | `1.125rem` | 18px | Large body, card content |
+| `fontSizeXl` | `1.25rem` | 20px | Section sub-headings |
+| `fontSize2xl` | `1.5rem` | 24px | Page sub-headings |
+| `fontSize3xl` | `1.875rem` | 30px | Page primary headings |
+| `fontSize4xl` | `2.25rem` | 36px | Hero / display numbers |
+
+And at minimum the following semantic tokens:
+
+| Semantic token | → Primitive |
+|---|---|
+| `fontSizeCaption` | `fontSizeXs` |
+| `fontSizeBodySmall` | `fontSizeSm` |
+| `fontSizeBody` | `fontSizeBase` |
+| `fontSizeLabel` | `fontSizeSm` |
+| `fontSizeHeading4` | `fontSizeLg` |
+| `fontSizeHeading3` | `fontSizeXl` |
+| `fontSizeHeading2` | `fontSize2xl` |
+| `fontSizeHeading1` | `fontSize3xl` |
+| `fontSizeDisplay` | `fontSize4xl` |
+
+Font weight tokens MUST also be defined:
+`fontWeightRegular` (400), `fontWeightMedium` (500), `fontWeightSemibold` (600),
+`fontWeightBold` (700).
+
+Line-height tokens MUST also be defined:
+`lineHeightTight` (1.25), `lineHeightSnug` (1.375), `lineHeightNormal` (1.5),
+`lineHeightRelaxed` (1.625).
+
+All font-size values in the token file MUST use `rem` units; `px` is forbidden for
+font sizes to ensure accessibility and browser zoom compatibility.
+
+**Mobile-First Responsive Layout**:
+All frontend screens and components MUST be designed and implemented mobile-first:
+base styles target the smallest viewport (320px minimum) and breakpoints are applied
+using `min-width` media queries exclusively. `max-width` media queries for layout
+breakpoints are forbidden.
+
+The following breakpoints MUST be defined as tokens and used consistently:
+
+| Token | Min-width | Target |
+|---|---|---|
+| `breakpointSm` | `480px` | Large phones |
+| `breakpointMd` | `768px` | Tablets |
+| `breakpointLg` | `1024px` | Laptops / small desktops |
+| `breakpointXl` | `1280px` | Desktops |
+| `breakpoint2xl` | `1536px` | Large / wide desktops |
+
+Responsive rules:
+- Every screen MUST be functional and usable at 320px viewport width without horizontal
+  scrolling or content clipping.
+- Touch targets (buttons, links, interactive elements) MUST be at minimum 44×44 CSS
+  pixels to comply with WCAG 2.5.5 and platform HIG guidelines.
+- Images and media MUST use relative sizing (e.g., `max-width: 100%`, `width: 100%`)
+  and MUST NOT have fixed pixel dimensions that break at narrow viewports.
+- Layouts MUST be tested at a minimum of these widths: 320px, 375px, 768px, 1024px,
+  1280px before merge.
+- Screen density: all icons and image assets MUST be provided in SVG or at 1×/2×/3×
+  resolutions to support standard, Retina, and high-DPI displays.
 
 ### V. Test Discipline
 
@@ -413,6 +530,14 @@ A PR is blocked if:
     `internals/repositories/unit_of_work.go`.
 24. A service method directly holds or passes a `*sql.Tx` outside of repository
     implementations and `unit_of_work.go`.
+25. A frontend component or style file references a hardcoded color, spacing, or other
+    visual constant instead of a semantic token from the centralised design token file.
+26. A new semantic token is introduced without a corresponding value defined in both
+    the `light` and `dark` theme variants.
+27. A frontend component or style file uses a hardcoded font size, font weight, or
+    line-height value instead of a semantic typography token from the token file.
+28. A screen or component layout is not implemented mobile-first (base styles for
+    320px minimum; breakpoints via `min-width` only; touch targets ≥ 44×44px).
 
 Code review MUST verify that each gRPC service definition is accompanied by updated
 `.proto` files committed to the repository (proto-first design).
@@ -435,4 +560,4 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.4.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+**Version**: 1.6.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
