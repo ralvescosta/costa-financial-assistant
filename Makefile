@@ -1,0 +1,103 @@
+# ─── Costa Financial Assistant — Root Makefile ──────────────────────────────
+#
+# Targets:
+#   dev-up                 Start all services and frontend in development mode
+#   svc/run/<service>      Run a specific backend service
+#   svc/test/<service>     Run unit tests for a specific backend service
+#   migrate/up/<service>   Apply DB migrations for a specific service
+#   migrate/down/<service> Rollback DB migrations for a specific service
+#   proto/generate         Generate Go + gRPC code from .proto files
+#   frontend/dev           Start the Vite development server
+#   frontend/test          Run frontend Vitest hook tests
+#   frontend/build         Build frontend for production
+
+SHELL  := /bin/bash
+GOROOT := $(shell go env GOROOT)
+GOPATH := $(shell go env GOPATH)
+
+# ─── Services ────────────────────────────────────────────────────────────────
+SERVICES := bff bills files identity onboarding payments
+
+# ─── Colours ─────────────────────────────────────────────────────────────────
+CYAN  := \033[0;36m
+RESET := \033[0m
+
+.PHONY: help dev-up frontend/dev frontend/test frontend/build proto/generate \
+        $(addprefix svc/run/,$(SERVICES)) \
+        $(addprefix svc/test/,$(SERVICES)) \
+        $(addprefix migrate/up/,$(SERVICES)) \
+        $(addprefix migrate/down/,$(SERVICES))
+
+help: ## Show this help
+	@grep -E '^[a-zA-Z/_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+	  awk 'BEGIN {FS = ":.*?## "}; {printf "$(CYAN)%-30s$(RESET) %s\n", $$1, $$2}'
+
+# ─── Development bootstrap ───────────────────────────────────────────────────
+dev-up: ## Start infrastructure + all backend services + frontend in dev mode
+	@docker compose --profile dev up -d
+	@make -j2 frontend/dev svc/run/bff
+
+# ─── Frontend ────────────────────────────────────────────────────────────────
+frontend/dev: ## Start Vite dev server
+	@cd frontend && npm run dev
+
+frontend/test: ## Run Vitest hook unit tests
+	@cd frontend && npm run test
+
+frontend/build: ## Build frontend for production
+	@cd frontend && npm run build
+
+# ─── Backend service targets ─────────────────────────────────────────────────
+define SERVICE_TARGETS
+svc/run/$(1): ## Run backend service: $(1)
+	@cd backend && go run . $(1)
+
+svc/test/$(1): ## Run unit tests for backend service: $(1)
+	@cd backend && go test -race -count=1 ./internals/$(1)/...
+
+endef
+$(foreach svc,$(SERVICES),$(eval $(call SERVICE_TARGETS,$(svc))))
+
+# ─── Integration tests ───────────────────────────────────────────────────────
+test/integration: ## Run backend integration tests with ephemeral DB
+	@cd backend && go test -race -count=1 -v -tags integration ./tests/integration/...
+
+# ─── Migrations ──────────────────────────────────────────────────────────────
+DB_URL_onboarding  ?= postgres://financial:financial@localhost:5432/financial_onboarding?sslmode=disable
+DB_URL_files       ?= postgres://financial:financial@localhost:5432/financial_files?sslmode=disable
+DB_URL_bills       ?= postgres://financial:financial@localhost:5432/financial_bills?sslmode=disable
+DB_URL_payments    ?= postgres://financial:financial@localhost:5432/financial_payments?sslmode=disable
+
+define MIGRATE_TARGETS
+migrate/up/$(1): ## Apply migrations for: $(1)
+	@migrate -path backend/internals/$(1)/migrations -database "$$(DB_URL_$(1))" up
+
+migrate/down/$(1): ## Rollback migrations for: $(1)
+	@migrate -path backend/internals/$(1)/migrations -database "$$(DB_URL_$(1))" down 1
+
+endef
+$(foreach svc,onboarding files bills payments,$(eval $(call MIGRATE_TARGETS,$(svc))))
+
+# ─── Proto generation ────────────────────────────────────────────────────────
+PROTO_SRC_DIR := backend/protos
+PROTO_GEN_DIR := backend/protos/generated
+PROTO_MODULES := common/v1 onboarding/v1 identity/v1 files/v1 bills/v1
+
+PROTOC_GEN_GO      := $(shell go env GOBIN)/protoc-gen-go
+PROTOC_GEN_GO_GRPC := $(shell go env GOBIN)/protoc-gen-go-grpc
+
+proto/generate: ## Regenerate Go + gRPC code from all .proto files
+	@mkdir -p $(PROTO_GEN_DIR)
+	@for module in $(PROTO_MODULES); do \
+	  echo "Generating $$module …"; \
+	  protoc \
+	    --proto_path=$(PROTO_SRC_DIR) \
+	    --plugin=protoc-gen-go=$(PROTOC_GEN_GO) \
+	    --go_out=$(PROTO_GEN_DIR) \
+	    --go_opt=paths=source_relative \
+	    --plugin=protoc-gen-go-grpc=$(PROTOC_GEN_GO_GRPC) \
+	    --go-grpc_out=$(PROTO_GEN_DIR) \
+	    --go-grpc_opt=paths=source_relative \
+	    $(PROTO_SRC_DIR)/$$module/*.proto; \
+	done
+	@echo "Proto generation complete."

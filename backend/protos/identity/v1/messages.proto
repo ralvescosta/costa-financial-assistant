@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package identity.v1;
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1;identityv1";
+
+// JwtClaims carries the payload decoded from a verified JWT.
+message JwtClaims {
+  string subject    = 1; // user_id
+  string project_id = 2;
+  string role       = 3; // read_only | update | write
+  int64  issued_at  = 4;
+  int64  expires_at = 5;
+}
+
+// JwksKey represents a single JSON Web Key from the JWKS endpoint.
+message JwksKey {
+  string kty = 1;
+  string use = 2;
+  string kid = 3;
+  string alg = 4;
+  string n   = 5; // RSA modulus (base64url)
+  string e   = 6; // RSA public exponent (base64url)
+}
+
+// JwksMetadata is the full JWKS payload returned by the identity service.
+message JwksMetadata {
+  repeated JwksKey keys = 1;
+}

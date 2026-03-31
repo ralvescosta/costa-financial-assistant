@@ -1,0 +1,114 @@
+version: "3.9"
+
+# ─── Costa Financial Assistant — Docker Compose ──────────────────────────────
+# Profiles:
+#   dev          Local development (infrastructure only)
+#   test         Ephemeral integration-test DB (provisioned by TestMain)
+
+services:
+  # ─── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    profiles: [dev, test]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: financial
+      POSTGRES_PASSWORD: financial
+      POSTGRES_MULTIPLE_DATABASES: |
+        financial_onboarding,financial_files,financial_bills,financial_payments
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/docker/create-multiple-db.sh:/docker-entrypoint-initdb.d/create-multiple-db.sh:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financial"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── PostgreSQL (ephemeral integration tests) ───────────────────────────────
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: [test]
+    restart: no
+    environment:
+      POSTGRES_USER: financial_test
+      POSTGRES_PASSWORD: financial_test
+      POSTGRES_DB: financial_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financial_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  # ─── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    profiles: [dev]
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ─── RabbitMQ ───────────────────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    profiles: [dev]
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: financial
+      RABBITMQ_DEFAULT_PASS: financial
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── MinIO (S3-compatible object storage) ───────────────────────────────────
+  minio:
+    image: minio/minio:latest
+    profiles: [dev]
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: financial
+      MINIO_ROOT_PASSWORD: financial_secret
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── OpenTelemetry Collector ─────────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    profiles: [dev]
+    restart: unless-stopped
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./scripts/docker/otel-collector-config.yml:/etc/otel-collector-config.yml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus metrics
+
+volumes:
+  postgres_data:
+  minio_data:

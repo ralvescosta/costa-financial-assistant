@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package files.v1;
+
+import "files/v1/messages.proto";
+import "common/v1/messages.proto";
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1;filesv1";
+
+// FilesService handles document upload, classification, and listing.
+service FilesService {
+  // UploadDocument registers uploaded PDF metadata and persists the storage reference.
+  rpc UploadDocument(UploadDocumentRequest) returns (UploadDocumentResponse);
+
+  // ClassifyDocument sets the DocumentKind after the user selects bill or statement.
+  rpc ClassifyDocument(ClassifyDocumentRequest) returns (ClassifyDocumentResponse);
+
+  // GetDocument returns document metadata by ID.
+  rpc GetDocument(GetDocumentRequest) returns (GetDocumentResponse);
+
+  // ListDocuments returns project-scoped documents with optional status filter.
+  rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse);
+}
+
+// ─── UploadDocument ──────────────────────────────────────────────────────────
+message UploadDocumentRequest {
+  common.v1.ProjectContext ctx              = 1;
+  string                   file_name        = 2;
+  string                   file_hash        = 3; // SHA-256 hex
+  string                   storage_provider = 4;
+  string                   storage_key      = 5;
+  common.v1.AuditMetadata  audit            = 6;
+}
+
+message UploadDocumentResponse {
+  Document document = 1;
+}
+
+// ─── ClassifyDocument ────────────────────────────────────────────────────────
+message ClassifyDocumentRequest {
+  common.v1.ProjectContext ctx         = 1;
+  string                   document_id = 2;
+  DocumentKind             kind        = 3;
+  common.v1.AuditMetadata  audit       = 4;
+}
+
+message ClassifyDocumentResponse {
+  Document document = 1;
+}
+
+// ─── GetDocument ─────────────────────────────────────────────────────────────
+message GetDocumentRequest {
+  common.v1.ProjectContext ctx         = 1;
+  string                   document_id = 2;
+}
+
+message GetDocumentResponse {
+  Document        document         = 1;
+  BillRecord      bill_record      = 2; // present when kind=bill and status=analysed
+  StatementRecord statement_record = 3; // present when kind=statement and status=analysed
+}
+
+// ─── ListDocuments ───────────────────────────────────────────────────────────
+message ListDocumentsRequest {
+  common.v1.ProjectContext ctx             = 1;
+  AnalysisStatus           status_filter   = 2; // optional
+  DocumentKind             kind_filter     = 3; // optional
+  common.v1.Pagination     pagination      = 4;
+}
+
+message ListDocumentsResponse {
+  repeated Document            documents  = 1;
+  common.v1.PaginationResult   pagination = 2;
+}

@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package bills.v1;
+
+import "bills/v1/messages.proto";
+import "common/v1/messages.proto";
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1;billsv1";
+
+// BillsService handles bill lifecycle, payment dashboard, and payment marking.
+service BillsService {
+  // GetPaymentDashboard returns outstanding and overdue bills for the project.
+  rpc GetPaymentDashboard(GetPaymentDashboardRequest) returns (GetPaymentDashboardResponse);
+
+  // MarkBillPaid idempotently marks a bill record as paid.
+  rpc MarkBillPaid(MarkBillPaidRequest) returns (MarkBillPaidResponse);
+
+  // GetBill returns a single bill record by ID.
+  rpc GetBill(GetBillRequest) returns (GetBillResponse);
+
+  // ListBills returns project-scoped bill records with optional status filter.
+  rpc ListBills(ListBillsRequest) returns (ListBillsResponse);
+}
+
+// ─── GetPaymentDashboard ─────────────────────────────────────────────────────
+message GetPaymentDashboardRequest {
+  common.v1.ProjectContext ctx           = 1;
+  string                   cycle_start  = 2; // ISO-8601 date
+  string                   cycle_end    = 3; // ISO-8601 date
+  common.v1.Pagination     pagination   = 4;
+}
+
+message GetPaymentDashboardResponse {
+  repeated PaymentDashboardEntry entries    = 1;
+  common.v1.PaginationResult     pagination = 2;
+}
+
+// ─── MarkBillPaid ────────────────────────────────────────────────────────────
+message MarkBillPaidRequest {
+  common.v1.ProjectContext ctx     = 1;
+  string                   bill_id = 2;
+  common.v1.AuditMetadata  audit   = 3;
+}
+
+message MarkBillPaidResponse {
+  BillRecord bill = 1;
+}
+
+// ─── GetBill ─────────────────────────────────────────────────────────────────
+message GetBillRequest {
+  common.v1.ProjectContext ctx     = 1;
+  string                   bill_id = 2;
+}
+
+message GetBillResponse {
+  BillRecord bill = 1;
+}
+
+// ─── ListBills ───────────────────────────────────────────────────────────────
+message ListBillsRequest {
+  common.v1.ProjectContext ctx            = 1;
+  PaymentStatus            status_filter  = 2; // optional
+  common.v1.Pagination     pagination     = 3;
+}
+
+message ListBillsResponse {
+  repeated BillRecord          bills      = 1;
+  common.v1.PaginationResult   pagination = 2;
+}

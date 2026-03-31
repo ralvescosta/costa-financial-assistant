@@ -165,7 +165,7 @@ The user works inside a project workspace (e.g., personal, conjugal, shared). Th
 - **FR-011**: System MUST extract the following fields from bill PDFs: due date, total amount due, Pix QR code payload, barcode string.
 - **FR-012**: System MUST extract all transaction lines from account balance statement PDFs, capturing at minimum: transaction date, description, amount, and credit/debit indicator.
 - **FR-013**: System MUST update the document status to reflect the current analysis state: Pending, Processing, Analysed, or Analysis Failed.
-- **FR-014**: System MUST notify the user when analysis completes or fails.
+- **FR-014**: System MUST notify the user when analysis completes or fails. **v1 mechanism: client-driven polling.** The frontend `useDocumentStatus` hook MUST poll the document-status endpoint at a short interval (≤5 seconds) while a document is in `pending` or `processing` state, and MUST surface a visible in-app status change (e.g., banner, badge, or toast) when the status transitions to `analysed` or `analysis_failed`. Server-initiated push (SSE, WebSocket, or push notification) is explicitly deferred to a future version and MUST NOT be implemented in v1. The polling endpoint MUST be idempotent and MUST NOT produce side-effects.
 - **FR-015**: System MUST record which fields could not be extracted individually (e.g., "Pix QR code: not found") rather than failing the entire document when partial extraction is possible.
 
 **Payment Dashboard**
@@ -232,17 +232,19 @@ The user works inside a project workspace (e.g., personal, conjugal, shared). Th
 
 ### Measurable Outcomes
 
-- **SC-001**: A user can upload a bill PDF, classify it, and see it appear in the document list with "Pending Analysis" status in under 10 seconds.
-- **SC-002**: PDF analysis (data extraction) completes for a standard single-page bill within 60 seconds of upload.
-- **SC-003**: The payment dashboard renders all outstanding bills for the current cycle in under 2 seconds, regardless of the number of historical documents stored.
-- **SC-004**: 95% of standard bill PDFs with machine-readable content yield at least the due date and total amount upon extraction (based on common Brazilian bill formats).
-- **SC-005**: Cross-reference matching links at least 80% of statement transactions to their corresponding bills when bill descriptions follow standard issuer naming conventions.
-- **SC-006**: A user can open the payment dashboard and scan or copy a Pix QR code to complete a payment without leaving the app, reducing bill-payment effort by eliminating the need to locate physical or email copies of bills.
-- **SC-007**: The financial history dashboard loads and renders 12 months of data in under 3 seconds.
-- **SC-008**: Duplicate PDF uploads are detected 100% of the time before any data is persisted for the duplicate.
-- **SC-009**: In validation tests with at least two projects, 0 records from Project A are visible when querying Project B (strict project isolation).
-- **SC-010**: Role enforcement accuracy reaches 100% in access-control acceptance tests (`read_only`, `update`, `write`) across upload, payment marking, and reconciliation actions.
-- **SC-011**: API consumers can retrieve complete endpoint documentation from the published API contract and successfully execute documented happy-path requests for all major flows (upload, analysis status, dashboard, reconciliation).
+> **Testability classification**: Outcomes marked **[CI]** are verified by automated assertions in the CI test suite (integration or unit tests). Outcomes marked **[OPS]** are operational monitoring benchmarks validated via load testing or production telemetry — they are NOT asserted in unit or integration tests and their absence does NOT fail the CI pipeline.
+
+- **SC-001** [OPS]: A user can upload a bill PDF, classify it, and see it appear in the document list with "Pending Analysis" status in under 10 seconds. *Measurement method*: end-to-end latency recorded from the moment the HTTP upload request is sent to the moment the document list endpoint returns the new record with `analysis_status = pending`. Validated via a k6 or locust load test in the staging environment, not as a CI assertion. The integration test for US1 (T025) asserts correctness of the response, not wall-clock latency.
+- **SC-002** [OPS]: PDF analysis (data extraction) completes for a standard single-page bill within 60 seconds of upload. *Measurement method*: elapsed time between the upload acknowledgement timestamp stored in `documents.uploaded_at` and the `documents.updated_at` timestamp when `analysis_status` transitions to `analysed`. Validated by observability dashboards (OTel traces / Prometheus histogram) or a dedicated integration smoke-test that polls with a 60-second timeout. The US2 integration test (T038) asserts correct status transitions and extracted field presence, not wall-clock completion time.
+- **SC-003** [OPS]: The payment dashboard renders all outstanding bills for the current cycle in under 2 seconds, regardless of the number of historical documents stored.
+- **SC-004** [OPS]: 95% of standard bill PDFs with machine-readable content yield at least the due date and total amount upon extraction (based on common Brazilian bill formats). *Measurement method*: offline acceptance test run against a curated corpus of Brazilian bill PDFs; not a CI gate.
+- **SC-005** [OPS]: Cross-reference matching links at least 80% of statement transactions to their corresponding bills when bill descriptions follow standard issuer naming conventions. *Measurement method*: offline acceptance test against a curated statement/bill corpus; not a CI gate.
+- **SC-006** [CI]: A user can open the payment dashboard and scan or copy a Pix QR code to complete a payment without leaving the app, reducing bill-payment effort by eliminating the need to locate physical or email copies of bills. *Verified by*: US4 integration test (T066/T067) asserting `pix_payload` and `barcode` fields are present and non-empty on dashboard bill records.
+- **SC-007** [OPS]: The financial history dashboard loads and renders 12 months of data in under 3 seconds. *Measurement method*: k6 or locust load test against a staging environment seeded with 12 months of data; not a CI assertion.
+- **SC-008** [CI]: Duplicate PDF uploads are detected 100% of the time before any data is persisted for the duplicate. *Verified by*: US1 unit test (T026) asserting duplicate hash detection, and integration test (T025) asserting 409 response on re-upload.
+- **SC-009** [CI]: In validation tests with at least two projects, 0 records from Project A are visible when querying Project B (strict project isolation). *Verified by*: US7 integration test (T057).
+- **SC-010** [CI]: Role enforcement accuracy reaches 100% in access-control acceptance tests (`read_only`, `update`, `write`) across upload, payment marking, and reconciliation actions. *Verified by*: US7 role-matrix integration test (T058).
+- **SC-011** [CI]: API consumers can retrieve complete endpoint documentation from the published API contract and successfully execute documented happy-path requests for all major flows (upload, analysis status, dashboard, reconciliation). *Verified by*: OpenAPI contract completeness test (T093).
 
 ## Assumptions
 
