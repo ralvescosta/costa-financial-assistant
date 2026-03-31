@@ -18,11 +18,17 @@ import (
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
+	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
+	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
 
 // run wires the dependency container and starts the BFF HTTP server.
 func run(ctx context.Context) error {
+	if err := pkgotel.RegisterServiceMetrics("bff"); err != nil {
+		return fmt.Errorf("bff: register metrics: %w", err)
+	}
+
 	c := dig.New()
 
 	// ─── Config ──────────────────────────────────────────────────────────────
@@ -62,9 +68,32 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("bff: provide files client: %w", err)
 	}
 
+	// ─── Onboarding gRPC client ──────────────────────────────────────────────
+	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (onboardingv1.OnboardingServiceClient, error) {
+		conn, err := grpc.NewClient(
+			cfg.Services.OnboardingGRPCAddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("bff: dial onboarding grpc: %w", err)
+		}
+		logger.Info("onboarding gRPC client connected", zap.String("addr", cfg.Services.OnboardingGRPCAddr))
+		return onboardingv1.NewOnboardingServiceClient(conn), nil
+	}); err != nil {
+		return fmt.Errorf("bff: provide onboarding client: %w", err)
+	}
+
 	// ─── Controllers ─────────────────────────────────────────────────────────
 	if err := c.Provide(controllers.NewDocumentsController); err != nil {
 		return fmt.Errorf("bff: provide documents controller: %w", err)
+	}
+
+	if err := c.Provide(controllers.NewSettingsController); err != nil {
+		return fmt.Errorf("bff: provide settings controller: %w", err)
+	}
+
+	if err := c.Provide(controllers.NewProjectsController); err != nil {
+		return fmt.Errorf("bff: provide projects controller: %w", err)
 	}
 
 	// ─── Start ────────────────────────────────────────────────────────────────
@@ -73,6 +102,8 @@ func run(ctx context.Context) error {
 		logger *zap.Logger,
 		jwksCache *bffmiddleware.JWKSCache,
 		docCtrl *controllers.DocumentsController,
+		settingsCtrl *controllers.SettingsController,
+		projectsCtrl *controllers.ProjectsController,
 	) error {
 		e := echo.New()
 		e.HideBanner = true
@@ -96,6 +127,8 @@ func run(ctx context.Context) error {
 
 		// Register controller routes
 		docCtrl.Register(api, authMiddleware)
+		settingsCtrl.Register(api, authMiddleware)
+		projectsCtrl.Register(api, authMiddleware)
 
 		addr := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
 		logger.Info("BFF HTTP server starting", zap.String("addr", addr))

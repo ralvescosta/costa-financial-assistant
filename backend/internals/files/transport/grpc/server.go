@@ -19,12 +19,13 @@ type Server struct {
 	filesv1.UnimplementedFilesServiceServer
 	svc      services.DocumentServiceIface
 	extSvc   services.ExtractionServiceIface
+	bankSvc  services.BankAccountServiceIface
 	logger   *zap.Logger
 }
 
 // NewServer constructs a files gRPC server.
-func NewServer(svc services.DocumentServiceIface, extSvc services.ExtractionServiceIface, logger *zap.Logger) *Server {
-	return &Server{svc: svc, extSvc: extSvc, logger: logger}
+func NewServer(svc services.DocumentServiceIface, extSvc services.ExtractionServiceIface, bankSvc services.BankAccountServiceIface, logger *zap.Logger) *Server {
+	return &Server{svc: svc, extSvc: extSvc, bankSvc: bankSvc, logger: logger}
 }
 
 // UploadDocument registers a PDF upload and persists metadata.
@@ -133,4 +134,66 @@ func (s *Server) ListDocuments(ctx context.Context, req *filesv1.ListDocumentsRe
 		}
 	}
 	return resp, nil
+}
+// CreateBankAccount creates a project-scoped bank account label.
+func (s *Server) CreateBankAccount(ctx context.Context, req *filesv1.CreateBankAccountRequest) (*filesv1.CreateBankAccountResponse, error) {
+	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if req.GetLabel() == "" {
+		return nil, status.Error(codes.InvalidArgument, "label is required")
+	}
+
+	account, err := s.bankSvc.CreateBankAccount(ctx, req.GetCtx().GetProjectId(), req.GetLabel(), req.GetAudit().GetPerformedBy())
+	if err != nil {
+		if errors.Is(err, repositories.ErrDuplicateBankAccount) {
+			return nil, status.Error(codes.AlreadyExists, "bank account label already exists in this project")
+		}
+		s.logger.Error("grpc.CreateBankAccount failed",
+			zap.String("project_id", req.GetCtx().GetProjectId()),
+			zap.Error(err))
+		return nil, status.Error(codes.Internal, "create bank account failed")
+	}
+	return &filesv1.CreateBankAccountResponse{BankAccount: account}, nil
+}
+
+// ListBankAccounts returns all project-scoped bank account labels.
+func (s *Server) ListBankAccounts(ctx context.Context, req *filesv1.ListBankAccountsRequest) (*filesv1.ListBankAccountsResponse, error) {
+	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+
+	accounts, err := s.bankSvc.ListBankAccounts(ctx, req.GetCtx().GetProjectId())
+	if err != nil {
+		s.logger.Error("grpc.ListBankAccounts failed",
+			zap.String("project_id", req.GetCtx().GetProjectId()),
+			zap.Error(err))
+		return nil, status.Error(codes.Internal, "list bank accounts failed")
+	}
+	return &filesv1.ListBankAccountsResponse{BankAccounts: accounts}, nil
+}
+
+// DeleteBankAccount removes a bank account label; fails if referenced by statement records.
+func (s *Server) DeleteBankAccount(ctx context.Context, req *filesv1.DeleteBankAccountRequest) (*filesv1.DeleteBankAccountResponse, error) {
+	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if req.GetBankAccountId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "bank_account_id is required")
+	}
+
+	if err := s.bankSvc.DeleteBankAccount(ctx, req.GetCtx().GetProjectId(), req.GetBankAccountId()); err != nil {
+		if errors.Is(err, repositories.ErrBankAccountNotFound) {
+			return nil, status.Error(codes.NotFound, "bank account not found")
+		}
+		if errors.Is(err, repositories.ErrBankAccountInUse) {
+			return nil, status.Error(codes.FailedPrecondition, "bank account is referenced by statement records")
+		}
+		s.logger.Error("grpc.DeleteBankAccount failed",
+			zap.String("project_id", req.GetCtx().GetProjectId()),
+			zap.String("bank_account_id", req.GetBankAccountId()),
+			zap.Error(err))
+		return nil, status.Error(codes.Internal, "delete bank account failed")
+	}
+	return &filesv1.DeleteBankAccountResponse{Success: true}, nil
 }

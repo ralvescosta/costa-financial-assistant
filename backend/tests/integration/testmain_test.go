@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -55,7 +56,26 @@ func testDSN() string {
 }
 
 func runMigrations(dsn, sourcePath string) error {
-	mig, err := migrate.New(sourcePath, dsn)
+	// Derive a service-specific migrations table from the source path to prevent
+	// version conflicts when multiple services share the same test database.
+	// Path format: "file://../../internals/<service>/migrations"
+	svcName := "schema"
+	parts := strings.Split(strings.TrimPrefix(sourcePath, "file://"), "/")
+	for i, p := range parts {
+		if p == "internals" && i+1 < len(parts) {
+			svcName = parts[i+1]
+			break
+		}
+	}
+	tableParam := "x-migrations-table=" + svcName + "_schema_migrations"
+	migrDSN := dsn
+	if strings.Contains(dsn, "?") {
+		migrDSN = dsn + "&" + tableParam
+	} else {
+		migrDSN = dsn + "?" + tableParam
+	}
+
+	mig, err := migrate.New(sourcePath, migrDSN)
 	if err != nil {
 		return fmt.Errorf("migrate.New: %w", err)
 	}

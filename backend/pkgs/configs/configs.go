@@ -22,9 +22,11 @@ type Config struct {
 
 // ServicesConfig holds upstream gRPC service addresses consumed by the BFF and other services.
 type ServicesConfig struct {
-	IdentityGRPCAddr string `mapstructure:"IDENTITY_GRPC_ADDR"`
-	FilesGRPCAddr    string `mapstructure:"FILES_GRPC_ADDR"`
-	BillsGRPCAddr    string `mapstructure:"BILLS_GRPC_ADDR"`
+	IdentityGRPCAddr    string `mapstructure:"IDENTITY_GRPC_ADDR"`
+	FilesGRPCAddr       string `mapstructure:"FILES_GRPC_ADDR"`
+	BillsGRPCAddr       string `mapstructure:"BILLS_GRPC_ADDR"`
+	OnboardingGRPCAddr  string `mapstructure:"ONBOARDING_GRPC_ADDR"`
+	PaymentsGRPCAddr    string `mapstructure:"PAYMENTS_GRPC_ADDR"`
 }
 
 // HTTPConfig holds HTTP server binding settings.
@@ -75,6 +77,8 @@ func Load(prefix string) (*Config, error) {
 	v.SetDefault("IDENTITY_GRPC_ADDR", "localhost:9091")
 	v.SetDefault("FILES_GRPC_ADDR", "localhost:9092")
 	v.SetDefault("BILLS_GRPC_ADDR", "localhost:9093")
+	v.SetDefault("ONBOARDING_GRPC_ADDR", "localhost:9094")
+	v.SetDefault("PAYMENTS_GRPC_ADDR", "localhost:9095")
 
 	cfg := &Config{
 		Env:         v.GetString("ENV"),
@@ -98,9 +102,11 @@ func Load(prefix string) (*Config, error) {
 			Insecure: v.GetBool("OTEL_INSECURE"),
 		},
 		Services: ServicesConfig{
-			IdentityGRPCAddr: v.GetString("IDENTITY_GRPC_ADDR"),
-			FilesGRPCAddr:    v.GetString("FILES_GRPC_ADDR"),
-			BillsGRPCAddr:    v.GetString("BILLS_GRPC_ADDR"),
+			IdentityGRPCAddr:   v.GetString("IDENTITY_GRPC_ADDR"),
+			FilesGRPCAddr:      v.GetString("FILES_GRPC_ADDR"),
+			BillsGRPCAddr:      v.GetString("BILLS_GRPC_ADDR"),
+			OnboardingGRPCAddr: v.GetString("ONBOARDING_GRPC_ADDR"),
+			PaymentsGRPCAddr:   v.GetString("PAYMENTS_GRPC_ADDR"),
 		},
 	}
 

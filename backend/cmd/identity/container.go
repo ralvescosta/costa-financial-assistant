@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -15,11 +16,16 @@ import (
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/services"
 	identitygrpc "github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/transport/grpc"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
+	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
 	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 )
 
 // run wires the dependency container and starts the identity gRPC server.
 func run(ctx context.Context) error {
+	if err := pkgotel.RegisterServiceMetrics("identity"); err != nil {
+		return fmt.Errorf("identity: register metrics: %w", err)
+	}
+
 	c := dig.New()
 
 	// ─── Config ──────────────────────────────────────────────────────────────
@@ -64,7 +70,9 @@ func run(ctx context.Context) error {
 			return fmt.Errorf("identity: listen %s: %w", addr, err)
 		}
 
-		srv := grpc.NewServer()
+		srv := grpc.NewServer(
+			grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		)
 		identityv1.RegisterIdentityServiceServer(srv, handler)
 		reflection.Register(srv)
 

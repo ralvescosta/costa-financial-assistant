@@ -19,17 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FilesService_UploadDocument_FullMethodName   = "/files.v1.FilesService/UploadDocument"
-	FilesService_ClassifyDocument_FullMethodName = "/files.v1.FilesService/ClassifyDocument"
-	FilesService_GetDocument_FullMethodName      = "/files.v1.FilesService/GetDocument"
-	FilesService_ListDocuments_FullMethodName    = "/files.v1.FilesService/ListDocuments"
+	FilesService_UploadDocument_FullMethodName    = "/files.v1.FilesService/UploadDocument"
+	FilesService_ClassifyDocument_FullMethodName  = "/files.v1.FilesService/ClassifyDocument"
+	FilesService_GetDocument_FullMethodName       = "/files.v1.FilesService/GetDocument"
+	FilesService_ListDocuments_FullMethodName     = "/files.v1.FilesService/ListDocuments"
+	FilesService_CreateBankAccount_FullMethodName = "/files.v1.FilesService/CreateBankAccount"
+	FilesService_ListBankAccounts_FullMethodName  = "/files.v1.FilesService/ListBankAccounts"
+	FilesService_DeleteBankAccount_FullMethodName = "/files.v1.FilesService/DeleteBankAccount"
 )
 
 // FilesServiceClient is the client API for FilesService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// FilesService handles document upload, classification, and listing.
+// FilesService handles document upload, classification, listing, and bank account settings.
 type FilesServiceClient interface {
 	// UploadDocument registers uploaded PDF metadata and persists the storage reference.
 	UploadDocument(ctx context.Context, in *UploadDocumentRequest, opts ...grpc.CallOption) (*UploadDocumentResponse, error)
@@ -39,6 +42,12 @@ type FilesServiceClient interface {
 	GetDocument(ctx context.Context, in *GetDocumentRequest, opts ...grpc.CallOption) (*GetDocumentResponse, error)
 	// ListDocuments returns project-scoped documents with optional status filter.
 	ListDocuments(ctx context.Context, in *ListDocumentsRequest, opts ...grpc.CallOption) (*ListDocumentsResponse, error)
+	// CreateBankAccount creates a project-scoped bank account label.
+	CreateBankAccount(ctx context.Context, in *CreateBankAccountRequest, opts ...grpc.CallOption) (*CreateBankAccountResponse, error)
+	// ListBankAccounts returns all project-scoped bank account labels.
+	ListBankAccounts(ctx context.Context, in *ListBankAccountsRequest, opts ...grpc.CallOption) (*ListBankAccountsResponse, error)
+	// DeleteBankAccount removes a bank account label; fails if in use by statements.
+	DeleteBankAccount(ctx context.Context, in *DeleteBankAccountRequest, opts ...grpc.CallOption) (*DeleteBankAccountResponse, error)
 }
 
 type filesServiceClient struct {
@@ -89,11 +98,41 @@ func (c *filesServiceClient) ListDocuments(ctx context.Context, in *ListDocument
 	return out, nil
 }
 
+func (c *filesServiceClient) CreateBankAccount(ctx context.Context, in *CreateBankAccountRequest, opts ...grpc.CallOption) (*CreateBankAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateBankAccountResponse)
+	err := c.cc.Invoke(ctx, FilesService_CreateBankAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *filesServiceClient) ListBankAccounts(ctx context.Context, in *ListBankAccountsRequest, opts ...grpc.CallOption) (*ListBankAccountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListBankAccountsResponse)
+	err := c.cc.Invoke(ctx, FilesService_ListBankAccounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *filesServiceClient) DeleteBankAccount(ctx context.Context, in *DeleteBankAccountRequest, opts ...grpc.CallOption) (*DeleteBankAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteBankAccountResponse)
+	err := c.cc.Invoke(ctx, FilesService_DeleteBankAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FilesServiceServer is the server API for FilesService service.
 // All implementations must embed UnimplementedFilesServiceServer
 // for forward compatibility.
 //
-// FilesService handles document upload, classification, and listing.
+// FilesService handles document upload, classification, listing, and bank account settings.
 type FilesServiceServer interface {
 	// UploadDocument registers uploaded PDF metadata and persists the storage reference.
 	UploadDocument(context.Context, *UploadDocumentRequest) (*UploadDocumentResponse, error)
@@ -103,6 +142,12 @@ type FilesServiceServer interface {
 	GetDocument(context.Context, *GetDocumentRequest) (*GetDocumentResponse, error)
 	// ListDocuments returns project-scoped documents with optional status filter.
 	ListDocuments(context.Context, *ListDocumentsRequest) (*ListDocumentsResponse, error)
+	// CreateBankAccount creates a project-scoped bank account label.
+	CreateBankAccount(context.Context, *CreateBankAccountRequest) (*CreateBankAccountResponse, error)
+	// ListBankAccounts returns all project-scoped bank account labels.
+	ListBankAccounts(context.Context, *ListBankAccountsRequest) (*ListBankAccountsResponse, error)
+	// DeleteBankAccount removes a bank account label; fails if in use by statements.
+	DeleteBankAccount(context.Context, *DeleteBankAccountRequest) (*DeleteBankAccountResponse, error)
 	mustEmbedUnimplementedFilesServiceServer()
 }
 
@@ -124,6 +169,15 @@ func (UnimplementedFilesServiceServer) GetDocument(context.Context, *GetDocument
 }
 func (UnimplementedFilesServiceServer) ListDocuments(context.Context, *ListDocumentsRequest) (*ListDocumentsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListDocuments not implemented")
+}
+func (UnimplementedFilesServiceServer) CreateBankAccount(context.Context, *CreateBankAccountRequest) (*CreateBankAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateBankAccount not implemented")
+}
+func (UnimplementedFilesServiceServer) ListBankAccounts(context.Context, *ListBankAccountsRequest) (*ListBankAccountsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListBankAccounts not implemented")
+}
+func (UnimplementedFilesServiceServer) DeleteBankAccount(context.Context, *DeleteBankAccountRequest) (*DeleteBankAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteBankAccount not implemented")
 }
 func (UnimplementedFilesServiceServer) mustEmbedUnimplementedFilesServiceServer() {}
 func (UnimplementedFilesServiceServer) testEmbeddedByValue()                      {}
@@ -218,6 +272,60 @@ func _FilesService_ListDocuments_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FilesService_CreateBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBankAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilesServiceServer).CreateBankAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FilesService_CreateBankAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilesServiceServer).CreateBankAccount(ctx, req.(*CreateBankAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FilesService_ListBankAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBankAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilesServiceServer).ListBankAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FilesService_ListBankAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilesServiceServer).ListBankAccounts(ctx, req.(*ListBankAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FilesService_DeleteBankAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBankAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilesServiceServer).DeleteBankAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FilesService_DeleteBankAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilesServiceServer).DeleteBankAccount(ctx, req.(*DeleteBankAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FilesService_ServiceDesc is the grpc.ServiceDesc for FilesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -240,6 +348,18 @@ var FilesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListDocuments",
 			Handler:    _FilesService_ListDocuments_Handler,
+		},
+		{
+			MethodName: "CreateBankAccount",
+			Handler:    _FilesService_CreateBankAccount_Handler,
+		},
+		{
+			MethodName: "ListBankAccounts",
+			Handler:    _FilesService_ListBankAccounts_Handler,
+		},
+		{
+			MethodName: "DeleteBankAccount",
+			Handler:    _FilesService_DeleteBankAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

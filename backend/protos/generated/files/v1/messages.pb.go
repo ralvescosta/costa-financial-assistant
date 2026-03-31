@@ -721,6 +721,91 @@ func (x *AnalysisJob) GetUpdatedAt() string {
 	return ""
 }
 
+// BankAccount is a project-scoped label used for statement attribution.
+type BankAccount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ProjectId     string                 `protobuf:"bytes,2,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
+	Label         string                 `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+	CreatedBy     string                 `protobuf:"bytes,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     string                 `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BankAccount) Reset() {
+	*x = BankAccount{}
+	mi := &file_files_v1_messages_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BankAccount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BankAccount) ProtoMessage() {}
+
+func (x *BankAccount) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_messages_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BankAccount.ProtoReflect.Descriptor instead.
+func (*BankAccount) Descriptor() ([]byte, []int) {
+	return file_files_v1_messages_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *BankAccount) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *BankAccount) GetProjectId() string {
+	if x != nil {
+		return x.ProjectId
+	}
+	return ""
+}
+
+func (x *BankAccount) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *BankAccount) GetCreatedBy() string {
+	if x != nil {
+		return x.CreatedBy
+	}
+	return ""
+}
+
+func (x *BankAccount) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *BankAccount) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
 var File_files_v1_messages_proto protoreflect.FileDescriptor
 
 const file_files_v1_messages_proto_rawDesc = "" +
@@ -807,7 +892,18 @@ const file_files_v1_messages_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAt*b\n" +
+	"updated_at\x18\t \x01(\tR\tupdatedAt\"\xaf\x01\n" +
+	"\vBankAccount\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x02 \x01(\tR\tprojectId\x12\x14\n" +
+	"\x05label\x18\x03 \x01(\tR\x05label\x12\x1d\n" +
+	"\n" +
+	"created_by\x18\x04 \x01(\tR\tcreatedBy\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\tR\tupdatedAt*b\n" +
 	"\fDocumentKind\x12\x1d\n" +
 	"\x19DOCUMENT_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12DOCUMENT_KIND_BILL\x10\x01\x12\x1b\n" +
@@ -832,7 +928,7 @@ func file_files_v1_messages_proto_rawDescGZIP() []byte {
 }
 
 var file_files_v1_messages_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_files_v1_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_files_v1_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_files_v1_messages_proto_goTypes = []any{
 	(DocumentKind)(0),       // 0: files.v1.DocumentKind
 	(AnalysisStatus)(0),     // 1: files.v1.AnalysisStatus
@@ -841,6 +937,7 @@ var file_files_v1_messages_proto_goTypes = []any{
 	(*TransactionLine)(nil), // 4: files.v1.TransactionLine
 	(*StatementRecord)(nil), // 5: files.v1.StatementRecord
 	(*AnalysisJob)(nil),     // 6: files.v1.AnalysisJob
+	(*BankAccount)(nil),     // 7: files.v1.BankAccount
 }
 var file_files_v1_messages_proto_depIdxs = []int32{
 	0, // 0: files.v1.Document.kind:type_name -> files.v1.DocumentKind
@@ -864,7 +961,7 @@ func file_files_v1_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_files_v1_messages_proto_rawDesc), len(file_files_v1_messages_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

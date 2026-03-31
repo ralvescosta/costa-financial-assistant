@@ -176,7 +176,7 @@ func TestUS2_AnalysisPipeline(t *testing.T) {
 		job, err := jobRepo.Create(ctx, tx, &filesv1.AnalysisJob{
 			ProjectId:  projectID,
 			DocumentId: docID,
-			JobType:    "extract_unknown",
+			JobType:    "extract_bill", // valid enum; kind check happens in ProcessDocument
 			Status:     "queued",
 		})
 		require.NoError(t, err)
