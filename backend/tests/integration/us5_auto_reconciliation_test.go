@@ -26,18 +26,19 @@ func TestUS5_AutoReconciliation(t *testing.T) {
 	require.NoError(t, runMigrations(testDSN(), "file://../../internals/payments/migrations"))
 
 	const (
-projectID = "00000000-0000-0000-0000-000000000010"
-userID    = "00000000-0000-0000-0000-000000000001"
-docBill1  = "00000000-0000-0000-0000-000000000301"
-docBill2  = "00000000-0000-0000-0000-000000000302"
-docStmt   = "00000000-0000-0000-0000-000000000303"
-billID1   = "00000000-0000-0000-0000-000000000311"
-billID2   = "00000000-0000-0000-0000-000000000312"
-stmtID    = "00000000-0000-0000-0000-000000000321"
-txLine1   = "00000000-0000-0000-0000-000000000331"
-txLine2   = "00000000-0000-0000-0000-000000000332"
-txAmbig   = "00000000-0000-0000-0000-000000000333"
-)
+		projectID = "00000000-0000-0000-0000-000000000010"
+		userID    = "00000000-0000-0000-0000-000000000001"
+		docBill1  = "00000000-0000-0000-0000-000000000301"
+		docBill2  = "00000000-0000-0000-0000-000000000302"
+		docBill3  = "00000000-0000-0000-0000-000000000304"
+		docStmt   = "00000000-0000-0000-0000-000000000303"
+		billID1   = "00000000-0000-0000-0000-000000000311"
+		billID2   = "00000000-0000-0000-0000-000000000312"
+		stmtID    = "00000000-0000-0000-0000-000000000321"
+		txLine1   = "00000000-0000-0000-0000-000000000331"
+		txLine2   = "00000000-0000-0000-0000-000000000332"
+		txAmbig   = "00000000-0000-0000-0000-000000000333"
+	)
 
 	ctx := context.Background()
 	t.Cleanup(func() {
@@ -57,8 +58,9 @@ txAmbig   = "00000000-0000-0000-0000-000000000333"
 		VALUES
 			($1, $2, 'bill1.pdf', 'aabbcc01', 'local', 'local/aabbcc01', 'bill', 'analysed', $3),
 			($4, $2, 'bill2.pdf', 'aabbcc02', 'local', 'local/aabbcc02', 'bill', 'analysed', $3),
-			($5, $2, 'stmt.pdf',  'ddeeff03', 'local', 'local/ddeeff03', 'statement', 'analysed', $3)
-	`, docBill1, projectID, userID, docBill2, docStmt)
+			($5, $2, 'stmt.pdf',  'ddeeff03', 'local', 'local/ddeeff03', 'statement', 'analysed', $3),
+			($6, $2, 'bill3.pdf', 'aabbcc04', 'local', 'local/aabbcc04', 'bill', 'analysed', $3)
+	`, docBill1, projectID, userID, docBill2, docStmt, docBill3)
 	require.NoError(t, err)
 
 	// Seed bills: bill1 = 150.00, bill2 = 99.99
@@ -94,7 +96,7 @@ time.Now().AddDate(0, -1, 0).Format("2006-01-02"),
 	_, err = testDB.ExecContext(ctx, `
 		INSERT INTO bill_records (id, project_id, document_id, due_date, amount_due, payment_status)
 		VALUES ('00000000-0000-0000-0000-000000000313', $1, $2, $3, 99.99, 'unpaid')
-	`, projectID, docBill1, dueDate)
+	`, projectID, docBill3, dueDate)
 	require.NoError(t, err)
 
 	// Run auto-reconcile

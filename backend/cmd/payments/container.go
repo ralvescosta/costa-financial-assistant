@@ -81,6 +81,8 @@ func run(ctx context.Context) error {
 			zap.String("env", cfg.Env),
 			zap.String("service", cfg.ServiceName))
 		<-ctx.Done()
+		logger.Info("payments: shutting down")
+		_ = logger.Sync()
 		return nil
 	})
 }

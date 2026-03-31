@@ -219,7 +219,11 @@ func run(ctx context.Context) error {
 
 		go func() {
 			<-ctx.Done()
-			_ = srv.Shutdown(context.Background())
+			logger.Info("bff: shutting down HTTP server")
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			_ = srv.Shutdown(shutdownCtx)
+			_ = logger.Sync()
 		}()
 
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

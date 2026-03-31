@@ -2,12 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getReconciliationSummary,
   createReconciliationLink,
-} from '@/services/reconciliationApi'
+} from '../services/reconciliationApi'
 import type {
   ReconciliationSummary,
   ReconciliationLink,
   CreateReconciliationLinkRequest,
-} from '@/types/reconciliation'
+} from '../types/reconciliation'
 
 // ─── Query keys ───────────────────────────────────────────────────────────────
 

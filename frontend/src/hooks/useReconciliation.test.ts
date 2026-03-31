@@ -6,12 +6,16 @@ import {
   useReconciliationSummary,
   useCreateReconciliationLink,
 } from './useReconciliation'
-import type { ReconciliationSummary, ReconciliationLink } from '@/types/reconciliation'
-import * as reconciliationApi from '@/services/reconciliationApi'
+import type {
+  ReconciliationSummary,
+  ReconciliationLink,
+  ReconciliationEntry,
+} from '../types/reconciliation'
+import * as reconciliationApi from '../services/reconciliationApi'
 
 // ─── Mock service module ──────────────────────────────────────────────────────
 
-vi.mock('@/services/reconciliationApi', () => ({
+vi.mock('../services/reconciliationApi', () => ({
   getReconciliationSummary: vi.fn(),
   createReconciliationLink: vi.fn(),
 }))
@@ -134,7 +138,7 @@ describe('useReconciliationSummary', () => {
       // Assert
       await waitFor(() => expect(result.current.isSuccess).toBe(true))
       const matchedEntry = result.current.data!.entries.find(
-        (e) => e.reconciliationStatus === 'matched_auto',
+        (e: ReconciliationEntry) => e.reconciliationStatus === 'matched_auto',
       )
       expect(matchedEntry?.linkedBillId).toBe('bill-uuid-1')
       expect(matchedEntry?.linkType).toBe('auto')

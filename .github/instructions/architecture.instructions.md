@@ -32,6 +32,58 @@ backend/internals/bff/financial/controllers/documents_controller.go
 
 ---
 
+## Rule: Graceful Shutdown Strategy
+
+**Description**: All backend service commands MUST implement graceful shutdown on `SIGINT` (Ctrl+C) and `SIGTERM` signals. Shutdown MUST drain in-flight work and close network listeners cleanly without data loss.
+
+**When it applies**: Implementing any backend service in `backend/cmd/<service>/cmd.go` and `backend/cmd/<service>/container.go`.
+
+**Copilot MUST**:
+- Use `signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)` in `main.go` to create a cancellable context passed to all service commands via `cmd.Context()`.
+- In each service's `container.go`, spawn a goroutine that waits on `<-ctx.Done()` then calls the transport layer's stop method:
+  - **HTTP servers (BFF/Echo)**: Call `srv.Shutdown(shutdownCtx)` with a 30-second timeout context—never use `context.Background()`. Log before shutdown with `logger.Info("bff: shutting down HTTP server")` and call `logger.Sync()` after to flush buffered logs.
+  - **gRPC servers**: Call `srv.GracefulStop()` (blocks until in-flight RPCs drain). Log before with `logger.Info("<service>: shutting down gRPC server")` and call `logger.Sync()` after.
+  - **RabbitMQ consumers**: Pass the root context directly to `consumer.Start(ctx)`. No explicit stop method needed—the consumer's event loop will naturally exit when `ctx.Done()` triggers.
+- Always log shutdown initiation with the service name for observability and call `logger.Sync()` to ensure logs flush before process exit.
+
+**Copilot MUST NOT**:
+- Use `context.Background()` in HTTP server shutdown—it will never timeout and may block indefinitely.
+- Omit shutdown logging—shutdown events are critical for operational observability.
+- Forget to call `logger.Sync()` after stopping a server—buffered logs may be lost on exit.
+- Spawn goroutines that perform cleanup without respecting context cancellation.
+- Use `panic()` or `os.Exit()` to force-stop servers—always use the graceful APIs.
+
+**Reference pattern**:
+```go
+// main.go
+ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+defer cancel()
+root.ExecuteContext(ctx)
+
+// container.go — HTTP example (BFF)
+go func() {
+    <-ctx.Done()
+    logger.Info("bff: shutting down HTTP server")
+    shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+    _ = srv.Shutdown(shutdownCtx)
+    logger.Sync()
+}()
+
+// container.go — gRPC example (bills)
+go func() {
+    <-ctx.Done()
+    logger.Info("bills: shutting down gRPC server")
+    srv.GracefulStop()
+    logger.Sync()
+}()
+```
+
+**Exemptions**:
+- The `migrations` service (run-and-exit) is exempt from this rule.
+
+---
+
 ## Rule: BFF with Echo + Huma (OpenAPI-First)
 
 **Description**: The BFF service MUST use Echo as the HTTP server and Huma for OpenAPI-first route registration.

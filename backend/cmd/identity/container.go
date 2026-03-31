@@ -82,7 +82,9 @@ func run(ctx context.Context) error {
 
 		go func() {
 			<-ctx.Done()
+			logger.Info("identity: shutting down gRPC server")
 			srv.GracefulStop()
+			_ = logger.Sync()
 		}()
 
 		return srv.Serve(lis)
