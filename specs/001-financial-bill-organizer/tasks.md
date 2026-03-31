@@ -38,10 +38,10 @@
 
 **⚠️ CRITICAL**: No user-story implementation starts before this phase completes.
 
-- [X] T008 Create multi-tenant bootstrap schema migration (`users/projects/project_members`) in `backend/internals/onboarding/migrations/000001_create_identity_and_projects.up.sql`
-- [X] T009 Create reversible down migration for tenant bootstrap schema in `backend/internals/onboarding/migrations/000001_create_identity_and_projects.down.sql`
-- [X] T010 Create seed migration for bootstrap user/project/member in `backend/internals/onboarding/migrations/000002_seed_bootstrap_tenant.up.sql`
-- [X] T011 Create down migration for bootstrap seed data in `backend/internals/onboarding/migrations/000002_seed_bootstrap_tenant.down.sql`
+- [X] T008 Create multi-tenant bootstrap schema migration (`users/projects/project_members`) in `backend/onboarding/migrations/000001_create_identity_and_projects.up.sql`
+- [X] T009 Create reversible down migration for tenant bootstrap schema in `backend/onboarding/migrations/000001_create_identity_and_projects.down.sql`
+- [X] T010 Create seed migration for bootstrap user/project/member in `backend/onboarding/migrations/000002_seed_bootstrap_tenant.up.sql`
+- [X] T011 Create down migration for bootstrap seed data in `backend/onboarding/migrations/000002_seed_bootstrap_tenant.down.sql`
 - [X] T012 [P] Add onboarding v1 domain messages contract in `backend/protos/onboarding/v1/messages.proto`
 - [X] T013 [P] Add onboarding v1 grpc service contract in `backend/protos/onboarding/v1/grpc.proto`
 - [X] T014 [P] Add identity v1 domain messages contract in `backend/protos/identity/v1/messages.proto`
@@ -131,20 +131,20 @@
 ### Tests for User Story 2
 
 - [ ] T139 [P] [US2] Define extraction and analysis service interfaces in `backend/internals/files/interfaces/extraction_service.go`
-- [ ] T140 [P] [US2] Generate mockgen mocks for files service after adding extraction interfaces in `backend/internals/files/mocks/`
+- [ ] T140 [P] [US2] Generate mockgen mocks for files service after adding extraction interfaces (depends on T137 and T139) in `backend/internals/files/mocks/`
 - [ ] T038 [P] [US2] Add integration test for analysis status transitions and failure handling in `backend/tests/integration/us2_analysis_pipeline_test.go`
 - [ ] T039 [P] [US2] Add unit tests for extraction orchestration service in `backend/internals/files/services/analysis_service_test.go`
 - [ ] T040 [P] [US2] Add hook test for document analysis polling/status in `frontend/src/hooks/useDocumentStatus.test.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Add migration for `analysis_jobs`, `statement_records`, and `transaction_lines` tables in `backend/files/migrations/000001_create_analysis_tables.up.sql`
-- [ ] T042 [P] [US2] Add down migration for `analysis_jobs`, `statement_records`, and `transaction_lines` tables in `backend/files/migrations/000001_create_analysis_tables.down.sql`
+- [ ] T041 [P] [US2] Add migration for only the `analysis_jobs`, `statement_records`, and `transaction_lines` tables in `backend/files/migrations/000001_create_analysis_tables.up.sql`
+- [ ] T042 [P] [US2] Add down migration for only the `analysis_jobs`, `statement_records`, and `transaction_lines` tables in `backend/files/migrations/000001_create_analysis_tables.down.sql`
 - [ ] T156 [P] [US2] Add migration for project-scoped `bill_records` table in `backend/bills/migrations/000002_create_bill_records.up.sql`
 - [ ] T157 [P] [US2] Add down migration for project-scoped `bill_records` table in `backend/bills/migrations/000002_create_bill_records.down.sql`
-- [ ] T043 [US2] Implement async analysis job publisher/consumer pipeline in `backend/internals/files/transport/rmq/analysis_consumer.go`
+- [ ] T043 [US2] Implement async analysis job publisher/consumer pipeline with W3C trace-context injection and extraction in `backend/internals/files/transport/rmq/analysis_consumer.go`
 - [ ] T044 [US2] Implement extraction service for due date/amount/pix/barcode and statement lines in `backend/internals/files/services/extraction_service.go`
-- [ ] T045 [US2] Implement BFF document-detail projection for extracted fields in `backend/internals/bff/financial/controllers/documents_controller.go`
+- [ ] T045 [US2] Implement BFF document-detail projection for extracted fields after T034 in `backend/internals/bff/financial/controllers/documents_controller.go`
 - [ ] T046 [US2] Implement frontend hook for document detail/status polling in `frontend/src/hooks/useDocumentStatus.ts`
 - [ ] T047 [US2] Implement document detail page with extraction results and not-found markers in `frontend/src/pages/DocumentDetailPage.tsx`
 
@@ -166,17 +166,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T141 [P] [US3] Define bank-account service and repository interfaces in `backend/internals/files/interfaces/bank_account_service.go`
-- [ ] T142 [P] [US3] Generate mockgen mocks for files service after adding bank-account interfaces in `backend/internals/files/mocks/`
+- [ ] T141 [P] [US3] Define files-service bank-account service and repository interfaces in `backend/internals/files/interfaces/bank_account_service.go`
+- [ ] T142 [P] [US3] Generate mockgen mocks for files service after adding bank-account interfaces (depends on T137, T139, and T141) in `backend/internals/files/mocks/`
 - [ ] T048 [P] [US3] Add integration test for bank-account CRUD and attribution guard in `backend/tests/integration/us3_bank_accounts_test.go`
-- [ ] T049 [P] [US3] Add unit tests for bank-account repository validation rules in `backend/internals/bff/repositories/bank_account_repository_test.go`
+- [ ] T049 [P] [US3] Add unit tests for bank-account repository validation rules in `backend/internals/files/repositories/bank_account_repository_test.go`
 - [ ] T050 [P] [US3] Add hook test for bank-account CRUD flows in `frontend/src/hooks/useBankAccounts.test.ts`
 
 ### Implementation for User Story 3
 
 - [ ] T051 [P] [US3] Add migration for project-scoped bank-account labels in `backend/files/migrations/000002_create_bank_accounts.up.sql`
 - [ ] T052 [P] [US3] Add down migration for bank-account labels in `backend/files/migrations/000002_create_bank_accounts.down.sql`
-- [ ] T053 [US3] Implement bank-account repository with project scope + duplicate checks in `backend/internals/bff/repositories/bank_account_repository.go`
+- [ ] T053 [US3] Implement bank-account repository with project scope + duplicate checks in `backend/internals/files/repositories/bank_account_repository.go`
 - [ ] T054 [US3] Implement BFF settings controller for bank-account endpoints in `backend/internals/bff/financial/controllers/settings_controller.go`
 - [ ] T055 [US3] Implement frontend hook for bank-account queries/mutations in `frontend/src/hooks/useBankAccounts.ts`
 - [ ] T056 [US3] Implement settings page for bank-account label management in `frontend/src/pages/SettingsPage.tsx`

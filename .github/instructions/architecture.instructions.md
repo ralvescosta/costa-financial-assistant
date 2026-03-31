@@ -25,7 +25,7 @@ applyTo: "**/*"
 
 **Correct layer order**:
 ```
-backend/internals/bff/transport/http/controllers/documents_controller.go
+backend/internals/bff/financial/controllers/documents_controller.go
   → backend/internals/files/services/document_service.go
     → backend/internals/files/repositories/document_repository.go
 ```
@@ -50,7 +50,7 @@ backend/internals/bff/transport/http/controllers/documents_controller.go
 - Embed business rules in controller-level handler closures.
 - Use any HTTP framework other than Echo (no Gin, Fiber, Chi).
 
-**Reference files**: `backend/cmd/bff/container.go` (bootstrap), `backend/internals/bff/transport/http/controllers/` (controllers).
+**Reference files**: `backend/cmd/bff/container.go` (bootstrap), `backend/internals/bff/financial/controllers/` (controllers).
 
 ---
 
