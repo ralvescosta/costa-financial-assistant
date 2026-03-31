@@ -65,6 +65,8 @@
 - [X] T105 [P] Add integration test for identity JWKS metadata endpoint contract in `backend/tests/integration/identity_jwks_contract_test.go`
 - [X] T106 [P] Add integration test matrix for invalid and expired token rejection in `backend/tests/integration/auth_token_rejection_test.go`
 - [X] T107 Implement JWKS cache/refresh component for auth middleware in `backend/internals/bff/transport/http/middleware/jwks_cache.go`
+- [ ] T152 [P] Add shared project-scoped idempotency key migration for mutating bill and reconciliation workflows in `backend/bills/migrations/000003_create_idempotency_keys.up.sql`
+- [ ] T153 [P] Add down migration for shared project-scoped idempotency keys in `backend/bills/migrations/000003_create_idempotency_keys.down.sql`
 - [ ] T132 [P] Define identity service and repository interfaces in `backend/internals/identity/interfaces/identity_service.go`
 - [ ] T133 [P] Define BFF gRPC client interfaces for downstream service consumers in `backend/internals/bff/interfaces/grpc_clients.go`
 - [ ] T134 Wire otelgrpc unary and streaming server interceptors to identity gRPC server bootstrap in `backend/cmd/identity/container.go`
@@ -99,6 +101,8 @@
 - [X] T029 [P] [US1] Add files v1 message definitions for document upload/classification in `backend/protos/files/v1/messages.proto`
 - [X] T030 [P] [US1] Add files v1 grpc service methods for upload/classify/list/get in `backend/protos/files/v1/grpc.proto`
 - [X] T031 [US1] Regenerate files protobuf artifacts in `backend/protos/generated/`
+- [ ] T154 [P] [US1] Add migration for project-scoped bill-type labels in `backend/bills/migrations/000001_create_bill_types.up.sql`
+- [ ] T155 [P] [US1] Add down migration for bill-type labels in `backend/bills/migrations/000001_create_bill_types.down.sql`
 - [ ] T137 [US1] Define files service and document repository interfaces in `backend/internals/files/interfaces/document_service.go`
 - [ ] T138 [P] [US1] Generate mockgen mocks for files service interfaces in `backend/internals/files/mocks/`
 - [X] T032 [US1] Implement document repository with project-scoped uniqueness by hash in `backend/internals/files/repositories/document_repository.go`
@@ -134,8 +138,10 @@
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Add migration for analysis jobs and extracted statement/bill tables in `backend/files/migrations/000001_create_analysis_tables.up.sql`
-- [ ] T042 [P] [US2] Add down migration for analysis tables in `backend/files/migrations/000001_create_analysis_tables.down.sql`
+- [ ] T041 [P] [US2] Add migration for `analysis_jobs`, `statement_records`, and `transaction_lines` tables in `backend/files/migrations/000001_create_analysis_tables.up.sql`
+- [ ] T042 [P] [US2] Add down migration for `analysis_jobs`, `statement_records`, and `transaction_lines` tables in `backend/files/migrations/000001_create_analysis_tables.down.sql`
+- [ ] T156 [P] [US2] Add migration for project-scoped `bill_records` table in `backend/bills/migrations/000002_create_bill_records.up.sql`
+- [ ] T157 [P] [US2] Add down migration for project-scoped `bill_records` table in `backend/bills/migrations/000002_create_bill_records.down.sql`
 - [ ] T043 [US2] Implement async analysis job publisher/consumer pipeline in `backend/internals/files/transport/rmq/analysis_consumer.go`
 - [ ] T044 [US2] Implement extraction service for due date/amount/pix/barcode and statement lines in `backend/internals/files/services/extraction_service.go`
 - [ ] T045 [US2] Implement BFF document-detail projection for extracted fields in `backend/internals/bff/financial/controllers/documents_controller.go`
@@ -194,7 +200,6 @@
 
 - [ ] T143 [P] [US7] Define onboarding project-members service and gRPC handler interfaces in `backend/internals/onboarding/interfaces/project_service.go`
 - [ ] T144 [P] [US7] Generate mockgen mocks for onboarding service interfaces in `backend/internals/onboarding/mocks/`
-- [ ] T145 [US7] Wire otelgrpc unary and streaming server interceptors to onboarding gRPC server in `backend/internals/onboarding/transport/grpc/server.go`
 - [ ] T057 [P] [US7] Add integration test for cross-project isolation on list/get endpoints in `backend/tests/integration/us7_project_isolation_test.go`
 - [ ] T058 [P] [US7] Add integration test for role permission matrix (`read_only/update/write`) in `backend/tests/integration/us7_role_enforcement_test.go`
 - [ ] T059 [P] [US7] Add hook test for project switching behavior in `frontend/src/hooks/useCurrentProject.test.ts`
@@ -203,8 +208,9 @@
 
 - [ ] T060 [P] [US7] Implement onboarding service for member invite/role update in `backend/internals/onboarding/services/project_members_service.go`
 - [ ] T061 [P] [US7] Implement onboarding grpc handlers for collaboration lifecycle in `backend/internals/onboarding/transport/grpc/server.go`
+- [ ] T145 [US7] Wire otelgrpc unary and streaming server interceptors to onboarding gRPC server after T061 in `backend/internals/onboarding/transport/grpc/server.go`
 - [ ] T062 [US7] Implement BFF projects controller (`current`, `invite`, `update-role`) in `backend/internals/bff/financial/controllers/projects_controller.go`
-- [ ] T063 [US7] Integrate role checks into mutating controllers/services in `backend/internals/bff/financial/transport/http/middleware/project_guard.go`
+- [ ] T063 [US7] Integrate role checks into mutating controllers/services in `backend/internals/bff/transport/http/middleware/project_guard.go`
 - [ ] T064 [US7] Implement frontend current-project and role-context hook in `frontend/src/hooks/useCurrentProject.ts`
 - [ ] T065 [US7] Implement project switcher/invite UI entrypoints in `frontend/src/components/ProjectSwitcher.tsx`
 
@@ -236,6 +242,8 @@
 - [X] T069 [P] [US4] Add bills v1 message fields for payment status and cycle views in `backend/protos/bills/v1/messages.proto`
 - [X] T070 [P] [US4] Add bills v1 grpc methods for dashboard and mark-paid in `backend/protos/bills/v1/grpc.proto`
 - [X] T071 [US4] Regenerate bills protobuf artifacts in `backend/protos/generated/`
+- [ ] T158 [P] [US4] Add migration for project-scoped payment cycle preferences in `backend/payments/migrations/000002_create_payment_cycle_preferences.up.sql`
+- [ ] T159 [P] [US4] Add down migration for payment cycle preferences in `backend/payments/migrations/000002_create_payment_cycle_preferences.down.sql`
 - [ ] T072 [US4] Implement payment cycle preference repository/service in `backend/internals/payments/services/payment_cycle_service.go`
 - [ ] T073 [US4] Implement bill payment service with idempotency-key enforcement in `backend/internals/bills/services/payment_service.go`
 - [ ] T074 [US4] Implement BFF payments controller (`dashboard`, `mark-paid`, preferred day) in `backend/internals/bff/financial/controllers/payments_controller.go`
