@@ -116,3 +116,18 @@ then destroy/rollback DB state in `TestMain`.
 - Validate project switch isolation (no cross-project data leakage).
 - Validate role permissions (`read_only`, `update`, `write`).
 - Validate `/openapi.json` includes operation metadata and schemas.
+- Validate history dashboard timeline, category breakdown, and compliance panels.
+
+## 10) Automated validation script
+
+Run the feature validation script from repository root:
+
+```bash
+./scripts/validate-financial-bill-organizer.sh
+```
+
+Optional: skip integration tests (useful when local DB/infra is not running):
+
+```bash
+SKIP_INTEGRATION_TESTS=1 ./scripts/validate-financial-bill-organizer.sh
+```

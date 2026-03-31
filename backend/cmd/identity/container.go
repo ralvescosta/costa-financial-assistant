@@ -58,7 +58,9 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── gRPC handler ─────────────────────────────────────────────────────────
-	if err := c.Provide(identitygrpc.NewServer); err != nil {
+	if err := c.Provide(func(svc services.TokenServiceIface, logger *zap.Logger) identityv1.IdentityServiceServer {
+		return identitygrpc.NewServer(svc, logger)
+	}); err != nil {
 		return fmt.Errorf("identity: provide grpc server: %w", err)
 	}
 

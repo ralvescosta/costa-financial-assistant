@@ -66,7 +66,6 @@ func (m *mockDocumentRepository) ListByProject(ctx context.Context, projectID st
 
 type mockUnitOfWork struct {
 	mock.Mock
-	tx *sql.Tx
 }
 
 func (m *mockUnitOfWork) Begin(ctx context.Context) (*sql.Tx, error) {

@@ -47,10 +47,31 @@ frontend/test: ## Run Vitest hook unit tests
 frontend/build: ## Build frontend for production
 	@cd frontend && npm run build
 
+# ─── Service name → Viper env-var prefix mapping ─────────────────────────────
+SERVICE_PREFIX_bff        := BFF
+SERVICE_PREFIX_bills      := BILLS
+SERVICE_PREFIX_files      := FILES
+SERVICE_PREFIX_identity   := IDENTITY
+SERVICE_PREFIX_onboarding := ONBOARDING
+SERVICE_PREFIX_payments   := PAYMENTS
+
+# ─── Default per-service bind ports (avoid 9090 collisions) ─────────────────
+HTTP_PORT_bff       ?= 8080
+GRPC_PORT_identity  ?= 9091
+GRPC_PORT_files     ?= 9092
+GRPC_PORT_bills     ?= 9093
+GRPC_PORT_onboarding?= 9094
+GRPC_PORT_payments  ?= 9095
+
 # ─── Backend service targets ─────────────────────────────────────────────────
 define SERVICE_TARGETS
 svc/run/$(1): ## Run backend service: $(1)
-	@cd backend && go run . $(1)
+	@cd backend && \
+	  $(SERVICE_PREFIX_$(1))_SERVICE_NAME=$(1) \
+	  $(SERVICE_PREFIX_$(1))_DB_DSN=$(DB_URL_$(1)) \
+	  $(SERVICE_PREFIX_$(1))_HTTP_PORT=$(HTTP_PORT_$(1)) \
+	  $(SERVICE_PREFIX_$(1))_GRPC_PORT=$(GRPC_PORT_$(1)) \
+	  go run . $(1)
 
 svc/test/$(1): ## Run unit tests for backend service: $(1)
 	@cd backend && go test -race -count=1 ./internals/$(1)/...
@@ -63,6 +84,7 @@ test/integration: ## Run backend integration tests with ephemeral DB
 	@cd backend && go test -race -count=1 -v -tags integration ./tests/integration/...
 
 # ─── Migrations ──────────────────────────────────────────────────────────────
+DB_URL_bff         ?= postgres://financial:financial@localhost:5432/financial_payments?sslmode=disable
 DB_URL_onboarding  ?= postgres://financial:financial@localhost:5432/financial_onboarding?sslmode=disable
 DB_URL_files       ?= postgres://financial:financial@localhost:5432/financial_files?sslmode=disable
 DB_URL_bills       ?= postgres://financial:financial@localhost:5432/financial_bills?sslmode=disable

@@ -231,29 +231,29 @@
 
 ### Tests for User Story 4
 
-- [ ] T146 [P] [US4] Define payment cycle and bill payment service interfaces in `backend/internals/payments/interfaces/payment_cycle_service.go` and `backend/internals/bills/interfaces/payment_service.go`
-- [ ] T147 [P] [US4] Generate mockgen mocks for payments and bills service interfaces in `backend/internals/payments/mocks/` and `backend/internals/bills/mocks/`
-- [ ] T066 [P] [US4] Add integration test for payment dashboard + overdue styling flags in `backend/tests/integration/us4_payment_dashboard_test.go`
-- [ ] T067 [P] [US4] Add integration test for idempotent mark-paid endpoint in `backend/tests/integration/us4_mark_paid_idempotency_test.go`
-- [ ] T068 [P] [US4] Add hook test for payment dashboard filtering/sorting in `frontend/src/hooks/usePaymentDashboard.test.ts`
+- [X] T146 [P] [US4] Define payment cycle and bill payment service interfaces in `backend/internals/payments/interfaces/payment_cycle_service.go` and `backend/internals/bills/interfaces/payment_service.go`
+- [X] T147 [P] [US4] Generate mockgen mocks for payments and bills service interfaces in `backend/internals/payments/mocks/` and `backend/internals/bills/mocks/`
+- [X] T066 [P] [US4] Add integration test for payment dashboard + overdue styling flags in `backend/tests/integration/us4_payment_dashboard_test.go`
+- [X] T067 [P] [US4] Add integration test for idempotent mark-paid endpoint in `backend/tests/integration/us4_mark_paid_idempotency_test.go`
+- [X] T068 [P] [US4] Add hook test for payment dashboard filtering/sorting in `frontend/src/hooks/usePaymentDashboard.test.ts`
 
 ### Implementation for User Story 4
 
 - [X] T069 [P] [US4] Add bills v1 message fields for payment status and cycle views in `backend/protos/bills/v1/messages.proto`
 - [X] T070 [P] [US4] Add bills v1 grpc methods for dashboard and mark-paid in `backend/protos/bills/v1/grpc.proto`
 - [X] T071 [US4] Regenerate bills protobuf artifacts in `backend/protos/generated/`
-- [ ] T158 [P] [US4] Add migration for project-scoped payment cycle preferences in `backend/payments/migrations/000002_create_payment_cycle_preferences.up.sql`
-- [ ] T159 [P] [US4] Add down migration for payment cycle preferences in `backend/payments/migrations/000002_create_payment_cycle_preferences.down.sql`
-- [ ] T072 [US4] Implement payment cycle preference repository/service in `backend/internals/payments/services/payment_cycle_service.go`
-- [ ] T073 [US4] Implement bill payment service with idempotency-key enforcement in `backend/internals/bills/services/payment_service.go`
-- [ ] T074 [US4] Implement BFF payments controller (`dashboard`, `mark-paid`, preferred day) in `backend/internals/bff/financial/controllers/payments_controller.go`
-- [ ] T075 [US4] Implement frontend payment dashboard hook in `frontend/src/hooks/usePaymentDashboard.ts`
-- [ ] T076 [US4] Implement frontend payment dashboard page in `frontend/src/pages/PaymentDashboardPage.tsx`
+- [X] T158 [P] [US4] Add migration for project-scoped payment cycle preferences in `backend/payments/migrations/000002_create_payment_cycle_preferences.up.sql`
+- [X] T159 [P] [US4] Add down migration for payment cycle preferences in `backend/payments/migrations/000002_create_payment_cycle_preferences.down.sql`
+- [X] T072 [US4] Implement payment cycle preference repository/service in `backend/internals/payments/services/payment_cycle_service.go`
+- [X] T073 [US4] Implement bill payment service with idempotency-key enforcement in `backend/internals/bills/services/payment_service.go`
+- [X] T074 [US4] Implement BFF payments controller (`dashboard`, `mark-paid`, preferred day) in `backend/internals/bff/financial/controllers/payments_controller.go`
+- [X] T075 [US4] Implement frontend payment dashboard hook in `frontend/src/hooks/usePaymentDashboard.ts`
+- [X] T076 [US4] Implement frontend payment dashboard page in `frontend/src/pages/PaymentDashboardPage.tsx`
 
 ### Phase 7 Verification
 
-- [ ] T123 Run US4 integration tests to confirm payment dashboard and idempotent mark-paid pass in `backend/tests/integration/` (`go test ./tests/integration/ -run 'Payment|Dashboard|MarkPaid'`)
-- [ ] T124 [P] Run frontend payment dashboard hook tests to confirm filter/sort assertions pass in `frontend/src/hooks/usePaymentDashboard.test.ts` (`npm test -- --run usePaymentDashboard`)
+- [X] T123 Run US4 integration tests to confirm payment dashboard and idempotent mark-paid pass in `backend/tests/integration/` (`go test ./tests/integration/ -run 'Payment|Dashboard|MarkPaid'`)
+- [X] T124 [P] Run frontend payment dashboard hook tests to confirm filter/sort assertions pass in `frontend/src/hooks/usePaymentDashboard.test.ts` (`npm test -- --run usePaymentDashboard`)
 
 **Checkpoint**: US4 independently delivers operational payment workflow.
 
@@ -267,25 +267,25 @@
 
 ### Tests for User Story 5
 
-- [ ] T148 [P] [US5] Define reconciliation service interface in `backend/internals/payments/interfaces/reconciliation_service.go`
-- [ ] T149 [P] [US5] Generate mockgen mocks for payments service after adding reconciliation interface in `backend/internals/payments/mocks/`
-- [ ] T077 [P] [US5] Add integration test for auto-reconciliation outcomes in `backend/tests/integration/us5_auto_reconciliation_test.go`
-- [ ] T078 [P] [US5] Add integration test for manual reconciliation link creation in `backend/tests/integration/us5_manual_reconciliation_test.go`
-- [ ] T079 [P] [US5] Add hook test for reconciliation summary and link mutation in `frontend/src/hooks/useReconciliation.test.ts`
+- [X] T148 [P] [US5] Define reconciliation service interface in `backend/internals/payments/interfaces/reconciliation_service.go`
+- [X] T149 [P] [US5] Generate mockgen mocks for payments service after adding reconciliation interface in `backend/internals/payments/mocks/`
+- [X] T077 [P] [US5] Add integration test for auto-reconciliation outcomes in `backend/tests/integration/us5_auto_reconciliation_test.go`
+- [X] T078 [P] [US5] Add integration test for manual reconciliation link creation in `backend/tests/integration/us5_manual_reconciliation_test.go`
+- [X] T079 [P] [US5] Add hook test for reconciliation summary and link mutation in `frontend/src/hooks/useReconciliation.test.ts`
 
 ### Implementation for User Story 5
 
-- [ ] T080 [P] [US5] Add migration for reconciliation links and indexes in `backend/payments/migrations/000001_create_reconciliation_tables.up.sql`
-- [ ] T081 [P] [US5] Add down migration for reconciliation tables in `backend/payments/migrations/000001_create_reconciliation_tables.down.sql`
-- [ ] T082 [US5] Implement reconciliation matching service (auto + ambiguous routing) in `backend/internals/payments/services/reconciliation_service.go`
-- [ ] T083 [US5] Implement BFF reconciliation controller (`summary`, `create-link`) in `backend/internals/bff/financial/controllers/reconciliation_controller.go`
-- [ ] T084 [US5] Implement frontend reconciliation hook in `frontend/src/hooks/useReconciliation.ts`
-- [ ] T085 [US5] Implement frontend reconciliation page in `frontend/src/pages/ReconciliationPage.tsx`
+- [X] T080 [P] [US5] Add migration for reconciliation links and indexes in `backend/payments/migrations/000001_create_reconciliation_tables.up.sql`
+- [X] T081 [P] [US5] Add down migration for reconciliation tables in `backend/payments/migrations/000001_create_reconciliation_tables.down.sql`
+- [X] T082 [US5] Implement reconciliation matching service (auto + ambiguous routing) in `backend/internals/payments/services/reconciliation_service.go`
+- [X] T083 [US5] Implement BFF reconciliation controller (`summary`, `create-link`) in `backend/internals/bff/financial/controllers/reconciliation_controller.go`
+- [X] T084 [US5] Implement frontend reconciliation hook in `frontend/src/hooks/useReconciliation.ts`
+- [X] T085 [US5] Implement frontend reconciliation page in `frontend/src/pages/ReconciliationPage.tsx`
 
 ### Phase 8 Verification
 
-- [ ] T125 Run US5 integration tests to confirm auto and manual reconciliation outcomes pass in `backend/tests/integration/` (`go test ./tests/integration/ -run Reconcil`)
-- [ ] T126 [P] Run frontend reconciliation hook tests to confirm summary and link mutation assertions pass in `frontend/src/hooks/useReconciliation.test.ts` (`npm test -- --run useReconciliation`)
+- [X] T125 Run US5 integration tests to confirm auto and manual reconciliation outcomes pass in `backend/tests/integration/` (`go test ./tests/integration/ -run Reconcil`)
+- [X] T126 [P] Run frontend reconciliation hook tests to confirm summary and link mutation assertions pass in `frontend/src/hooks/useReconciliation.test.ts` (`npm test -- --run useReconciliation`)
 
 **Checkpoint**: US5 independently provides reconciliation oversight.
 
@@ -299,23 +299,23 @@
 
 ### Tests for User Story 6
 
-- [ ] T150 [P] [US6] Define history repository interface in `backend/internals/payments/interfaces/history_repository.go`
-- [ ] T151 [P] [US6] Generate mockgen mocks for payments service after adding history interface in `backend/internals/payments/mocks/`
-- [ ] T086 [P] [US6] Add integration test for monthly timeline aggregation in `backend/tests/integration/us6_history_timeline_test.go`
-- [ ] T087 [P] [US6] Add integration test for category breakdown + compliance metrics in `backend/tests/integration/us6_history_metrics_test.go`
-- [ ] T088 [P] [US6] Add hook test for history query state and filters in `frontend/src/hooks/useHistoryDashboard.test.ts`
+- [X] T150 [P] [US6] Define history repository interface in `backend/internals/payments/interfaces/history_repository.go`
+- [X] T151 [P] [US6] Generate mockgen mocks for payments service after adding history interface in `backend/internals/payments/mocks/`
+- [X] T086 [P] [US6] Add integration test for monthly timeline aggregation in `backend/tests/integration/us6_history_timeline_test.go`
+- [X] T087 [P] [US6] Add integration test for category breakdown + compliance metrics in `backend/tests/integration/us6_history_metrics_test.go`
+- [X] T088 [P] [US6] Add hook test for history query state and filters in `frontend/src/hooks/useHistoryDashboard.test.ts`
 
 ### Implementation for User Story 6
 
-- [ ] T089 [US6] Implement analytics aggregation queries with project scoping in `backend/internals/payments/repositories/history_repository.go`
-- [ ] T090 [US6] Implement BFF history controller (`timeline`, `categories`, `compliance`) in `backend/internals/bff/financial/controllers/history_controller.go`
-- [ ] T091 [US6] Implement frontend history dashboard hook in `frontend/src/hooks/useHistoryDashboard.ts`
-- [ ] T092 [US6] Implement frontend history dashboard page in `frontend/src/pages/HistoryDashboardPage.tsx`
+- [X] T089 [US6] Implement analytics aggregation queries with project scoping in `backend/internals/payments/repositories/history_repository.go`
+- [X] T090 [US6] Implement BFF history controller (`timeline`, `categories`, `compliance`) in `backend/internals/bff/financial/controllers/history_controller.go`
+- [X] T091 [US6] Implement frontend history dashboard hook in `frontend/src/hooks/useHistoryDashboard.ts`
+- [X] T092 [US6] Implement frontend history dashboard page in `frontend/src/pages/HistoryDashboardPage.tsx`
 
 ### Phase 9 Verification
 
-- [ ] T127 Run US6 integration tests to confirm timeline and metrics aggregation pass in `backend/tests/integration/` (`go test ./tests/integration/ -run 'History|Timeline|Compliance'`)
-- [ ] T128 [P] Run frontend history hook tests to confirm query state and filter assertions pass in `frontend/src/hooks/useHistoryDashboard.test.ts` (`npm test -- --run useHistoryDashboard`)
+- [X] T127 Run US6 integration tests to confirm timeline and metrics aggregation pass in `backend/tests/integration/` (`go test ./tests/integration/ -run 'History|Timeline|Compliance' -tags integration`)
+- [X] T128 [P] Run frontend history hook tests to confirm query state and filter assertions pass in `frontend/src/hooks/useHistoryDashboard.test.ts` (`npm test -- --run useHistoryDashboard`)
 
 **Checkpoint**: US6 independently delivers analytics/reporting value.
 
@@ -325,17 +325,17 @@
 
 **Purpose**: Final hardening across all stories.
 
-- [ ] T093 [P] Add OpenAPI operation metadata completeness checks in `backend/tests/integration/openapi_contract_test.go`
-- [ ] T094 [P] Add BFF RED metrics middleware coverage test in `backend/tests/integration/bff_metrics_test.go`
-- [ ] T095 Validate tokenized responsive theming and typography usage in `frontend/src/styles/tokens.ts`
-- [ ] T096 Add quickstart validation script for local bootstrap workflow in `scripts/validate-financial-bill-organizer.sh`
-- [ ] T097 Run end-to-end manual validation checklist updates in `specs/001-financial-bill-organizer/quickstart.md`
+- [X] T093 [P] Add OpenAPI operation metadata completeness checks in `backend/tests/integration/openapi_contract_test.go`
+- [X] T094 [P] Add BFF RED metrics middleware coverage test in `backend/tests/integration/bff_metrics_test.go`
+- [X] T095 Validate tokenized responsive theming and typography usage in `frontend/src/styles/tokens.ts`
+- [X] T096 Add quickstart validation script for local bootstrap workflow in `scripts/validate-financial-bill-organizer.sh`
+- [X] T097 Run end-to-end manual validation checklist updates in `specs/001-financial-bill-organizer/quickstart.md`
 
 ### Phase 10 Verification
 
-- [ ] T129 Run full backend test suite to confirm all unit and integration tests pass in `backend/` (`go test ./...`)
-- [ ] T130 [P] Run full frontend test suite to confirm all hook and component tests pass in `frontend/` (`npm test`)
-- [ ] T131 [P] Run golangci-lint to confirm zero lint violations across all services in `backend/` (`make lint`)
+- [X] T129 Run full backend test suite to confirm all unit and integration tests pass in `backend/` (`go test ./...`)
+- [X] T130 [P] Run full frontend test suite to confirm all hook and component tests pass in `frontend/` (`npm test`)
+- [X] T131 [P] Run golangci-lint to confirm zero lint violations across all services in `backend/` (`golangci-lint run ./...`)
 
 ---
 

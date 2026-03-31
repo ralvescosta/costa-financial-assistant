@@ -96,7 +96,7 @@ func (r *PostgresBankAccountRepository) ListByProject(ctx context.Context, proje
 			zap.Error(err))
 		return nil, fmt.Errorf("bank account repository: listByProject: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var accounts []*filesv1.BankAccount
 	for rows.Next() {

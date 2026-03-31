@@ -200,16 +200,16 @@ func (r *PostgresProjectMembersRepository) ListMembers(ctx context.Context, proj
 	if err != nil {
 		return nil, "", fmt.Errorf("project_members_repository: list members: %w", err)
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var members []*onboardingv1.ProjectMember
 	for rows.Next() {
 		var m onboardingv1.ProjectMember
 		var (
-			roleStr    string
-			invitedBy  string
-			createdAt  string
-			updatedAt  string
+			roleStr   string
+			invitedBy string
+			createdAt string
+			updatedAt string
 		)
 		if err := rows.Scan(&m.Id, &m.ProjectId, &m.UserId, &roleStr, &invitedBy, &createdAt, &updatedAt); err != nil {
 			return nil, "", fmt.Errorf("project_members_repository: scan member: %w", err)

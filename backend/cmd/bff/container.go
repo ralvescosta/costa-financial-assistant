@@ -2,8 +2,11 @@ package bff
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
@@ -15,10 +18,15 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	_ "github.com/lib/pq"
+
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
+	paymentsrepo "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/repositories"
+	paymentssvc "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/services"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
 	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
+	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
@@ -83,6 +91,59 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("bff: provide onboarding client: %w", err)
 	}
 
+	// ─── Bills gRPC client ───────────────────────────────────────────────────
+	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (billsv1.BillsServiceClient, error) {
+		conn, err := grpc.NewClient(
+			cfg.Services.BillsGRPCAddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("bff: dial bills grpc: %w", err)
+		}
+		logger.Info("bills gRPC client connected", zap.String("addr", cfg.Services.BillsGRPCAddr))
+		return billsv1.NewBillsServiceClient(conn), nil
+	}); err != nil {
+		return fmt.Errorf("bff: provide bills client: %w", err)
+	}
+
+	// ─── Payments DB connection ───────────────────────────────────────────────
+	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (*sql.DB, error) {
+		db, err := sql.Open("postgres", cfg.DB.DSN)
+		if err != nil {
+			return nil, fmt.Errorf("bff: open payments db: %w", err)
+		}
+		db.SetMaxOpenConns(cfg.DB.MaxOpenConns)
+		db.SetMaxIdleConns(cfg.DB.MaxIdleConns)
+		db.SetConnMaxLifetime(time.Duration(cfg.DB.ConnMaxLifetime) * time.Second)
+		logger.Info("payments DB configured", zap.String("dsn_set", strconv.FormatBool(cfg.DB.DSN != "")))
+		return db, nil
+	}); err != nil {
+		return fmt.Errorf("bff: provide payments db: %w", err)
+	}
+
+	// ─── Payment cycle repository + service ──────────────────────────────────
+	if err := c.Provide(paymentsrepo.NewPaymentCycleRepository); err != nil {
+		return fmt.Errorf("bff: provide payment cycle repository: %w", err)
+	}
+
+	if err := c.Provide(paymentssvc.NewPaymentCycleService); err != nil {
+		return fmt.Errorf("bff: provide payment cycle service: %w", err)
+	}
+
+	// ─── Reconciliation repository + service ──────────────────────────────────
+	if err := c.Provide(paymentsrepo.NewReconciliationRepository); err != nil {
+		return fmt.Errorf("bff: provide reconciliation repository: %w", err)
+	}
+
+	if err := c.Provide(paymentssvc.NewReconciliationService); err != nil {
+		return fmt.Errorf("bff: provide reconciliation service: %w", err)
+	}
+
+	// ─── History repository ───────────────────────────────────────────────────
+	if err := c.Provide(paymentsrepo.NewHistoryRepository); err != nil {
+		return fmt.Errorf("bff: provide history repository: %w", err)
+	}
+
 	// ─── Controllers ─────────────────────────────────────────────────────────
 	if err := c.Provide(controllers.NewDocumentsController); err != nil {
 		return fmt.Errorf("bff: provide documents controller: %w", err)
@@ -96,6 +157,18 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("bff: provide projects controller: %w", err)
 	}
 
+	if err := c.Provide(controllers.NewPaymentsController); err != nil {
+		return fmt.Errorf("bff: provide payments controller: %w", err)
+	}
+
+	if err := c.Provide(controllers.NewReconciliationController); err != nil {
+		return fmt.Errorf("bff: provide reconciliation controller: %w", err)
+	}
+
+	if err := c.Provide(controllers.NewHistoryController); err != nil {
+		return fmt.Errorf("bff: provide history controller: %w", err)
+	}
+
 	// ─── Start ────────────────────────────────────────────────────────────────
 	return c.Invoke(func(
 		cfg *configs.Config,
@@ -104,6 +177,9 @@ func run(ctx context.Context) error {
 		docCtrl *controllers.DocumentsController,
 		settingsCtrl *controllers.SettingsController,
 		projectsCtrl *controllers.ProjectsController,
+		paymentsCtrl *controllers.PaymentsController,
+		reconCtrl *controllers.ReconciliationController,
+		historyCtrl *controllers.HistoryController,
 	) error {
 		e := echo.New()
 		e.HideBanner = true
@@ -129,6 +205,9 @@ func run(ctx context.Context) error {
 		docCtrl.Register(api, authMiddleware)
 		settingsCtrl.Register(api, authMiddleware)
 		projectsCtrl.Register(api, authMiddleware)
+		paymentsCtrl.Register(api, authMiddleware)
+		reconCtrl.Register(api, authMiddleware)
+		historyCtrl.Register(api, authMiddleware)
 
 		addr := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
 		logger.Info("BFF HTTP server starting", zap.String("addr", addr))
