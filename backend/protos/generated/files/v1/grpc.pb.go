@@ -498,6 +498,297 @@ func (x *ListDocumentsResponse) GetPagination() *v1.PaginationResult {
 	return nil
 }
 
+// ─── CreateBankAccount ───────────────────────────────────────────────────────
+type CreateBankAccountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
+	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Audit         *v1.AuditMetadata      `protobuf:"bytes,3,opt,name=audit,proto3" json:"audit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateBankAccountRequest) Reset() {
+	*x = CreateBankAccountRequest{}
+	mi := &file_files_v1_grpc_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateBankAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateBankAccountRequest) ProtoMessage() {}
+
+func (x *CreateBankAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_grpc_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateBankAccountRequest.ProtoReflect.Descriptor instead.
+func (*CreateBankAccountRequest) Descriptor() ([]byte, []int) {
+	return file_files_v1_grpc_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CreateBankAccountRequest) GetCtx() *v1.ProjectContext {
+	if x != nil {
+		return x.Ctx
+	}
+	return nil
+}
+
+func (x *CreateBankAccountRequest) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *CreateBankAccountRequest) GetAudit() *v1.AuditMetadata {
+	if x != nil {
+		return x.Audit
+	}
+	return nil
+}
+
+type CreateBankAccountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BankAccount   *BankAccount           `protobuf:"bytes,1,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateBankAccountResponse) Reset() {
+	*x = CreateBankAccountResponse{}
+	mi := &file_files_v1_grpc_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateBankAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateBankAccountResponse) ProtoMessage() {}
+
+func (x *CreateBankAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_grpc_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateBankAccountResponse.ProtoReflect.Descriptor instead.
+func (*CreateBankAccountResponse) Descriptor() ([]byte, []int) {
+	return file_files_v1_grpc_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateBankAccountResponse) GetBankAccount() *BankAccount {
+	if x != nil {
+		return x.BankAccount
+	}
+	return nil
+}
+
+// ─── ListBankAccounts ────────────────────────────────────────────────────────
+type ListBankAccountsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBankAccountsRequest) Reset() {
+	*x = ListBankAccountsRequest{}
+	mi := &file_files_v1_grpc_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBankAccountsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBankAccountsRequest) ProtoMessage() {}
+
+func (x *ListBankAccountsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_grpc_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBankAccountsRequest.ProtoReflect.Descriptor instead.
+func (*ListBankAccountsRequest) Descriptor() ([]byte, []int) {
+	return file_files_v1_grpc_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ListBankAccountsRequest) GetCtx() *v1.ProjectContext {
+	if x != nil {
+		return x.Ctx
+	}
+	return nil
+}
+
+type ListBankAccountsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BankAccounts  []*BankAccount         `protobuf:"bytes,1,rep,name=bank_accounts,json=bankAccounts,proto3" json:"bank_accounts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListBankAccountsResponse) Reset() {
+	*x = ListBankAccountsResponse{}
+	mi := &file_files_v1_grpc_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListBankAccountsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListBankAccountsResponse) ProtoMessage() {}
+
+func (x *ListBankAccountsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_grpc_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListBankAccountsResponse.ProtoReflect.Descriptor instead.
+func (*ListBankAccountsResponse) Descriptor() ([]byte, []int) {
+	return file_files_v1_grpc_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ListBankAccountsResponse) GetBankAccounts() []*BankAccount {
+	if x != nil {
+		return x.BankAccounts
+	}
+	return nil
+}
+
+// ─── DeleteBankAccount ───────────────────────────────────────────────────────
+type DeleteBankAccountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
+	BankAccountId string                 `protobuf:"bytes,2,opt,name=bank_account_id,json=bankAccountId,proto3" json:"bank_account_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBankAccountRequest) Reset() {
+	*x = DeleteBankAccountRequest{}
+	mi := &file_files_v1_grpc_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBankAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBankAccountRequest) ProtoMessage() {}
+
+func (x *DeleteBankAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_grpc_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBankAccountRequest.ProtoReflect.Descriptor instead.
+func (*DeleteBankAccountRequest) Descriptor() ([]byte, []int) {
+	return file_files_v1_grpc_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *DeleteBankAccountRequest) GetCtx() *v1.ProjectContext {
+	if x != nil {
+		return x.Ctx
+	}
+	return nil
+}
+
+func (x *DeleteBankAccountRequest) GetBankAccountId() string {
+	if x != nil {
+		return x.BankAccountId
+	}
+	return ""
+}
+
+type DeleteBankAccountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteBankAccountResponse) Reset() {
+	*x = DeleteBankAccountResponse{}
+	mi := &file_files_v1_grpc_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteBankAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteBankAccountResponse) ProtoMessage() {}
+
+func (x *DeleteBankAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_files_v1_grpc_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteBankAccountResponse.ProtoReflect.Descriptor instead.
+func (*DeleteBankAccountResponse) Descriptor() ([]byte, []int) {
+	return file_files_v1_grpc_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *DeleteBankAccountResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
 var File_files_v1_grpc_proto protoreflect.FileDescriptor
 
 const file_files_v1_grpc_proto_rawDesc = "" +
@@ -542,12 +833,30 @@ const file_files_v1_grpc_proto_rawDesc = "" +
 	"\tdocuments\x18\x01 \x03(\v2\x12.files.v1.DocumentR\tdocuments\x12;\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1b.common.v1.PaginationResultR\n" +
-	"pagination2\xdc\x02\n" +
+	"pagination\"\x8d\x01\n" +
+	"\x18CreateBankAccountRequest\x12+\n" +
+	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\x12.\n" +
+	"\x05audit\x18\x03 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"U\n" +
+	"\x19CreateBankAccountResponse\x128\n" +
+	"\fbank_account\x18\x01 \x01(\v2\x15.files.v1.BankAccountR\vbankAccount\"F\n" +
+	"\x17ListBankAccountsRequest\x12+\n" +
+	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\"V\n" +
+	"\x18ListBankAccountsResponse\x12:\n" +
+	"\rbank_accounts\x18\x01 \x03(\v2\x15.files.v1.BankAccountR\fbankAccounts\"o\n" +
+	"\x18DeleteBankAccountRequest\x12+\n" +
+	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12&\n" +
+	"\x0fbank_account_id\x18\x02 \x01(\tR\rbankAccountId\"5\n" +
+	"\x19DeleteBankAccountResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess2\xf3\x04\n" +
 	"\fFilesService\x12S\n" +
 	"\x0eUploadDocument\x12\x1f.files.v1.UploadDocumentRequest\x1a .files.v1.UploadDocumentResponse\x12Y\n" +
 	"\x10ClassifyDocument\x12!.files.v1.ClassifyDocumentRequest\x1a\".files.v1.ClassifyDocumentResponse\x12J\n" +
 	"\vGetDocument\x12\x1c.files.v1.GetDocumentRequest\x1a\x1d.files.v1.GetDocumentResponse\x12P\n" +
-	"\rListDocuments\x12\x1e.files.v1.ListDocumentsRequest\x1a\x1f.files.v1.ListDocumentsResponseB\\ZZgithub.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1;filesv1b\x06proto3"
+	"\rListDocuments\x12\x1e.files.v1.ListDocumentsRequest\x1a\x1f.files.v1.ListDocumentsResponse\x12\\\n" +
+	"\x11CreateBankAccount\x12\".files.v1.CreateBankAccountRequest\x1a#.files.v1.CreateBankAccountResponse\x12Y\n" +
+	"\x10ListBankAccounts\x12!.files.v1.ListBankAccountsRequest\x1a\".files.v1.ListBankAccountsResponse\x12\\\n" +
+	"\x11DeleteBankAccount\x12\".files.v1.DeleteBankAccountRequest\x1a#.files.v1.DeleteBankAccountResponseB\\ZZgithub.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1;filesv1b\x06proto3"
 
 var (
 	file_files_v1_grpc_proto_rawDescOnce sync.Once
@@ -561,57 +870,76 @@ func file_files_v1_grpc_proto_rawDescGZIP() []byte {
 	return file_files_v1_grpc_proto_rawDescData
 }
 
-var file_files_v1_grpc_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_files_v1_grpc_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_files_v1_grpc_proto_goTypes = []any{
-	(*UploadDocumentRequest)(nil),    // 0: files.v1.UploadDocumentRequest
-	(*UploadDocumentResponse)(nil),   // 1: files.v1.UploadDocumentResponse
-	(*ClassifyDocumentRequest)(nil),  // 2: files.v1.ClassifyDocumentRequest
-	(*ClassifyDocumentResponse)(nil), // 3: files.v1.ClassifyDocumentResponse
-	(*GetDocumentRequest)(nil),       // 4: files.v1.GetDocumentRequest
-	(*GetDocumentResponse)(nil),      // 5: files.v1.GetDocumentResponse
-	(*ListDocumentsRequest)(nil),     // 6: files.v1.ListDocumentsRequest
-	(*ListDocumentsResponse)(nil),    // 7: files.v1.ListDocumentsResponse
-	(*v1.ProjectContext)(nil),        // 8: common.v1.ProjectContext
-	(*v1.AuditMetadata)(nil),         // 9: common.v1.AuditMetadata
-	(*Document)(nil),                 // 10: files.v1.Document
-	(DocumentKind)(0),                // 11: files.v1.DocumentKind
-	(*BillRecord)(nil),               // 12: files.v1.BillRecord
-	(*StatementRecord)(nil),          // 13: files.v1.StatementRecord
-	(AnalysisStatus)(0),              // 14: files.v1.AnalysisStatus
-	(*v1.Pagination)(nil),            // 15: common.v1.Pagination
-	(*v1.PaginationResult)(nil),      // 16: common.v1.PaginationResult
+	(*UploadDocumentRequest)(nil),     // 0: files.v1.UploadDocumentRequest
+	(*UploadDocumentResponse)(nil),    // 1: files.v1.UploadDocumentResponse
+	(*ClassifyDocumentRequest)(nil),   // 2: files.v1.ClassifyDocumentRequest
+	(*ClassifyDocumentResponse)(nil),  // 3: files.v1.ClassifyDocumentResponse
+	(*GetDocumentRequest)(nil),        // 4: files.v1.GetDocumentRequest
+	(*GetDocumentResponse)(nil),       // 5: files.v1.GetDocumentResponse
+	(*ListDocumentsRequest)(nil),      // 6: files.v1.ListDocumentsRequest
+	(*ListDocumentsResponse)(nil),     // 7: files.v1.ListDocumentsResponse
+	(*CreateBankAccountRequest)(nil),  // 8: files.v1.CreateBankAccountRequest
+	(*CreateBankAccountResponse)(nil), // 9: files.v1.CreateBankAccountResponse
+	(*ListBankAccountsRequest)(nil),   // 10: files.v1.ListBankAccountsRequest
+	(*ListBankAccountsResponse)(nil),  // 11: files.v1.ListBankAccountsResponse
+	(*DeleteBankAccountRequest)(nil),  // 12: files.v1.DeleteBankAccountRequest
+	(*DeleteBankAccountResponse)(nil), // 13: files.v1.DeleteBankAccountResponse
+	(*v1.ProjectContext)(nil),         // 14: common.v1.ProjectContext
+	(*v1.AuditMetadata)(nil),          // 15: common.v1.AuditMetadata
+	(*Document)(nil),                  // 16: files.v1.Document
+	(DocumentKind)(0),                 // 17: files.v1.DocumentKind
+	(*BillRecord)(nil),                // 18: files.v1.BillRecord
+	(*StatementRecord)(nil),           // 19: files.v1.StatementRecord
+	(AnalysisStatus)(0),               // 20: files.v1.AnalysisStatus
+	(*v1.Pagination)(nil),             // 21: common.v1.Pagination
+	(*v1.PaginationResult)(nil),       // 22: common.v1.PaginationResult
+	(*BankAccount)(nil),               // 23: files.v1.BankAccount
 }
 var file_files_v1_grpc_proto_depIdxs = []int32{
-	8,  // 0: files.v1.UploadDocumentRequest.ctx:type_name -> common.v1.ProjectContext
-	9,  // 1: files.v1.UploadDocumentRequest.audit:type_name -> common.v1.AuditMetadata
-	10, // 2: files.v1.UploadDocumentResponse.document:type_name -> files.v1.Document
-	8,  // 3: files.v1.ClassifyDocumentRequest.ctx:type_name -> common.v1.ProjectContext
-	11, // 4: files.v1.ClassifyDocumentRequest.kind:type_name -> files.v1.DocumentKind
-	9,  // 5: files.v1.ClassifyDocumentRequest.audit:type_name -> common.v1.AuditMetadata
-	10, // 6: files.v1.ClassifyDocumentResponse.document:type_name -> files.v1.Document
-	8,  // 7: files.v1.GetDocumentRequest.ctx:type_name -> common.v1.ProjectContext
-	10, // 8: files.v1.GetDocumentResponse.document:type_name -> files.v1.Document
-	12, // 9: files.v1.GetDocumentResponse.bill_record:type_name -> files.v1.BillRecord
-	13, // 10: files.v1.GetDocumentResponse.statement_record:type_name -> files.v1.StatementRecord
-	8,  // 11: files.v1.ListDocumentsRequest.ctx:type_name -> common.v1.ProjectContext
-	14, // 12: files.v1.ListDocumentsRequest.status_filter:type_name -> files.v1.AnalysisStatus
-	11, // 13: files.v1.ListDocumentsRequest.kind_filter:type_name -> files.v1.DocumentKind
-	15, // 14: files.v1.ListDocumentsRequest.pagination:type_name -> common.v1.Pagination
-	10, // 15: files.v1.ListDocumentsResponse.documents:type_name -> files.v1.Document
-	16, // 16: files.v1.ListDocumentsResponse.pagination:type_name -> common.v1.PaginationResult
-	0,  // 17: files.v1.FilesService.UploadDocument:input_type -> files.v1.UploadDocumentRequest
-	2,  // 18: files.v1.FilesService.ClassifyDocument:input_type -> files.v1.ClassifyDocumentRequest
-	4,  // 19: files.v1.FilesService.GetDocument:input_type -> files.v1.GetDocumentRequest
-	6,  // 20: files.v1.FilesService.ListDocuments:input_type -> files.v1.ListDocumentsRequest
-	1,  // 21: files.v1.FilesService.UploadDocument:output_type -> files.v1.UploadDocumentResponse
-	3,  // 22: files.v1.FilesService.ClassifyDocument:output_type -> files.v1.ClassifyDocumentResponse
-	5,  // 23: files.v1.FilesService.GetDocument:output_type -> files.v1.GetDocumentResponse
-	7,  // 24: files.v1.FilesService.ListDocuments:output_type -> files.v1.ListDocumentsResponse
-	21, // [21:25] is the sub-list for method output_type
-	17, // [17:21] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	14, // 0: files.v1.UploadDocumentRequest.ctx:type_name -> common.v1.ProjectContext
+	15, // 1: files.v1.UploadDocumentRequest.audit:type_name -> common.v1.AuditMetadata
+	16, // 2: files.v1.UploadDocumentResponse.document:type_name -> files.v1.Document
+	14, // 3: files.v1.ClassifyDocumentRequest.ctx:type_name -> common.v1.ProjectContext
+	17, // 4: files.v1.ClassifyDocumentRequest.kind:type_name -> files.v1.DocumentKind
+	15, // 5: files.v1.ClassifyDocumentRequest.audit:type_name -> common.v1.AuditMetadata
+	16, // 6: files.v1.ClassifyDocumentResponse.document:type_name -> files.v1.Document
+	14, // 7: files.v1.GetDocumentRequest.ctx:type_name -> common.v1.ProjectContext
+	16, // 8: files.v1.GetDocumentResponse.document:type_name -> files.v1.Document
+	18, // 9: files.v1.GetDocumentResponse.bill_record:type_name -> files.v1.BillRecord
+	19, // 10: files.v1.GetDocumentResponse.statement_record:type_name -> files.v1.StatementRecord
+	14, // 11: files.v1.ListDocumentsRequest.ctx:type_name -> common.v1.ProjectContext
+	20, // 12: files.v1.ListDocumentsRequest.status_filter:type_name -> files.v1.AnalysisStatus
+	17, // 13: files.v1.ListDocumentsRequest.kind_filter:type_name -> files.v1.DocumentKind
+	21, // 14: files.v1.ListDocumentsRequest.pagination:type_name -> common.v1.Pagination
+	16, // 15: files.v1.ListDocumentsResponse.documents:type_name -> files.v1.Document
+	22, // 16: files.v1.ListDocumentsResponse.pagination:type_name -> common.v1.PaginationResult
+	14, // 17: files.v1.CreateBankAccountRequest.ctx:type_name -> common.v1.ProjectContext
+	15, // 18: files.v1.CreateBankAccountRequest.audit:type_name -> common.v1.AuditMetadata
+	23, // 19: files.v1.CreateBankAccountResponse.bank_account:type_name -> files.v1.BankAccount
+	14, // 20: files.v1.ListBankAccountsRequest.ctx:type_name -> common.v1.ProjectContext
+	23, // 21: files.v1.ListBankAccountsResponse.bank_accounts:type_name -> files.v1.BankAccount
+	14, // 22: files.v1.DeleteBankAccountRequest.ctx:type_name -> common.v1.ProjectContext
+	0,  // 23: files.v1.FilesService.UploadDocument:input_type -> files.v1.UploadDocumentRequest
+	2,  // 24: files.v1.FilesService.ClassifyDocument:input_type -> files.v1.ClassifyDocumentRequest
+	4,  // 25: files.v1.FilesService.GetDocument:input_type -> files.v1.GetDocumentRequest
+	6,  // 26: files.v1.FilesService.ListDocuments:input_type -> files.v1.ListDocumentsRequest
+	8,  // 27: files.v1.FilesService.CreateBankAccount:input_type -> files.v1.CreateBankAccountRequest
+	10, // 28: files.v1.FilesService.ListBankAccounts:input_type -> files.v1.ListBankAccountsRequest
+	12, // 29: files.v1.FilesService.DeleteBankAccount:input_type -> files.v1.DeleteBankAccountRequest
+	1,  // 30: files.v1.FilesService.UploadDocument:output_type -> files.v1.UploadDocumentResponse
+	3,  // 31: files.v1.FilesService.ClassifyDocument:output_type -> files.v1.ClassifyDocumentResponse
+	5,  // 32: files.v1.FilesService.GetDocument:output_type -> files.v1.GetDocumentResponse
+	7,  // 33: files.v1.FilesService.ListDocuments:output_type -> files.v1.ListDocumentsResponse
+	9,  // 34: files.v1.FilesService.CreateBankAccount:output_type -> files.v1.CreateBankAccountResponse
+	11, // 35: files.v1.FilesService.ListBankAccounts:output_type -> files.v1.ListBankAccountsResponse
+	13, // 36: files.v1.FilesService.DeleteBankAccount:output_type -> files.v1.DeleteBankAccountResponse
+	30, // [30:37] is the sub-list for method output_type
+	23, // [23:30] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_files_v1_grpc_proto_init() }
@@ -626,7 +954,7 @@ func file_files_v1_grpc_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_files_v1_grpc_proto_rawDesc), len(file_files_v1_grpc_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

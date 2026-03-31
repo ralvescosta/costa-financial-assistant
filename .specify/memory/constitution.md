@@ -1,29 +1,32 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.8.0 → 1.9.0
-Bump rationale: MINOR — BFF HTTP framework rules added (Echo + Huma v2, MVC pattern,
-  OpenAPI documentation mandate); Principle VI trace propagation rule updated to
-  reference otelecho instead of the generic otelhttp middleware.
+Version change: 1.9.0 → 1.10.0
+Bump rationale: MINOR — New "Memory References" section added to Governance, establishing
+  architecture diagrams as living authoritative documentation with versioning, maintenance
+  process, and integration into sprint planning and PR reviews. Future feature diagrams
+  also scoped.
 Modified principles:
-  - I. Modular Monorepo Architecture — new sub-section "BFF HTTP Framework & MVC"
-    added defining Echo v4 + Huma v2 as the mandatory BFF stack, the MVC layer
-    structure, OpenAPI documentation requirements, and server bootstrap rules.
-  - VI. Observability & Structured Logging — HTTP trace propagation rule updated
-    from otelhttp to otelecho (echo.labstack.com/v4 OTel middleware) to match the
-    mandated BFF framework.
-Added principles: None
+  - (Governance section): New "Memory References" subsection added defining architecture
+    diagram governance, update obligations, usage patterns in development workflow,
+    versioning rules, and consistency obligations.
+Added principles:
+  - Memory References governance and diagram maintenance workflow
+  - Architecture diagram update triggers and integration into sprint cycles
+  - Future feature diagram standards (data models, workflows, integration patterns)
 Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — BFF feature Technical Context must
-    reference Echo + Huma router and MVC layer paths.
-  - .specify/templates/spec-template.md ✅ — BFF endpoint specs should declare the
-    Huma Input/Output struct types and document OpenAPI operation metadata.
-  - .specify/templates/tasks-template.md ✅ — Phase 1 (Setup) for BFF features must
-    include a task to register the Huma route and verify the OpenAPI document.
-  - .github/agents/*.md ✅ — no outdated agent-specific references found.
+  - .specify/templates/plan-template.md ⚠ PENDING — Add "Architecture Impact" checkbox
+    to spec impact section to identify diagrams affected by planned feature.
+  - .specify/templates/spec-template.md ⚠ PENDING — Add "Architecture Impact" section
+    stating whether feature introduces new services, connections, or data flows.
+  - .specify/templates/tasks-template.md ⚠ PENDING — If architecture affected, add
+    explicit "Update architecture diagram" task.
+  - .github/instructions/architecture.instructions.md ✅ — Already references memory
+    diagrams; no update needed.
 Deferred TODOs: None — all fields resolved.
 -->
+
 
 # Costa Financial Assistant Constitution
 
@@ -760,4 +763,102 @@ justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
 
-**Version**: 1.9.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-30
+## Memory References
+
+The project maintains a curated set of **architecture and design artifacts** stored in
+`.specify/memory/` that serve as the living reference documentation for system design,
+service relationships, and technology decisions.
+
+### Architecture Diagrams
+
+**Location**: `.specify/memory/architecture-diagram.md`
+
+The architecture diagram is the **SSOT (single source of truth)** for system design
+and communication patterns. It visualizes:
+- All microservices and their roles (BFF, files, bills, payments, identity, onboarding, migrations)
+- Service communication protocols (gRPC, HTTP, RabbitMQ)
+- Data layer (PostgreSQL, Redis, S3, RabbitMQ)
+- Observability infrastructure (OpenTelemetry)
+- Key data flows and integration patterns
+
+**Update obligation**: The architecture diagram MUST be updated during sprint execution
+whenever:
+- A new microservice is created or removed
+- Inter-service communication patterns are added or changed (gRPC, HTTP, events)
+- An external dependency is introduced (new database, cache, message queue, storage)
+- A service communication protocol is modified
+- A critical new data flow or architectural pattern is implemented
+
+See `.specify/memory/architecture-diagram-maintenance.md` for the complete maintenance
+process, including trigger checklists, step-by-step update instructions, versioning
+rules (MAJOR/MINOR/PATCH), and integration into sprint planning and PR reviews.
+
+### Feature Diagrams (Future)
+
+As the project grows, feature-specific diagrams may be stored in `.specify/memory/`
+to document:
+- Domain-specific data models and relationships (e.g., `diagram-bills-domain.md`)
+- Complex workflow or state machine diagrams (e.g., `diagram-payment-reconciliation.md`)
+- Integration patterns for new services (e.g., `diagram-onboarding-flow.md`)
+
+All such diagrams follow the same usage and maintenance principle: they are **living
+documentation** updated concurrently with code changes affecting the documented system.
+Each feature diagram SHOULD include:
+- A Mermaid graph (or ASCII diagram) visualizing the domain or flow.
+- A metadata section listing the diagram's purpose, last update date, and dependencies.
+- Cross-references to related architecture diagrams and specification files.
+
+### Memory Reference Usage in Development
+
+**During sprint planning**:
+- Tech lead uses the architecture diagram to identify services affected by the current
+  sprint's features.
+- Assign explicit tasks to update memory diagrams if the feature introduces new services,
+  connections, or data flows.
+
+**During feature implementation**:
+- Developer consults `.specify/memory/architecture-diagram.md` when designing service
+  interactions to verify correct communication protocols and data flows.
+- When code changes architecture (new service, new RabbitMQ consumer, new Redis cache),
+  the developer creates or updates a corresponding memory diagram.
+
+**During code review**:
+- Reviewer checks the "Before Merge" diagram update checklist in
+  `architecture-diagram-maintenance.md` to verify that architectural changes are
+  reflected in diagrams.
+- Diagrams MUST be updated in the same PR that introduces the architectural change.
+
+**During integration test development**:
+- Test author cross-references the architecture diagram to validate that the test
+  exercises the documented data flow end-to-end.
+
+**During onboarding**:
+- New team members are directed to `.specify/memory/architecture-diagram.md` as the
+  first reference for understanding the system architecture and service topology.
+
+### Diagram Versioning & Changelog
+
+All memory diagrams MUST include a metadata footer stating:
+- **Version**: Semantic version (e.g., 1.2.0) incremented on each meaningful update.
+- **Last Updated**: ISO date (YYYY-MM-DD).
+- **Update Trigger**: The spec, feature, or issue that prompted the update.
+
+This enables team members to quickly assess:
+- Whether a diagram reflects the latest deployed state.
+- What architectural changes occurred between versions.
+- Which feature/spec introduced a change for traceability.
+
+Versioning rules (apply to all memory diagrams):
+- **MAJOR**: Architecture paradigm shift (e.g., add microservices, switch protocols,
+  remove critical layer).
+- **MINOR**: New service added, new connection added, significant new data flow pattern.
+- **PATCH**: Clarifications, wording improvements, non-semantic corrections.
+
+### Memory Diagram Consistency Obligation
+
+If a memory diagram becomes out-of-sync with the codebase (e.g., a documented service
+no longer exists, a communication pattern is not reflected in code), the diagram MUST
+be updated within the sprint or explicitly marked as deprecated with a clear explanation
+of why the documented pattern is no longer in use.
+
+**Version**: 1.10.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-31

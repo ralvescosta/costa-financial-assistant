@@ -92,3 +92,13 @@ message AnalysisJob {
   string created_at    = 8;
   string updated_at    = 9;
 }
+
+// BankAccount is a project-scoped label used for statement attribution.
+message BankAccount {
+  string id         = 1;
+  string project_id = 2;
+  string label      = 3;
+  string created_by = 4;
+  string created_at = 5;
+  string updated_at = 6;
+}

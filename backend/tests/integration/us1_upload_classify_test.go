@@ -120,12 +120,14 @@ func newFilesClient(t *testing.T, db *sql.DB) filesv1.FilesServiceClient {
 	jobRepo := filesrepo.NewAnalysisJobRepository(db, logger)
 	billRepo := filesrepo.NewBillRecordRepository(db, logger)
 	stmtRepo := filesrepo.NewStatementRecordRepository(db, logger)
+	bankRepo := filesrepo.NewBankAccountRepository(db, logger)
 	uow := filesrepo.NewUnitOfWork(db)
 	extractor := filessvc.NewStubPDFExtractor()
 
 	svc := filessvc.NewDocumentService(repo, uow, logger)
 	extSvc := filessvc.NewExtractionService(repo, jobRepo, billRepo, stmtRepo, uow, extractor, logger)
-	srv := filesgrpc.NewServer(svc, extSvc, logger)
+	bankSvc := filessvc.NewBankAccountService(bankRepo, logger)
+	srv := filesgrpc.NewServer(svc, extSvc, bankSvc, logger)
 
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)

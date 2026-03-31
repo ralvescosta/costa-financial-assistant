@@ -7,7 +7,7 @@ import "common/v1/messages.proto";
 
 option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1;filesv1";
 
-// FilesService handles document upload, classification, and listing.
+// FilesService handles document upload, classification, listing, and bank account settings.
 service FilesService {
   // UploadDocument registers uploaded PDF metadata and persists the storage reference.
   rpc UploadDocument(UploadDocumentRequest) returns (UploadDocumentResponse);
@@ -20,6 +20,15 @@ service FilesService {
 
   // ListDocuments returns project-scoped documents with optional status filter.
   rpc ListDocuments(ListDocumentsRequest) returns (ListDocumentsResponse);
+
+  // CreateBankAccount creates a project-scoped bank account label.
+  rpc CreateBankAccount(CreateBankAccountRequest) returns (CreateBankAccountResponse);
+
+  // ListBankAccounts returns all project-scoped bank account labels.
+  rpc ListBankAccounts(ListBankAccountsRequest) returns (ListBankAccountsResponse);
+
+  // DeleteBankAccount removes a bank account label; fails if in use by statements.
+  rpc DeleteBankAccount(DeleteBankAccountRequest) returns (DeleteBankAccountResponse);
 }
 
 // ─── UploadDocument ──────────────────────────────────────────────────────────
@@ -71,4 +80,34 @@ message ListDocumentsRequest {
 message ListDocumentsResponse {
   repeated Document            documents  = 1;
   common.v1.PaginationResult   pagination = 2;
+}
+
+// ─── CreateBankAccount ───────────────────────────────────────────────────────
+message CreateBankAccountRequest {
+  common.v1.ProjectContext ctx   = 1;
+  string                   label = 2;
+  common.v1.AuditMetadata  audit = 3;
+}
+
+message CreateBankAccountResponse {
+  BankAccount bank_account = 1;
+}
+
+// ─── ListBankAccounts ────────────────────────────────────────────────────────
+message ListBankAccountsRequest {
+  common.v1.ProjectContext ctx = 1;
+}
+
+message ListBankAccountsResponse {
+  repeated BankAccount bank_accounts = 1;
+}
+
+// ─── DeleteBankAccount ───────────────────────────────────────────────────────
+message DeleteBankAccountRequest {
+  common.v1.ProjectContext ctx             = 1;
+  string                   bank_account_id = 2;
+}
+
+message DeleteBankAccountResponse {
+  bool success = 1;
 }

@@ -42,7 +42,7 @@ func (r *PostgresStatementRecordRepository) Create(ctx context.Context, tx *sql.
 	const stmtQuery = `
 		INSERT INTO statement_records
 			(project_id, document_id, bank_account_id, period_start, period_end)
-		VALUES ($1, $2, NULLIF($3,''), $4, $5)
+		VALUES ($1, $2, NULLIF($3, '')::uuid, $4, $5)
 		RETURNING id, created_at, updated_at`
 
 	var id, createdAt, updatedAt string
