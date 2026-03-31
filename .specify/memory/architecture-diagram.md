@@ -112,32 +112,50 @@ graph TB
 ## Data Flow Examples
 
 ### 1. Document Upload Flow
-```
-Frontend → BFF (POST /upload) 
-  → Files Service (gRPC) 
-  → S3 (store PDF) 
-  → PostgreSQL (create doc record) 
-  → RabbitMQ (publish DocumentUploaded event)
-  → Bills Service Consumer (extract data)
-  → PostgreSQL (store extracted records)
+
+```mermaid
+flowchart LR
+        FE[Frontend]
+        BFF[BFF POST /upload]
+        FS[Files Service gRPC]
+        S3[S3 store PDF]
+        PG1[PostgreSQL create doc record]
+        MQ[RabbitMQ publish DocumentUploaded]
+        BILLS[Bills Service Consumer extract data]
+        PG2[PostgreSQL store extracted records]
+
+        FE --> BFF --> FS --> S3 --> PG1 --> MQ --> BILLS --> PG2
 ```
 
 ### 2. Payment Dashboard Query Flow
-```
-Frontend → BFF (GET /payments) 
-  → Payments Service (gRPC) 
-  → Redis (cache-aside check) → PostgreSQL (if cache miss)
-  → Sum aggregates & return
+
+```mermaid
+flowchart LR
+        FE[Frontend]
+        BFF[BFF GET /payments]
+        PAY[Payments Service gRPC]
+        R[Redis cache-aside check]
+        MISS{Cache miss?}
+        PG[PostgreSQL]
+        AGG[Sum aggregates and return]
+
+        FE --> BFF --> PAY --> R --> MISS
+        MISS -->|Yes| PG --> AGG
+        MISS -->|No| AGG
 ```
 
 ### 3. Reconciliation Flow
-```
-RabbitMQ (StatementReceived) 
-  → Payments Service (consumer)
-  → Match statement transactions vs bills
-  → Update payment status
-  → PostgreSQL (persist matches)
-  → Publish ReconciliationComplete event
+
+```mermaid
+flowchart LR
+        MQ[RabbitMQ StatementReceived]
+        PAY[Payments Service consumer]
+        MATCH[Match statement transactions vs bills]
+        UPDATE[Update payment status]
+        PG[PostgreSQL persist matches]
+        DONE[Publish ReconciliationComplete event]
+
+        MQ --> PAY --> MATCH --> UPDATE --> PG --> DONE
 ```
 
 ## Communication Matrix

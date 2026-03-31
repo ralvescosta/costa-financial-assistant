@@ -236,6 +236,7 @@ applyTo: "**/*"
 - `.github/instructions/observability.instructions.md`: Logging, tracing
 - `.github/instructions/security.instructions.md`: Security practices
 - `.github/instructions/testing.instructions.md`: Testing patterns
+- `.github/instructions/diagram-standards.instructions.md`: Mermaid-only and GitHub-friendly diagram rules for markdown docs
 - `.github/instructions/ai-behavior.instructions.md`: This file
 
 ---
