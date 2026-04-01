@@ -77,8 +77,8 @@ describe('LoginPage', () => {
 
     await user.click(screen.getByRole('button', { name: /sign in/i }))
 
-    // Button should be disabled during submission
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeDisabled()
+    // Button should be disabled during submission (label changes to "Signing in…")
+    expect(screen.getByRole('button', { name: /signing in/i })).toBeDisabled()
   })
 
   it('displays error message on invalid credentials', async () => {

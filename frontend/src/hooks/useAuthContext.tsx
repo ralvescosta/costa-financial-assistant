@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (persisted?.activeProjectId) {
       setActiveProjectState({ id: persisted.activeProjectId, name: '', role: 'read_only' })
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const login = useCallback(async (username: string, password: string) => {
@@ -125,6 +125,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true)
       persistSession(data.user, expiry, refreshAt, data.activeProject?.id)
     } catch (err) {
+      setIsAuthenticated(false)
+      clearPersistedSession()
       if (err instanceof ApiError) {
         if (err.status === 429) {
           const lockout = LockoutErrorResponseSchema.safeParse(err.body)
