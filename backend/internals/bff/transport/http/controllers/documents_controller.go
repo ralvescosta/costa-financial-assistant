@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
@@ -14,36 +13,39 @@ import (
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // ─── Input / Output types ─────────────────────────────────────────────────────
 
-// uploadDocumentInput carries the PDF bytes and metadata for document upload.
-type uploadDocumentInput struct {
+// UploadDocumentInput carries the PDF bytes and metadata for document upload.
+type UploadDocumentInput struct {
 	// FileName is the original filename, passed as a query parameter.
 	FileName string `query:"fileName" required:"true" doc:"Original filename of the uploaded PDF"`
 	// RawBody holds the raw PDF bytes sent as the request body.
 	RawBody []byte
 }
 
-// classifyDocumentInput provides the document kind for classification.
-type classifyDocumentInput struct {
+// ClassifyDocumentInput provides the document kind for classification.
+type ClassifyDocumentInput struct {
 	DocumentID string `path:"documentId" doc:"Document UUID"`
 	Body       struct {
 		Kind string `json:"kind" enum:"bill,statement" doc:"Document kind: bill or statement"`
 	}
 }
 
-// listDocumentsInput carries optional filters and pagination for document listing.
-type listDocumentsInput struct {
+// ListDocumentsInput carries optional filters and pagination for document listing.
+type ListDocumentsInput struct {
 	PageSize  int32  `query:"pageSize"  minimum:"1" maximum:"100" doc:"Page size (default 25)"`
 	PageToken string `query:"pageToken" doc:"Opaque cursor from a previous list response"`
 }
 
-// documentResponse is the JSON shape returned for a single document.
-type documentResponse struct {
+// GetDocumentInput carries the document ID path parameter.
+type GetDocumentInput struct {
+	DocumentID string `path:"documentId" doc:"Document UUID"`
+}
+
+// DocumentResponse is the JSON shape returned for a single document.
+type DocumentResponse struct {
 	ID              string `json:"id"`
 	ProjectID       string `json:"projectId"`
 	UploadedBy      string `json:"uploadedBy"`
@@ -55,8 +57,8 @@ type documentResponse struct {
 	UpdatedAt       string `json:"updatedAt"`
 }
 
-// billRecordResponse is the JSON shape returned for an extracted bill.
-type billRecordResponse struct {
+// BillRecordResponse is the JSON shape returned for an extracted bill.
+type BillRecordResponse struct {
 	ID            string `json:"id"`
 	DueDate       string `json:"dueDate"`
 	AmountDue     string `json:"amountDue"`
@@ -67,97 +69,55 @@ type billRecordResponse struct {
 	PaidAt        string `json:"paidAt,omitempty"`
 }
 
-// transactionLineResponse is a single line from a bank statement.
-type transactionLineResponse struct {
-	ID                  string `json:"id"`
-	TransactionDate     string `json:"transactionDate"`
-	Description         string `json:"description"`
-	Amount              string `json:"amount"`
-	Direction           string `json:"direction"`
+// TransactionLineResponse is a single line from a bank statement.
+type TransactionLineResponse struct {
+	ID                   string `json:"id"`
+	TransactionDate      string `json:"transactionDate"`
+	Description          string `json:"description"`
+	Amount               string `json:"amount"`
+	Direction            string `json:"direction"`
 	ReconciliationStatus string `json:"reconciliationStatus"`
 }
 
-// statementRecordResponse is the JSON shape returned for an extracted statement.
-type statementRecordResponse struct {
+// StatementRecordResponse is the JSON shape returned for an extracted statement.
+type StatementRecordResponse struct {
 	ID            string                    `json:"id"`
 	BankAccountID string                    `json:"bankAccountId,omitempty"`
 	PeriodStart   string                    `json:"periodStart"`
 	PeriodEnd     string                    `json:"periodEnd"`
-	Lines         []transactionLineResponse `json:"lines"`
+	Lines         []TransactionLineResponse `json:"lines"`
 }
 
-// documentDetailResponse extends documentResponse with optional extraction data.
-type documentDetailResponse struct {
-	documentResponse
-	BillRecord      *billRecordResponse      `json:"billRecord,omitempty"`
-	StatementRecord *statementRecordResponse `json:"statementRecord,omitempty"`
+// DocumentDetailResponse extends DocumentResponse with optional extraction data.
+type DocumentDetailResponse struct {
+	DocumentResponse
+	BillRecord      *BillRecordResponse      `json:"billRecord,omitempty"`
+	StatementRecord *StatementRecordResponse `json:"statementRecord,omitempty"`
 }
 
-// listDocumentsResponse is the JSON body for the list endpoint.
-type listDocumentsResponse struct {
-	Items         []documentResponse `json:"items"`
+// ListDocumentsResponse is the JSON body for the list endpoint.
+type ListDocumentsResponse struct {
+	Items         []DocumentResponse `json:"items"`
 	NextPageToken string             `json:"nextPageToken,omitempty"`
 }
 
 // ─── Controller ───────────────────────────────────────────────────────────────
 
-// DocumentsController registers and handles all document HTTP routes.
+// DocumentsController handles BFF document HTTP endpoints.
 type DocumentsController struct {
-	logger      *zap.Logger
+	BaseController
 	filesClient filesv1.FilesServiceClient
 }
 
 // NewDocumentsController constructs a DocumentsController.
 func NewDocumentsController(logger *zap.Logger, filesClient filesv1.FilesServiceClient) *DocumentsController {
-	return &DocumentsController{logger: logger, filesClient: filesClient}
-}
-
-// Register wires all document routes to the Huma API with auth + role middleware.
-func (c *DocumentsController) Register(api huma.API, auth func(huma.Context, func(huma.Context))) {
-	huma.Register(api, huma.Operation{
-		OperationID: "upload-document",
-		Method:      http.MethodPost,
-		Path:        "/api/v1/documents/upload",
-		Summary:     "Upload PDF and create pending analysis document record",
-		Description: "Accepts a raw PDF body and registers the document metadata scoped to the caller's project.",
-		Tags:        []string{"documents"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("update", c.logger)},
-	}, c.handleUpload)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "classify-document",
-		Method:      http.MethodPost,
-		Path:        "/api/v1/documents/{documentId}/classify",
-		Summary:     "Set document type and attribution metadata (bill/statement)",
-		Description: "Updates the kind of an uploaded document to bill or statement.",
-		Tags:        []string{"documents"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("update", c.logger)},
-	}, c.handleClassify)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "list-documents",
-		Method:      http.MethodGet,
-		Path:        "/api/v1/documents",
-		Summary:     "List project-scoped documents with status filters",
-		Description: "Returns documents in reverse-chronological order scoped to the caller's project.",
-		Tags:        []string{"documents"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("read_only", c.logger)},
-	}, c.handleList)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "get-document",
-		Method:      http.MethodGet,
-		Path:        "/api/v1/documents/{documentId}",
-		Summary:     "Fetch document details and extraction fields",
-		Description: "Returns full document metadata for a project-scoped document.",
-		Tags:        []string{"documents"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("read_only", c.logger)},
-	}, c.handleGet)
+	return &DocumentsController{BaseController: BaseController{logger: logger}, filesClient: filesClient}
 }
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 
-func (c *DocumentsController) handleUpload(ctx context.Context, input *uploadDocumentInput) (*struct{ Body documentResponse }, error) {
+// HandleUpload processes a raw PDF upload and registers the document record.
+func (c *DocumentsController) HandleUpload(ctx context.Context, input *UploadDocumentInput) (*struct{ Body DocumentResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -198,10 +158,11 @@ func (c *DocumentsController) handleUpload(ctx context.Context, input *uploadDoc
 	c.logger.Info("upload: document registered",
 		zap.String("document_id", resp.Document.Id),
 		zap.String("project_id", claims.GetProjectId()))
-	return &struct{ Body documentResponse }{Body: protoToResponse(resp.Document)}, nil
+	return &struct{ Body DocumentResponse }{Body: protoToResponse(resp.Document)}, nil
 }
 
-func (c *DocumentsController) handleClassify(ctx context.Context, input *classifyDocumentInput) (*struct{ Body documentResponse }, error) {
+// HandleClassify updates a document's kind (bill or statement).
+func (c *DocumentsController) HandleClassify(ctx context.Context, input *ClassifyDocumentInput) (*struct{ Body DocumentResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -229,10 +190,11 @@ func (c *DocumentsController) handleClassify(ctx context.Context, input *classif
 	c.logger.Info("classify: document classified",
 		zap.String("document_id", input.DocumentID),
 		zap.String("kind", input.Body.Kind))
-	return &struct{ Body documentResponse }{Body: protoToResponse(resp.Document)}, nil
+	return &struct{ Body DocumentResponse }{Body: protoToResponse(resp.Document)}, nil
 }
 
-func (c *DocumentsController) handleList(ctx context.Context, input *listDocumentsInput) (*struct{ Body listDocumentsResponse }, error) {
+// HandleList returns project-scoped documents with pagination.
+func (c *DocumentsController) HandleList(ctx context.Context, input *ListDocumentsInput) (*struct{ Body ListDocumentsResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -256,21 +218,20 @@ func (c *DocumentsController) handleList(ctx context.Context, input *listDocumen
 		return nil, c.grpcToHumaError(err, "list documents failed")
 	}
 
-	items := make([]documentResponse, 0, len(resp.Documents))
+	items := make([]DocumentResponse, 0, len(resp.Documents))
 	for _, d := range resp.Documents {
 		items = append(items, protoToResponse(d))
 	}
 
-	body := listDocumentsResponse{Items: items}
+	body := ListDocumentsResponse{Items: items}
 	if resp.Pagination != nil {
 		body.NextPageToken = resp.Pagination.NextPageToken
 	}
-	return &struct{ Body listDocumentsResponse }{Body: body}, nil
+	return &struct{ Body ListDocumentsResponse }{Body: body}, nil
 }
 
-func (c *DocumentsController) handleGet(ctx context.Context, input *struct {
-	DocumentID string `path:"documentId" doc:"Document UUID"`
-}) (*struct{ Body documentDetailResponse }, error) {
+// HandleGet returns full document metadata including extraction fields.
+func (c *DocumentsController) HandleGet(ctx context.Context, input *GetDocumentInput) (*struct{ Body DocumentDetailResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -286,8 +247,8 @@ func (c *DocumentsController) handleGet(ctx context.Context, input *struct {
 		return nil, c.grpcToHumaError(err, "get document failed")
 	}
 
-	body := documentDetailResponse{
-		documentResponse: protoToResponse(resp.Document),
+	body := DocumentDetailResponse{
+		DocumentResponse: protoToResponse(resp.Document),
 	}
 
 	if resp.BillRecord != nil {
@@ -297,16 +258,16 @@ func (c *DocumentsController) handleGet(ctx context.Context, input *struct {
 		body.StatementRecord = protoStatementToResponse(resp.StatementRecord)
 	}
 
-	return &struct{ Body documentDetailResponse }{Body: body}, nil
+	return &struct{ Body DocumentDetailResponse }{Body: body}, nil
 }
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-func protoToResponse(d *filesv1.Document) documentResponse {
+func protoToResponse(d *filesv1.Document) DocumentResponse {
 	if d == nil {
-		return documentResponse{}
+		return DocumentResponse{}
 	}
-	return documentResponse{
+	return DocumentResponse{
 		ID:              d.Id,
 		ProjectID:       d.ProjectId,
 		UploadedBy:      d.UploadedBy,
@@ -319,11 +280,11 @@ func protoToResponse(d *filesv1.Document) documentResponse {
 	}
 }
 
-func protoBillToResponse(b *filesv1.BillRecord) *billRecordResponse {
+func protoBillToResponse(b *filesv1.BillRecord) *BillRecordResponse {
 	if b == nil {
 		return nil
 	}
-	return &billRecordResponse{
+	return &BillRecordResponse{
 		ID:            b.Id,
 		DueDate:       b.DueDate,
 		AmountDue:     b.AmountDue,
@@ -335,13 +296,13 @@ func protoBillToResponse(b *filesv1.BillRecord) *billRecordResponse {
 	}
 }
 
-func protoStatementToResponse(s *filesv1.StatementRecord) *statementRecordResponse {
+func protoStatementToResponse(s *filesv1.StatementRecord) *StatementRecordResponse {
 	if s == nil {
 		return nil
 	}
-	lines := make([]transactionLineResponse, 0, len(s.Lines))
+	lines := make([]TransactionLineResponse, 0, len(s.Lines))
 	for _, l := range s.Lines {
-		lines = append(lines, transactionLineResponse{
+		lines = append(lines, TransactionLineResponse{
 			ID:                   l.Id,
 			TransactionDate:      l.TransactionDate,
 			Description:          l.Description,
@@ -350,7 +311,7 @@ func protoStatementToResponse(s *filesv1.StatementRecord) *statementRecordRespon
 			ReconciliationStatus: l.ReconciliationStatus,
 		})
 	}
-	return &statementRecordResponse{
+	return &StatementRecordResponse{
 		ID:            s.Id,
 		BankAccountID: s.BankAccountId,
 		PeriodStart:   s.PeriodStart,
@@ -391,30 +352,6 @@ func analysisStatusToString(s filesv1.AnalysisStatus) string {
 		return "analysis_failed"
 	default:
 		return "pending"
-	}
-}
-
-// grpcToHumaError maps gRPC status codes to Huma HTTP errors.
-func (c *DocumentsController) grpcToHumaError(err error, fallback string) error {
-	st, ok := status.FromError(err)
-	if !ok {
-		c.logger.Error(fallback, zap.Error(err))
-		return huma.Error500InternalServerError(fallback)
-	}
-	switch st.Code() {
-	case codes.NotFound:
-		return huma.Error404NotFound(st.Message())
-	case codes.AlreadyExists:
-		return huma.Error409Conflict(st.Message())
-	case codes.InvalidArgument:
-		return huma.Error400BadRequest(st.Message())
-	case codes.PermissionDenied:
-		return huma.Error403Forbidden(st.Message())
-	case codes.Unauthenticated:
-		return huma.Error401Unauthorized(st.Message())
-	default:
-		c.logger.Error(fallback, zap.Error(err))
-		return huma.Error500InternalServerError(fallback)
 	}
 }
 

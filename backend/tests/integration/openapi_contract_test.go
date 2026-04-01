@@ -13,12 +13,14 @@ import (
 )
 
 // TestOpenAPIOperationMetadataCompleteness ensures every Huma operation block
-// in BFF controllers provides required OpenAPI metadata fields.
+// in BFF route modules provides required OpenAPI metadata fields.
+// Route modules in routes/*_routes.go are the canonical source of huma.Register calls;
+// controllers are pure behaviour structs with no HTTP contract knowledge.
 func TestOpenAPIOperationMetadataCompleteness(t *testing.T) {
-	controllerGlob := filepath.Clean("../../internals/bff/transport/http/controllers/*_controller.go")
-	files, err := filepath.Glob(controllerGlob)
+	routeGlob := filepath.Clean("../../internals/bff/transport/http/routes/*_routes.go")
+	files, err := filepath.Glob(routeGlob)
 	require.NoError(t, err)
-	require.NotEmpty(t, files, "no controller files found using glob: %s", controllerGlob)
+	require.NotEmpty(t, files, "no route module files found using glob: %s", routeGlob)
 
 	required := []string{
 		"OperationID:",
@@ -44,9 +46,10 @@ func TestOpenAPIOperationMetadataCompleteness(t *testing.T) {
 
 		for idx := 1; idx < len(segments); idx++ {
 			segment := segments[idx]
-			end := strings.Index(segment, "}, func")
+			// Route module handlers are passed as method references: "}, r.ctrl.Handle..."
+			end := strings.Index(segment, "}, r.")
 			if end == -1 {
-				end = strings.Index(segment, "}, c.")
+				end = strings.Index(segment, "}, func")
 			}
 			if end == -1 {
 				continue

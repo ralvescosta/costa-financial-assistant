@@ -22,6 +22,7 @@ import (
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
+	bfftransportroutes "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/routes"
 	paymentsrepo "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/repositories"
 	paymentssvc "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/services"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
@@ -144,29 +145,54 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("bff: provide history repository: %w", err)
 	}
 
-	// ─── Controllers ─────────────────────────────────────────────────────────
-	if err := c.Provide(controllers.NewDocumentsController); err != nil {
+	// ─── Controllers (provided as capability interfaces) ────────────────────
+	if err := c.Provide(controllers.NewDocumentsController, dig.As(new(bfftransportroutes.DocumentsCapability))); err != nil {
 		return fmt.Errorf("bff: provide documents controller: %w", err)
 	}
 
-	if err := c.Provide(controllers.NewSettingsController); err != nil {
+	if err := c.Provide(controllers.NewSettingsController, dig.As(new(bfftransportroutes.SettingsCapability))); err != nil {
 		return fmt.Errorf("bff: provide settings controller: %w", err)
 	}
 
-	if err := c.Provide(controllers.NewProjectsController); err != nil {
+	if err := c.Provide(controllers.NewProjectsController, dig.As(new(bfftransportroutes.ProjectsCapability))); err != nil {
 		return fmt.Errorf("bff: provide projects controller: %w", err)
 	}
 
-	if err := c.Provide(controllers.NewPaymentsController); err != nil {
+	if err := c.Provide(controllers.NewPaymentsController, dig.As(new(bfftransportroutes.PaymentsCapability))); err != nil {
 		return fmt.Errorf("bff: provide payments controller: %w", err)
 	}
 
-	if err := c.Provide(controllers.NewReconciliationController); err != nil {
+	if err := c.Provide(controllers.NewReconciliationController, dig.As(new(bfftransportroutes.ReconciliationCapability))); err != nil {
 		return fmt.Errorf("bff: provide reconciliation controller: %w", err)
 	}
 
-	if err := c.Provide(controllers.NewHistoryController); err != nil {
+	if err := c.Provide(controllers.NewHistoryController, dig.As(new(bfftransportroutes.HistoryCapability))); err != nil {
 		return fmt.Errorf("bff: provide history controller: %w", err)
+	}
+
+	// ─── Route modules ────────────────────────────────────────────────────────
+	if err := c.Provide(bfftransportroutes.NewDocumentsRoute); err != nil {
+		return fmt.Errorf("bff: provide documents route: %w", err)
+	}
+
+	if err := c.Provide(bfftransportroutes.NewSettingsRoute); err != nil {
+		return fmt.Errorf("bff: provide settings route: %w", err)
+	}
+
+	if err := c.Provide(bfftransportroutes.NewProjectsRoute); err != nil {
+		return fmt.Errorf("bff: provide projects route: %w", err)
+	}
+
+	if err := c.Provide(bfftransportroutes.NewPaymentsRoute); err != nil {
+		return fmt.Errorf("bff: provide payments route: %w", err)
+	}
+
+	if err := c.Provide(bfftransportroutes.NewReconciliationRoute); err != nil {
+		return fmt.Errorf("bff: provide reconciliation route: %w", err)
+	}
+
+	if err := c.Provide(bfftransportroutes.NewHistoryRoute); err != nil {
+		return fmt.Errorf("bff: provide history route: %w", err)
 	}
 
 	// ─── Start ────────────────────────────────────────────────────────────────
@@ -174,12 +200,12 @@ func run(ctx context.Context) error {
 		cfg *configs.Config,
 		logger *zap.Logger,
 		jwksCache *bffmiddleware.JWKSCache,
-		docCtrl *controllers.DocumentsController,
-		settingsCtrl *controllers.SettingsController,
-		projectsCtrl *controllers.ProjectsController,
-		paymentsCtrl *controllers.PaymentsController,
-		reconCtrl *controllers.ReconciliationController,
-		historyCtrl *controllers.HistoryController,
+		docRoute *bfftransportroutes.DocumentsRoute,
+		settingsRoute *bfftransportroutes.SettingsRoute,
+		projectsRoute *bfftransportroutes.ProjectsRoute,
+		paymentsRoute *bfftransportroutes.PaymentsRoute,
+		reconRoute *bfftransportroutes.ReconciliationRoute,
+		historyRoute *bfftransportroutes.HistoryRoute,
 	) error {
 		e := echo.New()
 		e.HideBanner = true
@@ -201,13 +227,13 @@ func run(ctx context.Context) error {
 		// Auth middleware group (applied per route via Huma middleware)
 		authMiddleware := bffmiddleware.NewAuthMiddleware(jwksCache, logger)
 
-		// Register controller routes
-		docCtrl.Register(api, authMiddleware)
-		settingsCtrl.Register(api, authMiddleware)
-		projectsCtrl.Register(api, authMiddleware)
-		paymentsCtrl.Register(api, authMiddleware)
-		reconCtrl.Register(api, authMiddleware)
-		historyCtrl.Register(api, authMiddleware)
+		// Register route modules
+		docRoute.Register(api, authMiddleware)
+		settingsRoute.Register(api, authMiddleware)
+		projectsRoute.Register(api, authMiddleware)
+		paymentsRoute.Register(api, authMiddleware)
+		reconRoute.Register(api, authMiddleware)
+		historyRoute.Register(api, authMiddleware)
 
 		addr := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
 		logger.Info("BFF HTTP server starting", zap.String("addr", addr))

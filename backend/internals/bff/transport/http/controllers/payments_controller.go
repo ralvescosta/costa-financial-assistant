@@ -3,13 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strconv"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
@@ -19,8 +16,8 @@ import (
 
 // ─── Input / Output types ─────────────────────────────────────────────────────
 
-// paymentBillRecordResponse is the JSON shape for a single bill record in payment routes.
-type paymentBillRecordResponse struct {
+// PaymentBillRecordResponse is the JSON shape for a single bill record in payment routes.
+type PaymentBillRecordResponse struct {
 	ID            string `json:"id"`
 	ProjectID     string `json:"projectId"`
 	DocumentID    string `json:"documentId"`
@@ -37,46 +34,46 @@ type paymentBillRecordResponse struct {
 	UpdatedAt     string `json:"updatedAt"`
 }
 
-// paymentBillTypeResponse is the JSON shape for a bill type label in payment routes.
-type paymentBillTypeResponse struct {
+// PaymentBillTypeResponse is the JSON shape for a bill type label in payment routes.
+type PaymentBillTypeResponse struct {
 	ID        string `json:"id"`
 	ProjectID string `json:"projectId"`
 	Name      string `json:"name"`
 }
 
-// paymentDashboardEntryResponse represents a single dashboard row.
-type paymentDashboardEntryResponse struct {
-	Bill         paymentBillRecordResponse `json:"bill"`
-	BillType     *paymentBillTypeResponse  `json:"billType,omitempty"`
+// PaymentDashboardEntryResponse represents a single dashboard row.
+type PaymentDashboardEntryResponse struct {
+	Bill         PaymentBillRecordResponse `json:"bill"`
+	BillType     *PaymentBillTypeResponse  `json:"billType,omitempty"`
 	IsOverdue    bool                      `json:"isOverdue"`
 	DaysUntilDue int32                     `json:"daysUntilDue"`
 }
 
-// paymentDashboardResponse is the GET payment-dashboard response body.
-type paymentDashboardResponse struct {
-	Entries       []paymentDashboardEntryResponse `json:"entries"`
+// PaymentDashboardResponse is the GET payment-dashboard response body.
+type PaymentDashboardResponse struct {
+	Entries       []PaymentDashboardEntryResponse `json:"entries"`
 	NextPageToken string                          `json:"nextPageToken,omitempty"`
 }
 
-// markBillPaidInput carries mark-paid request parameters.
-type markBillPaidInput struct {
+// MarkBillPaidInput carries mark-paid request parameters.
+type MarkBillPaidInput struct {
 	BillID string `path:"billId" doc:"Bill record UUID"`
 }
 
-// markBillPaidResponse is returned on success.
-type markBillPaidResponse struct {
-	Bill paymentBillRecordResponse `json:"bill"`
+// MarkBillPaidResponse is returned on success.
+type MarkBillPaidResponse struct {
+	Bill PaymentBillRecordResponse `json:"bill"`
 }
 
-// cyclePreferenceResponse is the JSON shape for payment cycle preferences.
-type cyclePreferenceResponse struct {
+// CyclePreferenceResponse is the JSON shape for payment cycle preferences.
+type CyclePreferenceResponse struct {
 	ProjectID           string `json:"projectId"`
 	PreferredDayOfMonth int    `json:"preferredDayOfMonth"`
 	UpdatedAt           string `json:"updatedAt"`
 }
 
-// setPreferredDayInput carries the preferred day of month.
-type setPreferredDayInput struct {
+// SetPreferredDayInput carries the preferred day of month.
+type SetPreferredDayInput struct {
 	Body struct {
 		PreferredDayOfMonth int `json:"preferredDayOfMonth" minimum:"1" maximum:"28" doc:"Preferred payment day (1–28)"`
 	}
@@ -84,9 +81,17 @@ type setPreferredDayInput struct {
 
 // ─── Controller ───────────────────────────────────────────────────────────────
 
-// PaymentsController registers and handles all payment-related HTTP routes.
+// GetPaymentDashboardInput carries query parameters for the payment dashboard.
+type GetPaymentDashboardInput struct {
+	CycleStart string `query:"cycleStart" doc:"ISO-8601 cycle start date (YYYY-MM-DD)"`
+	CycleEnd   string `query:"cycleEnd" doc:"ISO-8601 cycle end date (YYYY-MM-DD)"`
+	PageSize   string `query:"pageSize" doc:"Number of results per page"`
+	PageToken  string `query:"pageToken" doc:"Opaque pagination cursor"`
+}
+
+// PaymentsController handles BFF payment HTTP endpoints.
 type PaymentsController struct {
-	logger       *zap.Logger
+	BaseController
 	billsClient  billsv1.BillsServiceClient
 	cycleService paymentsinterfaces.PaymentCycleService
 }
@@ -98,63 +103,16 @@ func NewPaymentsController(
 	cycleService paymentsinterfaces.PaymentCycleService,
 ) *PaymentsController {
 	return &PaymentsController{
-		logger:       logger,
-		billsClient:  billsClient,
-		cycleService: cycleService,
+		BaseController: BaseController{logger: logger},
+		billsClient:    billsClient,
+		cycleService:   cycleService,
 	}
-}
-
-// Register wires all payment routes to the Huma API with auth + role middleware.
-func (c *PaymentsController) Register(api huma.API, auth func(huma.Context, func(huma.Context))) {
-	huma.Register(api, huma.Operation{
-		OperationID: "get-payment-dashboard",
-		Method:      http.MethodGet,
-		Path:        "/api/v1/bills/payment-dashboard",
-		Summary:     "List outstanding bills for current cycle",
-		Description: "Returns outstanding and overdue bills for the project's active payment cycle.",
-		Tags:        []string{"payments"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("read_only", c.logger)},
-	}, c.handleGetDashboard)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "mark-bill-paid",
-		Method:      http.MethodPost,
-		Path:        "/api/v1/bills/{billId}/mark-paid",
-		Summary:     "Mark bill as paid (idempotent)",
-		Description: "Idempotently marks the bill identified by billId as paid in the caller's project.",
-		Tags:        []string{"payments"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("update", c.logger)},
-	}, c.handleMarkPaid)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "get-preferred-payment-day",
-		Method:      http.MethodGet,
-		Path:        "/api/v1/payment-cycle/preferred-day",
-		Summary:     "Get preferred payment day for active project",
-		Description: "Returns the project's configured preferred payment day of month.",
-		Tags:        []string{"settings"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("read_only", c.logger)},
-	}, c.handleGetPreferredDay)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "set-preferred-payment-day",
-		Method:      http.MethodPut,
-		Path:        "/api/v1/payment-cycle/preferred-day",
-		Summary:     "Set preferred payment day for active project",
-		Description: "Creates or updates the project's preferred payment day of month (1–28).",
-		Tags:        []string{"settings"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("update", c.logger)},
-	}, c.handleSetPreferredDay)
 }
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 
-func (c *PaymentsController) handleGetDashboard(ctx context.Context, input *struct {
-	CycleStart string `query:"cycleStart" doc:"ISO-8601 cycle start date (YYYY-MM-DD)"`
-	CycleEnd   string `query:"cycleEnd" doc:"ISO-8601 cycle end date (YYYY-MM-DD)"`
-	PageSize   string `query:"pageSize" doc:"Number of results per page"`
-	PageToken  string `query:"pageToken" doc:"Opaque pagination cursor"`
-}) (*struct{ Body paymentDashboardResponse }, error) {
+// HandleGetDashboard returns outstanding bills for the project's active payment cycle.
+func (c *PaymentsController) HandleGetDashboard(ctx context.Context, input *GetPaymentDashboardInput) (*struct{ Body PaymentDashboardResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -180,15 +138,15 @@ func (c *PaymentsController) handleGetDashboard(ctx context.Context, input *stru
 		return nil, c.grpcToHumaError(err, "get payment dashboard failed")
 	}
 
-	entries := make([]paymentDashboardEntryResponse, 0, len(resp.GetEntries()))
+	entries := make([]PaymentDashboardEntryResponse, 0, len(resp.GetEntries()))
 	for _, e := range resp.GetEntries() {
-		entry := paymentDashboardEntryResponse{
+		entry := PaymentDashboardEntryResponse{
 			Bill:         protoBillRecordToResponse(e.GetBill()),
 			IsOverdue:    e.GetIsOverdue(),
 			DaysUntilDue: e.GetDaysUntilDue(),
 		}
 		if bt := e.GetBillType(); bt != nil {
-			entry.BillType = &paymentBillTypeResponse{
+			entry.BillType = &PaymentBillTypeResponse{
 				ID:        bt.GetId(),
 				ProjectID: bt.GetProjectId(),
 				Name:      bt.GetName(),
@@ -202,15 +160,16 @@ func (c *PaymentsController) handleGetDashboard(ctx context.Context, input *stru
 		nextToken = resp.GetPagination().GetNextPageToken()
 	}
 
-	return &struct{ Body paymentDashboardResponse }{
-		Body: paymentDashboardResponse{
+	return &struct{ Body PaymentDashboardResponse }{
+		Body: PaymentDashboardResponse{
 			Entries:       entries,
 			NextPageToken: nextToken,
 		},
 	}, nil
 }
 
-func (c *PaymentsController) handleMarkPaid(ctx context.Context, input *markBillPaidInput) (*struct{ Body markBillPaidResponse }, error) {
+// HandleMarkPaid idempotently marks a bill as paid.
+func (c *PaymentsController) HandleMarkPaid(ctx context.Context, input *MarkBillPaidInput) (*struct{ Body MarkBillPaidResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -232,12 +191,13 @@ func (c *PaymentsController) handleMarkPaid(ctx context.Context, input *markBill
 		zap.String("bill_id", input.BillID),
 		zap.String("project_id", claims.GetProjectId()))
 
-	return &struct{ Body markBillPaidResponse }{
-		Body: markBillPaidResponse{Bill: protoBillRecordToResponse(resp.GetBill())},
+	return &struct{ Body MarkBillPaidResponse }{
+		Body: MarkBillPaidResponse{Bill: protoBillRecordToResponse(resp.GetBill())},
 	}, nil
 }
 
-func (c *PaymentsController) handleGetPreferredDay(ctx context.Context, _ *struct{}) (*struct{ Body cyclePreferenceResponse }, error) {
+// HandleGetPreferredDay returns the project's preferred payment day.
+func (c *PaymentsController) HandleGetPreferredDay(ctx context.Context, _ *struct{}) (*struct{ Body CyclePreferenceResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -252,8 +212,8 @@ func (c *PaymentsController) handleGetPreferredDay(ctx context.Context, _ *struc
 		return nil, huma.Error404NotFound("no payment cycle preference configured")
 	}
 
-	return &struct{ Body cyclePreferenceResponse }{
-		Body: cyclePreferenceResponse{
+	return &struct{ Body CyclePreferenceResponse }{
+		Body: CyclePreferenceResponse{
 			ProjectID:           pref.ProjectID,
 			PreferredDayOfMonth: pref.PreferredDayOfMonth,
 			UpdatedAt:           pref.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
@@ -261,7 +221,8 @@ func (c *PaymentsController) handleGetPreferredDay(ctx context.Context, _ *struc
 	}, nil
 }
 
-func (c *PaymentsController) handleSetPreferredDay(ctx context.Context, input *setPreferredDayInput) (*struct{ Body cyclePreferenceResponse }, error) {
+// HandleSetPreferredDay creates or updates the project's preferred payment day.
+func (c *PaymentsController) HandleSetPreferredDay(ctx context.Context, input *SetPreferredDayInput) (*struct{ Body CyclePreferenceResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -282,8 +243,8 @@ func (c *PaymentsController) handleSetPreferredDay(ctx context.Context, input *s
 		zap.String("project_id", claims.GetProjectId()),
 		zap.Int("day", day))
 
-	return &struct{ Body cyclePreferenceResponse }{
-		Body: cyclePreferenceResponse{
+	return &struct{ Body CyclePreferenceResponse }{
+		Body: CyclePreferenceResponse{
 			ProjectID:           pref.ProjectID,
 			PreferredDayOfMonth: pref.PreferredDayOfMonth,
 			UpdatedAt:           pref.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
@@ -293,11 +254,11 @@ func (c *PaymentsController) handleSetPreferredDay(ctx context.Context, input *s
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-func protoBillRecordToResponse(b *billsv1.BillRecord) paymentBillRecordResponse {
+func protoBillRecordToResponse(b *billsv1.BillRecord) PaymentBillRecordResponse {
 	if b == nil {
-		return paymentBillRecordResponse{}
+		return PaymentBillRecordResponse{}
 	}
-	return paymentBillRecordResponse{
+	return PaymentBillRecordResponse{
 		ID:            b.GetId(),
 		ProjectID:     b.GetProjectId(),
 		DocumentID:    b.GetDocumentId(),
@@ -315,28 +276,3 @@ func protoBillRecordToResponse(b *billsv1.BillRecord) paymentBillRecordResponse 
 	}
 }
 
-// grpcToHumaError maps gRPC status codes to Huma HTTP errors.
-func (c *PaymentsController) grpcToHumaError(err error, fallback string) error {
-	st, ok := status.FromError(err)
-	if !ok {
-		c.logger.Error(fallback, zap.Error(err))
-		return huma.Error500InternalServerError(fallback)
-	}
-	switch st.Code() {
-	case codes.NotFound:
-		return huma.Error404NotFound(st.Message())
-	case codes.AlreadyExists:
-		return huma.Error409Conflict(st.Message())
-	case codes.InvalidArgument:
-		return huma.Error400BadRequest(st.Message())
-	case codes.FailedPrecondition:
-		return huma.Error409Conflict(st.Message())
-	case codes.PermissionDenied:
-		return huma.Error403Forbidden(st.Message())
-	case codes.Unauthenticated:
-		return huma.Error401Unauthorized(st.Message())
-	default:
-		c.logger.Error(fallback, zap.Error(err))
-		return huma.Error500InternalServerError(fallback)
-	}
-}

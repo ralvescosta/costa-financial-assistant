@@ -2,12 +2,9 @@ package controllers
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
@@ -16,24 +13,24 @@ import (
 
 // ─── Input / Output types ─────────────────────────────────────────────────────
 
-// inviteMemberInput carries the invite request body.
-type inviteMemberInput struct {
+// InviteMemberInput carries the invite request body.
+type InviteMemberInput struct {
 	Body struct {
 		Email string `json:"email" format:"email" doc:"Email address of the user to invite"`
 		Role  string `json:"role" enum:"read_only,update,write" doc:"Role to assign to the invited member"`
 	}
 }
 
-// updateMemberRoleInput carries the member ID and new role.
-type updateMemberRoleInput struct {
+// UpdateMemberRoleInput carries the member ID and new role.
+type UpdateMemberRoleInput struct {
 	MemberID string `path:"memberId" doc:"Project member UUID"`
 	Body     struct {
 		Role string `json:"role" enum:"read_only,update,write" doc:"New role for the member"`
 	}
 }
 
-// projectResponse is the JSON shape for a single project.
-type projectResponse struct {
+// ProjectResponse is the JSON shape for a single project.
+type ProjectResponse struct {
 	ID        string `json:"id"`
 	OwnerID   string `json:"ownerId"`
 	Name      string `json:"name"`
@@ -41,87 +38,46 @@ type projectResponse struct {
 	UpdatedAt string `json:"updatedAt"`
 }
 
-// projectMemberResponse is the JSON shape for a single project member.
-type projectMemberResponse struct {
-	ID         string `json:"id"`
-	ProjectID  string `json:"projectId"`
-	UserID     string `json:"userId"`
-	Role       string `json:"role"`
-	InvitedBy  string `json:"invitedBy,omitempty"`
-	CreatedAt  string `json:"createdAt"`
-	UpdatedAt  string `json:"updatedAt"`
+// ProjectMemberResponse is the JSON shape for a single project member.
+type ProjectMemberResponse struct {
+	ID        string `json:"id"`
+	ProjectID string `json:"projectId"`
+	UserID    string `json:"userId"`
+	Role      string `json:"role"`
+	InvitedBy string `json:"invitedBy,omitempty"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
 }
 
-// listMembersInput carries optional pagination for member listing.
-type listMembersInput struct {
+// ListMembersInput carries optional pagination for member listing.
+type ListMembersInput struct {
 	PageSize  int32  `query:"pageSize"  minimum:"1" maximum:"100" doc:"Page size (default 25)"`
 	PageToken string `query:"pageToken" doc:"Opaque cursor from a previous list response"`
 }
 
-// listMembersResponse is the JSON body for the list members endpoint.
-type listMembersResponse struct {
-	Items         []projectMemberResponse `json:"items"`
+// ListMembersResponse is the JSON body for the list members endpoint.
+type ListMembersResponse struct {
+	Items         []ProjectMemberResponse `json:"items"`
 	NextPageToken string                  `json:"nextPageToken,omitempty"`
 }
 
 // ─── Controller ───────────────────────────────────────────────────────────────
 
-// ProjectsController registers and handles all project collaboration HTTP routes.
+// ProjectsController handles BFF project collaboration HTTP endpoints.
 type ProjectsController struct {
-	logger           *zap.Logger
+	BaseController
 	onboardingClient onboardingv1.OnboardingServiceClient
 }
 
 // NewProjectsController constructs a ProjectsController.
 func NewProjectsController(logger *zap.Logger, onboardingClient onboardingv1.OnboardingServiceClient) *ProjectsController {
-	return &ProjectsController{logger: logger, onboardingClient: onboardingClient}
+	return &ProjectsController{BaseController: BaseController{logger: logger}, onboardingClient: onboardingClient}
 }
 
-// Register wires all project routes to the Huma API with auth + role middleware.
-func (c *ProjectsController) Register(api huma.API, auth func(huma.Context, func(huma.Context))) {
-	huma.Register(api, huma.Operation{
-		OperationID: "get-current-project",
-		Method:      http.MethodGet,
-		Path:        "/api/v1/projects/current",
-		Summary:     "Get the current project details",
-		Description: "Returns project details for the project in the caller's JWT claims.",
-		Tags:        []string{"projects"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("read_only", c.logger)},
-	}, c.handleGetCurrent)
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 
-	huma.Register(api, huma.Operation{
-		OperationID: "list-project-members",
-		Method:      http.MethodGet,
-		Path:        "/api/v1/projects/members",
-		Summary:     "List members of the current project",
-		Description: "Returns all project members with their roles.",
-		Tags:        []string{"projects"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("read_only", c.logger)},
-	}, c.handleListMembers)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "invite-project-member",
-		Method:      http.MethodPost,
-		Path:        "/api/v1/projects/members/invite",
-		Summary:     "Invite a user to the current project",
-		Description: "Resolves the user by email and adds them as a project member with the given role.",
-		Tags:        []string{"projects"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("write", c.logger)},
-	}, c.handleInvite)
-
-	huma.Register(api, huma.Operation{
-		OperationID: "update-project-member-role",
-		Method:      http.MethodPatch,
-		Path:        "/api/v1/projects/members/{memberId}/role",
-		Summary:     "Update the role of a project member",
-		Description: "Changes the role of an existing project member.",
-		Tags:        []string{"projects"},
-		Middlewares: huma.Middlewares{auth, bffmiddleware.NewProjectGuard("write", c.logger)},
-	}, c.handleUpdateRole)
-}
-
-// handleGetCurrent returns the project for the caller's JWT project_id.
-func (c *ProjectsController) handleGetCurrent(ctx context.Context, _ *struct{}) (*struct{ Body projectResponse }, error) {
+// HandleGetCurrent returns the project for the caller's JWT project_id.
+func (c *ProjectsController) HandleGetCurrent(ctx context.Context, _ *struct{}) (*struct{ Body ProjectResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -135,22 +91,22 @@ func (c *ProjectsController) handleGetCurrent(ctx context.Context, _ *struct{}) 
 		},
 	})
 	if err != nil {
-		return nil, grpcToProjectsHumaError(err, "get current project", c.logger)
+		return nil, c.grpcToHumaError(err, "get current project")
 	}
 
 	p := resp.GetProject()
-	body := projectResponse{
+	body := ProjectResponse{
 		ID:        p.GetId(),
 		OwnerID:   p.GetOwnerId(),
 		Name:      p.GetName(),
 		CreatedAt: p.GetCreatedAt(),
 		UpdatedAt: p.GetUpdatedAt(),
 	}
-	return &struct{ Body projectResponse }{Body: body}, nil
+	return &struct{ Body ProjectResponse }{Body: body}, nil
 }
 
-// handleListMembers returns all members for the caller's project.
-func (c *ProjectsController) handleListMembers(ctx context.Context, input *listMembersInput) (*struct{ Body listMembersResponse }, error) {
+// HandleListMembers returns all members for the caller's project.
+func (c *ProjectsController) HandleListMembers(ctx context.Context, input *ListMembersInput) (*struct{ Body ListMembersResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -173,12 +129,12 @@ func (c *ProjectsController) handleListMembers(ctx context.Context, input *listM
 		},
 	})
 	if err != nil {
-		return nil, grpcToProjectsHumaError(err, "list members", c.logger)
+		return nil, c.grpcToHumaError(err, "list members")
 	}
 
-	items := make([]projectMemberResponse, 0, len(resp.GetMembers()))
+	items := make([]ProjectMemberResponse, 0, len(resp.GetMembers()))
 	for _, m := range resp.GetMembers() {
-		items = append(items, projectMemberResponse{
+		items = append(items, ProjectMemberResponse{
 			ID:        m.GetId(),
 			ProjectID: m.GetProjectId(),
 			UserID:    m.GetUserId(),
@@ -194,12 +150,12 @@ func (c *ProjectsController) handleListMembers(ctx context.Context, input *listM
 		nextToken = resp.GetPagination().GetNextPageToken()
 	}
 
-	body := listMembersResponse{Items: items, NextPageToken: nextToken}
-	return &struct{ Body listMembersResponse }{Body: body}, nil
+	body := ListMembersResponse{Items: items, NextPageToken: nextToken}
+	return &struct{ Body ListMembersResponse }{Body: body}, nil
 }
 
-// handleInvite adds a user by email to the project.
-func (c *ProjectsController) handleInvite(ctx context.Context, input *inviteMemberInput) (*struct{ Body projectMemberResponse }, error) {
+// HandleInvite adds a user by email to the project.
+func (c *ProjectsController) HandleInvite(ctx context.Context, input *InviteMemberInput) (*struct{ Body ProjectMemberResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -218,11 +174,11 @@ func (c *ProjectsController) handleInvite(ctx context.Context, input *inviteMemb
 		Audit:        &commonv1.AuditMetadata{PerformedBy: claims.GetSubject()},
 	})
 	if err != nil {
-		return nil, grpcToProjectsHumaError(err, "invite member", c.logger)
+		return nil, c.grpcToHumaError(err, "invite member")
 	}
 
 	m := resp.GetMember()
-	body := projectMemberResponse{
+	body := ProjectMemberResponse{
 		ID:        m.GetId(),
 		ProjectID: m.GetProjectId(),
 		UserID:    m.GetUserId(),
@@ -231,11 +187,11 @@ func (c *ProjectsController) handleInvite(ctx context.Context, input *inviteMemb
 		CreatedAt: m.GetCreatedAt(),
 		UpdatedAt: m.GetUpdatedAt(),
 	}
-	return &struct{ Body projectMemberResponse }{Body: body}, nil
+	return &struct{ Body ProjectMemberResponse }{Body: body}, nil
 }
 
-// handleUpdateRole changes the role of an existing member.
-func (c *ProjectsController) handleUpdateRole(ctx context.Context, input *updateMemberRoleInput) (*struct{ Body projectMemberResponse }, error) {
+// HandleUpdateRole changes the role of an existing member.
+func (c *ProjectsController) HandleUpdateRole(ctx context.Context, input *UpdateMemberRoleInput) (*struct{ Body ProjectMemberResponse }, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -254,11 +210,11 @@ func (c *ProjectsController) handleUpdateRole(ctx context.Context, input *update
 		Audit:    &commonv1.AuditMetadata{PerformedBy: claims.GetSubject()},
 	})
 	if err != nil {
-		return nil, grpcToProjectsHumaError(err, "update member role", c.logger)
+		return nil, c.grpcToHumaError(err, "update member role")
 	}
 
 	m := resp.GetMember()
-	body := projectMemberResponse{
+	body := ProjectMemberResponse{
 		ID:        m.GetId(),
 		ProjectID: m.GetProjectId(),
 		UserID:    m.GetUserId(),
@@ -267,30 +223,10 @@ func (c *ProjectsController) handleUpdateRole(ctx context.Context, input *update
 		CreatedAt: m.GetCreatedAt(),
 		UpdatedAt: m.GetUpdatedAt(),
 	}
-	return &struct{ Body projectMemberResponse }{Body: body}, nil
+	return &struct{ Body ProjectMemberResponse }{Body: body}, nil
 }
 
-// grpcToProjectsHumaError converts a gRPC status error to an appropriate Huma HTTP error.
-func grpcToProjectsHumaError(err error, op string, logger *zap.Logger) error {
-	st, ok := status.FromError(err)
-	if !ok {
-		logger.Error("projects controller: unexpected error", zap.String("op", op), zap.Error(err))
-		return huma.NewError(http.StatusInternalServerError, op+" failed")
-	}
-	switch st.Code() {
-	case codes.NotFound:
-		return huma.NewError(http.StatusNotFound, st.Message())
-	case codes.AlreadyExists:
-		return huma.NewError(http.StatusConflict, st.Message())
-	case codes.InvalidArgument:
-		return huma.NewError(http.StatusBadRequest, st.Message())
-	case codes.PermissionDenied:
-		return huma.NewError(http.StatusForbidden, st.Message())
-	default:
-		logger.Error("projects controller: grpc error", zap.String("op", op), zap.Error(err))
-		return huma.NewError(http.StatusInternalServerError, op+" failed")
-	}
-}
+// ── helpers ──────────────────────────────────────────────────────────────────────────────
 
 // roleStringToProto converts a role string to the proto enum.
 func roleStringToProto(role string) onboardingv1.ProjectMemberRole {

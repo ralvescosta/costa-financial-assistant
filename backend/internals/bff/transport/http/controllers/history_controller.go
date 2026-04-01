@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
 	"go.uber.org/zap"
@@ -13,42 +12,42 @@ import (
 
 // ─── Input / Output types ─────────────────────────────────────────────────────
 
-// historyQueryInput carries the optional look-back window for all history endpoints.
-type historyQueryInput struct {
+// HistoryQueryInput carries the optional look-back window for all history endpoints.
+type HistoryQueryInput struct {
 	Months int `query:"months" doc:"Number of calendar months to look back; 0 = all history. Default: 12" minimum:"0"`
 }
 
-// monthlyTimelineEntryResponse is a single row of the expenditure timeline.
-type monthlyTimelineEntryResponse struct {
+// MonthlyTimelineEntryResponse is a single row of the expenditure timeline.
+type MonthlyTimelineEntryResponse struct {
 	Month       string `json:"month"`
 	TotalAmount string `json:"totalAmount"`
 	BillCount   int    `json:"billCount"`
 }
 
-// timelineResponse is the body for GET /history/timeline.
-type timelineResponse struct {
+// TimelineResponse is the body for GET /history/timeline.
+type TimelineResponse struct {
 	ProjectID string                         `json:"projectId"`
 	Months    int                            `json:"months"`
-	Timeline  []monthlyTimelineEntryResponse `json:"timeline"`
+	Timeline  []MonthlyTimelineEntryResponse `json:"timeline"`
 }
 
-// categoryBreakdownEntryResponse is a single row of the category breakdown.
-type categoryBreakdownEntryResponse struct {
+// CategoryBreakdownEntryResponse is a single row of the category breakdown.
+type CategoryBreakdownEntryResponse struct {
 	Month        string `json:"month"`
 	BillTypeName string `json:"billTypeName"`
 	TotalAmount  string `json:"totalAmount"`
 	BillCount    int    `json:"billCount"`
 }
 
-// categoryBreakdownResponse is the body for GET /history/categories.
-type categoryBreakdownResponse struct {
+// CategoryBreakdownResponse is the body for GET /history/categories.
+type CategoryBreakdownResponse struct {
 	ProjectID  string                            `json:"projectId"`
 	Months     int                               `json:"months"`
-	Categories []categoryBreakdownEntryResponse  `json:"categories"`
+	Categories []CategoryBreakdownEntryResponse  `json:"categories"`
 }
 
-// monthlyComplianceEntryResponse is a single row of the compliance metrics.
-type monthlyComplianceEntryResponse struct {
+// MonthlyComplianceEntryResponse is a single row of the compliance metrics.
+type MonthlyComplianceEntryResponse struct {
 	Month          string `json:"month"`
 	TotalBills     int    `json:"totalBills"`
 	PaidOnTime     int    `json:"paidOnTime"`
@@ -56,18 +55,18 @@ type monthlyComplianceEntryResponse struct {
 	ComplianceRate string `json:"complianceRate"`
 }
 
-// complianceResponse is the body for GET /history/compliance.
-type complianceResponse struct {
+// ComplianceResponse is the body for GET /history/compliance.
+type ComplianceResponse struct {
 	ProjectID  string                           `json:"projectId"`
 	Months     int                              `json:"months"`
-	Compliance []monthlyComplianceEntryResponse `json:"compliance"`
+	Compliance []MonthlyComplianceEntryResponse `json:"compliance"`
 }
 
 // ─── Controller ───────────────────────────────────────────────────────────────
 
-// HistoryController registers and handles the financial history analytics endpoints.
+// HistoryController handles the financial history analytics HTTP endpoints.
 type HistoryController struct {
-	logger     *zap.Logger
+	BaseController
 	historyRepo paymentsinterfaces.HistoryRepository
 }
 
@@ -76,17 +75,10 @@ func NewHistoryController(
 	logger *zap.Logger,
 	historyRepo paymentsinterfaces.HistoryRepository,
 ) *HistoryController {
-	return &HistoryController{logger: logger, historyRepo: historyRepo}
+	return &HistoryController{BaseController: BaseController{logger: logger}, historyRepo: historyRepo}
 }
 
-// Register mounts all history analytics routes on the Huma API.
-func (c *HistoryController) Register(api huma.API, auth func(huma.Context, func(huma.Context))) {
-	c.registerTimeline(api, auth)
-	c.registerCategories(api, auth)
-	c.registerCompliance(api, auth)
-}
-
-// defaultMonths returns 12 when months=0 is not an explicit "all history" signal.
+// defaultMonthsParam returns 12 when months=0 is not an explicit "all history" signal.
 // Tasks require that 0 = all history (passed through to repository).
 func defaultMonthsParam(m int) int {
 	if m < 0 {
@@ -95,146 +87,106 @@ func defaultMonthsParam(m int) int {
 	return m
 }
 
-// registerTimeline handles GET /api/v1/history/timeline.
-func (c *HistoryController) registerTimeline(api huma.API, auth func(huma.Context, func(huma.Context))) {
-	type input struct {
-		historyQueryInput
+// ─── Handlers ─────────────────────────────────────────────────────────────────
+
+// HandleGetTimeline returns aggregated bill amounts per calendar month.
+func (c *HistoryController) HandleGetTimeline(ctx context.Context, in *HistoryQueryInput) (*struct{ Body TimelineResponse }, error) {
+	claims := bffmiddleware.ClaimsFromContext(ctx)
+	if claims == nil {
+		return nil, huma.Error401Unauthorized("missing authentication")
 	}
 
-	huma.Register(api, huma.Operation{
-		OperationID: "get-history-timeline",
-		Summary:     "Monthly expenditure timeline",
-		Description: "Returns aggregated bill amounts per calendar month for the authenticated project.",
-		Tags:        []string{"History"},
-		Method:      http.MethodGet,
-		Path:        "/api/v1/history/timeline",
-		Middlewares: huma.Middlewares{auth},
-	}, func(ctx context.Context, in *input) (*struct{ Body timelineResponse }, error) {
-		claims := bffmiddleware.ClaimsFromContext(ctx)
-		if claims == nil {
-			return nil, huma.Error401Unauthorized("missing authentication")
-		}
+	months := defaultMonthsParam(in.Months)
+	entries, err := c.historyRepo.GetTimeline(ctx, claims.ProjectId, months)
+	if err != nil {
+		c.logger.Error("history: get timeline failed",
+			zap.String("project_id", claims.ProjectId),
+			zap.Error(err),
+		)
+		return nil, huma.Error500InternalServerError("failed to load timeline")
+	}
 
-		months := defaultMonthsParam(in.Months)
-		entries, err := c.historyRepo.GetTimeline(ctx, claims.ProjectId, months)
-		if err != nil {
-			c.logger.Error("history: get timeline failed",
-				zap.String("project_id", claims.ProjectId),
-				zap.Error(err),
-			)
-			return nil, huma.Error500InternalServerError("failed to load timeline")
-		}
+	rows := make([]MonthlyTimelineEntryResponse, 0, len(entries))
+	for _, e := range entries {
+		rows = append(rows, MonthlyTimelineEntryResponse{
+			Month:       e.Month,
+			TotalAmount: e.TotalAmount,
+			BillCount:   e.BillCount,
+		})
+	}
 
-		rows := make([]monthlyTimelineEntryResponse, 0, len(entries))
-		for _, e := range entries {
-			rows = append(rows, monthlyTimelineEntryResponse{
-				Month:       e.Month,
-				TotalAmount: e.TotalAmount,
-				BillCount:   e.BillCount,
-			})
-		}
-
-		return &struct{ Body timelineResponse }{Body: timelineResponse{
-			ProjectID: claims.ProjectId,
-			Months:    months,
-			Timeline:  rows,
-		}}, nil
-	})
+	return &struct{ Body TimelineResponse }{Body: TimelineResponse{
+		ProjectID: claims.ProjectId,
+		Months:    months,
+		Timeline:  rows,
+	}}, nil
 }
 
-// registerCategories handles GET /api/v1/history/categories.
-func (c *HistoryController) registerCategories(api huma.API, auth func(huma.Context, func(huma.Context))) {
-	type input struct {
-		historyQueryInput
+// HandleGetCategories returns bill amounts grouped by bill type and calendar month.
+func (c *HistoryController) HandleGetCategories(ctx context.Context, in *HistoryQueryInput) (*struct{ Body CategoryBreakdownResponse }, error) {
+	claims := bffmiddleware.ClaimsFromContext(ctx)
+	if claims == nil {
+		return nil, huma.Error401Unauthorized("missing authentication")
 	}
 
-	huma.Register(api, huma.Operation{
-		OperationID: "get-history-categories",
-		Summary:     "Per-category monthly breakdown",
-		Description: "Returns bill amounts grouped by bill type and calendar month for the authenticated project.",
-		Tags:        []string{"History"},
-		Method:      http.MethodGet,
-		Path:        "/api/v1/history/categories",
-		Middlewares: huma.Middlewares{auth},
-	}, func(ctx context.Context, in *input) (*struct{ Body categoryBreakdownResponse }, error) {
-		claims := bffmiddleware.ClaimsFromContext(ctx)
-		if claims == nil {
-			return nil, huma.Error401Unauthorized("missing authentication")
-		}
+	months := defaultMonthsParam(in.Months)
+	entries, err := c.historyRepo.GetCategoryBreakdown(ctx, claims.ProjectId, months)
+	if err != nil {
+		c.logger.Error("history: get category breakdown failed",
+			zap.String("project_id", claims.ProjectId),
+			zap.Error(err),
+		)
+		return nil, huma.Error500InternalServerError("failed to load category breakdown")
+	}
 
-		months := defaultMonthsParam(in.Months)
-		entries, err := c.historyRepo.GetCategoryBreakdown(ctx, claims.ProjectId, months)
-		if err != nil {
-			c.logger.Error("history: get category breakdown failed",
-				zap.String("project_id", claims.ProjectId),
-				zap.Error(err),
-			)
-			return nil, huma.Error500InternalServerError("failed to load category breakdown")
-		}
+	rows := make([]CategoryBreakdownEntryResponse, 0, len(entries))
+	for _, e := range entries {
+		rows = append(rows, CategoryBreakdownEntryResponse{
+			Month:        e.Month,
+			BillTypeName: e.BillTypeName,
+			TotalAmount:  e.TotalAmount,
+			BillCount:    e.BillCount,
+		})
+	}
 
-		rows := make([]categoryBreakdownEntryResponse, 0, len(entries))
-		for _, e := range entries {
-			rows = append(rows, categoryBreakdownEntryResponse{
-				Month:        e.Month,
-				BillTypeName: e.BillTypeName,
-				TotalAmount:  e.TotalAmount,
-				BillCount:    e.BillCount,
-			})
-		}
-
-		return &struct{ Body categoryBreakdownResponse }{Body: categoryBreakdownResponse{
-			ProjectID:  claims.ProjectId,
-			Months:     months,
-			Categories: rows,
-		}}, nil
-	})
+	return &struct{ Body CategoryBreakdownResponse }{Body: CategoryBreakdownResponse{
+		ProjectID:  claims.ProjectId,
+		Months:     months,
+		Categories: rows,
+	}}, nil
 }
 
-// registerCompliance handles GET /api/v1/history/compliance.
-func (c *HistoryController) registerCompliance(api huma.API, auth func(huma.Context, func(huma.Context))) {
-	type input struct {
-		historyQueryInput
+// HandleGetCompliance returns on-time vs overdue bill counts and compliance rate.
+func (c *HistoryController) HandleGetCompliance(ctx context.Context, in *HistoryQueryInput) (*struct{ Body ComplianceResponse }, error) {
+	claims := bffmiddleware.ClaimsFromContext(ctx)
+	if claims == nil {
+		return nil, huma.Error401Unauthorized("missing authentication")
 	}
 
-	huma.Register(api, huma.Operation{
-		OperationID: "get-history-compliance",
-		Summary:     "Monthly payment compliance metrics",
-		Description: "Returns on-time vs overdue bill counts and compliance rate per calendar month.",
-		Tags:        []string{"History"},
-		Method:      http.MethodGet,
-		Path:        "/api/v1/history/compliance",
-		Middlewares: huma.Middlewares{auth},
-	}, func(ctx context.Context, in *input) (*struct{ Body complianceResponse }, error) {
-		claims := bffmiddleware.ClaimsFromContext(ctx)
-		if claims == nil {
-			return nil, huma.Error401Unauthorized("missing authentication")
-		}
+	months := defaultMonthsParam(in.Months)
+	entries, err := c.historyRepo.GetComplianceMetrics(ctx, claims.ProjectId, months)
+	if err != nil {
+		c.logger.Error("history: get compliance failed",
+			zap.String("project_id", claims.ProjectId),
+			zap.Error(err),
+		)
+		return nil, huma.Error500InternalServerError("failed to load compliance metrics")
+	}
 
-		months := defaultMonthsParam(in.Months)
-		entries, err := c.historyRepo.GetComplianceMetrics(ctx, claims.ProjectId, months)
-		if err != nil {
-			c.logger.Error("history: get compliance failed",
-				zap.String("project_id", claims.ProjectId),
-				zap.Error(err),
-			)
-			return nil, huma.Error500InternalServerError("failed to load compliance metrics")
-		}
+	rows := make([]MonthlyComplianceEntryResponse, 0, len(entries))
+	for _, e := range entries {
+		rows = append(rows, MonthlyComplianceEntryResponse{
+			Month:          e.Month,
+			TotalBills:     e.TotalBills,
+			PaidOnTime:     e.PaidOnTime,
+			Overdue:        e.Overdue,
+			ComplianceRate: e.ComplianceRate,
+		})
+	}
 
-		rows := make([]monthlyComplianceEntryResponse, 0, len(entries))
-		for _, e := range entries {
-			rows = append(rows, monthlyComplianceEntryResponse{
-				Month:          e.Month,
-				TotalBills:     e.TotalBills,
-				PaidOnTime:     e.PaidOnTime,
-				Overdue:        e.Overdue,
-				ComplianceRate: e.ComplianceRate,
-			})
-		}
-
-		return &struct{ Body complianceResponse }{Body: complianceResponse{
-			ProjectID:  claims.ProjectId,
-			Months:     months,
-			Compliance: rows,
-		}}, nil
-	})
+	return &struct{ Body ComplianceResponse }{Body: ComplianceResponse{
+		ProjectID:  claims.ProjectId,
+		Months:     months,
+		Compliance: rows,
+	}}, nil
 }
