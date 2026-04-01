@@ -44,6 +44,21 @@
   --color-warning:        var(--palette-amber-500);
   --color-warning-bg:     var(--palette-amber-50);
   --color-overlay:        rgba(0, 0, 0, 0.4);
+  /* Auth / login tokens */
+  --color-input-error:    var(--palette-red-600);
+  --color-lockout-warning: var(--palette-amber-500);
+  --color-loading-skeleton: var(--palette-gray-200);
+  /* Navigation tokens */
+  --color-sidebar-bg:     var(--palette-white);
+  --color-menu-item-text: var(--palette-gray-600);
+  --color-menu-item-active-bg: var(--palette-indigo-50);
+  --color-hamburger-icon: var(--palette-gray-600);
+  /* Session / draft tokens */
+  --color-session-warning: var(--palette-amber-500);
+  --color-draft-restore-modal: var(--palette-white);
+  /* Layout */
+  --sidebar-width:        200px;
+  --hamburger-button-size: 2.5rem;
 }
 
 /* ─── Dark theme semantic tokens ────────────────────────────────── */
@@ -63,6 +78,18 @@
   --color-warning:        #f6e05e;
   --color-warning-bg:     #3b2f1a;
   --color-overlay:        rgba(0, 0, 0, 0.7);
+  /* Auth / login tokens */
+  --color-input-error:    #fc8181;
+  --color-lockout-warning: #f6e05e;
+  --color-loading-skeleton: #3a3a5c;
+  /* Navigation tokens */
+  --color-sidebar-bg:     #1e1e2e;
+  --color-menu-item-text: #a0aec0;
+  --color-menu-item-active-bg: #2a2a3d;
+  --color-hamburger-icon: #a0aec0;
+  /* Session / draft tokens */
+  --color-session-warning: #f6e05e;
+  --color-draft-restore-modal: #2a2a3d;
 }
 
 /* ─── Base resets ───────────────────────────────────────────────── */

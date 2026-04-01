@@ -20,6 +20,18 @@ export default {
         warning: 'var(--color-warning)',
         'warning-bg': 'var(--color-warning-bg)',
         overlay: 'var(--color-overlay)',
+        // Auth tokens
+        'input-error': 'var(--color-input-error)',
+        'lockout-warning': 'var(--color-lockout-warning)',
+        'loading-skeleton': 'var(--color-loading-skeleton)',
+        // Navigation tokens
+        'sidebar-bg': 'var(--color-sidebar-bg)',
+        'menu-item-text': 'var(--color-menu-item-text)',
+        'menu-item-active-bg': 'var(--color-menu-item-active-bg)',
+        'hamburger-icon': 'var(--color-hamburger-icon)',
+        // Session tokens
+        'session-warning': 'var(--color-session-warning)',
+        'draft-restore-modal': 'var(--color-draft-restore-modal)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
