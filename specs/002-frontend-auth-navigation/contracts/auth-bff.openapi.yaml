@@ -1,0 +1,201 @@
+openapi: 3.0.3
+info:
+  title: BFF Auth Contract - Frontend Auth Navigation
+  version: 1.0.0
+  description: |
+    Contract for frontend authentication flows consumed by feature 002.
+    Session transport is cookie-based (HTTP-only) and requests must use credentials.
+servers:
+  - url: /api
+tags:
+  - name: auth
+paths:
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: auth-login
+      summary: Authenticate user and establish session cookies
+      description: |
+        Validates credentials, sets HTTP-only auth cookies, and returns
+        session metadata required by the frontend.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          headers:
+            Set-Cookie:
+              description: HTTP-only session cookies for auth transport
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccessResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+        '429':
+          description: Locked out due to repeated failures
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LockoutErrorResponse'
+  /auth/refresh:
+    post:
+      tags: [auth]
+      operationId: auth-refresh
+      summary: Refresh session before expiry
+      description: |
+        Refreshes auth session using HTTP-only refresh cookie.
+        Frontend must call with credentials enabled.
+      responses:
+        '200':
+          description: Session refreshed
+          headers:
+            Set-Cookie:
+              description: Rotated session cookies
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshSuccessResponse'
+        '401':
+          description: Refresh failed or session expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthErrorResponse'
+components:
+  schemas:
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+    LoginSuccessData:
+      type: object
+      required: [expiresIn, refreshAt, csrfToken, user]
+      properties:
+        expiresIn:
+          type: integer
+          description: Access session lifetime in seconds
+          minimum: 60
+        refreshAt:
+          type: integer
+          description: Seconds from now when frontend should trigger refresh (75% lifetime)
+          minimum: 1
+        csrfToken:
+          type: string
+          description: CSRF token to send on state-changing requests
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        activeProject:
+          $ref: '#/components/schemas/ProjectSummary'
+    LoginSuccessResponse:
+      type: object
+      required: [statusCode, data]
+      properties:
+        statusCode:
+          type: integer
+          enum: [200]
+        data:
+          $ref: '#/components/schemas/LoginSuccessData'
+    RefreshSuccessData:
+      type: object
+      required: [expiresIn, refreshAt, csrfToken]
+      properties:
+        expiresIn:
+          type: integer
+          minimum: 60
+        refreshAt:
+          type: integer
+          minimum: 1
+        csrfToken:
+          type: string
+    RefreshSuccessResponse:
+      type: object
+      required: [statusCode, data]
+      properties:
+        statusCode:
+          type: integer
+          enum: [200]
+        data:
+          $ref: '#/components/schemas/RefreshSuccessData'
+    AuthError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum: [INVALID_CREDENTIALS, SESSION_EXPIRED]
+        message:
+          type: string
+    AuthErrorResponse:
+      type: object
+      required: [statusCode, error]
+      properties:
+        statusCode:
+          type: integer
+          enum: [401]
+        error:
+          $ref: '#/components/schemas/AuthError'
+    LockoutError:
+      type: object
+      required: [code, message, lockoutUntil, remainingSeconds]
+      properties:
+        code:
+          type: string
+          enum: [AUTH_LOCKED]
+        message:
+          type: string
+        lockoutUntil:
+          type: string
+          format: date-time
+        remainingSeconds:
+          type: integer
+          minimum: 1
+    LockoutErrorResponse:
+      type: object
+      required: [statusCode, error]
+      properties:
+        statusCode:
+          type: integer
+          enum: [429]
+        error:
+          $ref: '#/components/schemas/LockoutError'
+    UserSummary:
+      type: object
+      required: [id, username]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+    ProjectSummary:
+      type: object
+      required: [id, name, role]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [read_only, update, write]

@@ -9,6 +9,8 @@ Monorepo web application: a multi-tenant financial bill organizer.
 - Enforces strict project-scoped multi-tenancy with role-based access control.
 
 ## Active Technologies
+- TypeScript 5.8.x, React 18.3.x + react-router-dom 6.30.x, @tanstack/react-query 5.76.x, zod 3.24.x, TailwindCSS 3.4.x (002-frontend-auth-navigation)
+- Browser HTTP-only cookies for auth/session (set by BFF), local client storage only for UI preferences and short-lived draft restore metadata (002-frontend-auth-navigation)
 
 ### Backend (Go — latest stable)
 - HTTP framework: `github.com/labstack/echo/v4` + `github.com/danielgtaylor/huma/v2` (OpenAPI-first BFF)
@@ -149,3 +151,6 @@ make test/integration/bills
 | `.github/instructions/commit-message.instructions.md` | Conventional Commits format and rules |
 | `.github/instructions/ai-behavior.instructions.md` | AI code generation rules and precedence |
 
+
+## Recent Changes
+- 002-frontend-auth-navigation: Added TypeScript 5.8.x, React 18.3.x + react-router-dom 6.30.x, @tanstack/react-query 5.76.x, zod 3.24.x, TailwindCSS 3.4.x
