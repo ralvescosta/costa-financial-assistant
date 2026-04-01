@@ -77,18 +77,19 @@ As a quality owner, I want integration tests to cover all BFF routes so that ref
 ### Functional Requirements
 
 - **FR-001**: The BFF module MUST separate route declaration responsibilities from controller behavior responsibilities for all HTTP endpoints in scope.
-- **FR-002**: The system MUST provide a default controller contract that allows controllers to share common behavior while permitting module-specific controllers to implement only relevant behaviors.
-- **FR-003**: The system MUST provide a default route contract that standardizes how route groups register endpoints and consume controller dependencies.
+- **FR-002**: The system MUST define narrow controller capability contracts consumed by route modules, allowing each controller to implement only the behaviors required by its resource routes.
+- **FR-003**: The system MUST provide a shared route contract that standardizes how route groups register endpoints, receive middleware collaborators, and consume controller dependencies.
 - **FR-004**: Route structures MUST receive controller dependencies through the existing dependency injection flow rather than creating controller instances locally.
 - **FR-005**: Existing endpoint paths, HTTP methods, and externally visible response behavior MUST remain functionally equivalent after segregation, unless explicitly documented as a deliberate change.
 - **FR-006**: Existing authentication, authorization, and project-isolation protections MUST remain enforced on the same route behaviors after refactoring.
 - **FR-007**: Every declared BFF route MUST be covered by at least one integration test that verifies successful routing and expected outcome for the route's intended access pattern.
 - **FR-008**: The route-to-test mapping MUST be maintainable, allowing maintainers to identify which integration test(s) validate each declared route.
 - **FR-009**: Feature completion MUST require passing integration tests for all route coverage defined by this specification.
+- **FR-010**: Project governance documents and coding instructions MUST be updated so the dedicated route-module pattern and route-coverage expectations become the required standard for future BFF changes.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Controller Contract**: A standard behavioral contract for controller modules. Includes shared/default behavior points and optional implementation points for domain-specific operations.
+- **Controller Capability Contract**: A narrow behavioral contract owned by the route layer and implemented by a controller for the specific handlers required by that route module. Shared reusable behavior may be provided through a base controller struct.
 - **Route Contract**: A standard registration contract for route modules. Defines how a route module receives dependencies and declares endpoint mappings.
 - **Controller Module**: A concrete controller unit that executes request handling behavior and conforms to the controller contract.
 - **Route Module**: A concrete routing unit that declares endpoint mappings and delegates handling to injected controller modules.
@@ -103,6 +104,7 @@ As a quality owner, I want integration tests to cover all BFF routes so that ref
 - **SC-003**: 100% of declared BFF routes in scope have at least one passing integration test.
 - **SC-004**: No regression in existing route accessibility and expected response outcomes is detected across the full integration test suite for BFF routes in scope.
 - **SC-005**: During code review, maintainers can identify route declarations and controller behavior locations for any in-scope endpoint in under 2 minutes.
+- **SC-006**: The constitution and applicable instruction files reflect the route-module ownership model and route-coverage expectations before implementation is considered complete.
 
 ## Assumptions
 

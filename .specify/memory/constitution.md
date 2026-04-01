@@ -73,11 +73,14 @@ internals/
   repositories/      # data access implementations
 ```
 - A **Controller** file (`*_controller.go`) in `controllers/` MUST be responsible for
-  one domain resource. Each handler function MUST be a method on a controller struct
-  and MUST register itself via a `Register(api huma.API)` method called from
+  one domain resource. Each handler function MUST be a method on a controller struct.
+- A **Route** file (`*_routes.go`) in `transport/http/routes/` MUST be responsible for
+  registering Huma operations for one resource area. Route modules MUST receive
+  controller dependencies via dependency injection and MUST register themselves from
   `cmd/container.go`.
-- Controllers MUST NOT contain business logic. They translate HTTP Input structs to
-  domain calls on the service interface and translate the result to an Output struct.
+- Controllers MUST NOT contain business logic and MUST NOT own `huma.Register(...)`
+  declarations. They translate HTTP Input structs to domain calls on the service
+  interface and translate the result to an Output struct.
 - Services MUST NOT import `huma` or `echo` packages. The service layer is
   transport-agnostic.
 
