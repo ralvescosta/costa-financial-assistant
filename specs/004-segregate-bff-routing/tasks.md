@@ -93,9 +93,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T024 [P] [US3] Refactor legacy document and settings route assertions in `backend/tests/integration/us1_upload_classify_test.go` and `backend/tests/integration/us3_bank_accounts_test.go`
-- [ ] T025 [P] [US3] Refactor legacy payments, reconciliation, and history route assertions in `backend/tests/integration/us4_payment_dashboard_test.go`, `backend/tests/integration/us4_mark_paid_idempotency_test.go`, `backend/tests/integration/us5_manual_reconciliation_test.go`, `backend/tests/integration/us5_auto_reconciliation_test.go`, `backend/tests/integration/us6_history_timeline_test.go`, and `backend/tests/integration/us6_history_metrics_test.go`
-- [ ] T026 [US3] Update the route-to-test mapping in `specs/004-segregate-bff-routing/contracts/route-coverage-matrix.md`
+- [ ] T024 [P] [US3] Migrate document and settings route assertions from `backend/tests/integration/us1_upload_classify_test.go` and `backend/tests/integration/us3_bank_accounts_test.go` into `backend/tests/integration/documents_routes_integration_test.go` and `backend/tests/integration/settings_routes_integration_test.go`
+- [ ] T025 [P] [US3] Migrate payments, reconciliation, and history route assertions from `backend/tests/integration/us4_payment_dashboard_test.go`, `backend/tests/integration/us4_mark_paid_idempotency_test.go`, `backend/tests/integration/us5_manual_reconciliation_test.go`, `backend/tests/integration/us5_auto_reconciliation_test.go`, `backend/tests/integration/us6_history_timeline_test.go`, and `backend/tests/integration/us6_history_metrics_test.go` into the corresponding resource-scoped route suites
+- [ ] T026 [US3] Remove or repurpose legacy `us*` route assertions once equivalent resource-scoped coverage is passing in `backend/tests/integration/`
+- [ ] T027 [US3] Update the route-to-test mapping in `specs/004-segregate-bff-routing/contracts/route-coverage-matrix.md`
 
 **Checkpoint**: All 20 BFF routes are covered by explicit resource-scoped integration suites and the route coverage matrix reflects the actual tests.
 
@@ -105,9 +106,9 @@
 
 **Purpose**: Finalize documentation and validate the full feature end to end.
 
-- [ ] T027 [P] Update the validation workflow in `specs/004-segregate-bff-routing/quickstart.md`
-- [ ] T028 Run `go test ./...` from `backend/`
-- [ ] T029 Run `go test -tags=integration ./tests/integration/...` from `backend/`
+- [ ] T028 [P] Update the validation workflow in `specs/004-segregate-bff-routing/quickstart.md`
+- [ ] T029 Run `go test ./...` from `backend/`
+- [ ] T030 Run `go test -tags=integration ./tests/integration/...` from `backend/`
 
 ---
 
