@@ -17,14 +17,14 @@
 
 **Purpose**: Project initialization and frontend structure verification
 
-- [ ] T001 Verify React 18.3.x + TypeScript 5.8.x setup in frontend/package.json
-- [ ] T002 [P] Verify react-router-dom 6.30.x installed in frontend/package.json
-- [ ] T003 [P] Verify @tanstack/react-query 5.76.x installed in frontend/package.json
-- [ ] T004 [P] Verify zod 3.24.x installed for schema validation in frontend/package.json
-- [ ] T005 [P] Verify Vitest 3.2.x and Testing Library installed for tests
-- [ ] T006 [P] Verify MSW (Mock Service Worker) installed for API mocking in tests
-- [ ] T007 Create frontend/src/types/auth.ts for TypeScript auth interfaces (AuthenticationContext, User, Session)
-- [ ] T008 Create frontend/src/services/api.client.ts with `credentials: include` HTTP-only cookie support
+- [x] T001 Verify React 18.3.x + TypeScript 5.8.x setup in frontend/package.json
+- [x] T002 [P] Verify react-router-dom 6.30.x installed in frontend/package.json
+- [x] T003 [P] Verify @tanstack/react-query 5.76.x installed in frontend/package.json
+- [x] T004 [P] Verify zod 3.24.x installed for schema validation in frontend/package.json
+- [x] T005 [P] Verify Vitest 3.2.x and Testing Library installed for tests
+- [x] T006 [P] Verify MSW (Mock Service Worker) installed for API mocking in tests
+- [x] T007 Create frontend/src/types/auth.ts for TypeScript auth interfaces (AuthenticationContext, User, Session)
+- [x] T008 Create frontend/src/services/api.client.ts with `credentials: include` HTTP-only cookie support
 
 **Checkpoint**: Frontend environment configured and auth types ready
 
@@ -36,19 +36,19 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 [P] Create frontend/src/hooks/useAuthContext.ts hook with auth state management (login, logout, refreshAccessToken, setActiveProject)
-- [ ] T010 [P] Create frontend/src/hooks/useAuthRefresh.ts hook with 75% of token lifetime refresh scheduling logic
-- [ ] T011 [P] Create frontend/src/types/auth-response.schema.ts with zod schema for BFF login/refresh response validation
-- [ ] T012 [P] Create frontend/src/types/lockout.schema.ts with zod schema for lockout metadata and countdown calculations
-- [ ] T013 Create frontend/src/hooks/useTokenRefreshInterceptor.ts hook to intercept 401 responses, refresh token, and retry original request
-- [ ] T014 Create frontend/src/hooks/useDraftStateRestore.ts hook to manage short-lived draft state restoration after re-login (with TTL enforcement)
-- [ ] T015 [P] Create frontend/src/components/Sidebar.tsx component skeleton with menu item list and active highlighting
-- [ ] T016 [P] Create frontend/src/components/HamburgerMenu.tsx component skeleton for mobile/tablet navigation toggle
-- [ ] T017 [P] Create frontend/src/components/SkeletonPlaceholder.tsx reusable skeleton component for login and protected-page loading states
-- [ ] T018 Create frontend/src/app/AppLayout.tsx layout component to wire Sidebar + HamburgerMenu + main content area with responsive behavior
-- [ ] T019 [P] Create frontend/src/types/navigation.ts for NavigationState, BreadcrumbItem, and MenuItem interfaces
-- [ ] T020 Update frontend/src/styles/tokens.ts to include auth/login-specific design token overrides (accessible form styling, error states, lockout countdown colors)
-- [ ] T021 Create frontend/src/hooks/useResponsiveNavigation.ts hook to detect viewport size and toggle sidebar visibility (desktop 1024px+, tablet 768-1023px, mobile <768px)
+- [x] T009 [P] Create frontend/src/hooks/useAuthContext.ts hook with auth state management (login, logout, refreshAccessToken, setActiveProject)
+- [x] T010 [P] Create frontend/src/hooks/useAuthRefresh.ts hook with 75% of token lifetime refresh scheduling logic
+- [x] T011 [P] Create frontend/src/types/auth-response.schema.ts with zod schema for BFF login/refresh response validation
+- [x] T012 [P] Create frontend/src/types/lockout.schema.ts with zod schema for lockout metadata and countdown calculations
+- [x] T013 Create frontend/src/hooks/useTokenRefreshInterceptor.ts hook to intercept 401 responses, refresh token, and retry original request
+- [x] T014 Create frontend/src/hooks/useDraftStateRestore.ts hook to manage short-lived draft state restoration after re-login (with TTL enforcement)
+- [x] T015 [P] Create frontend/src/components/Sidebar.tsx component skeleton with menu item list and active highlighting
+- [x] T016 [P] Create frontend/src/components/HamburgerMenu.tsx component skeleton for mobile/tablet navigation toggle
+- [x] T017 [P] Create frontend/src/components/SkeletonPlaceholder.tsx reusable skeleton component for login and protected-page loading states
+- [x] T018 Create frontend/src/app/AppLayout.tsx layout component to wire Sidebar + HamburgerMenu + main content area with responsive behavior
+- [x] T019 [P] Create frontend/src/types/navigation.ts for NavigationState, BreadcrumbItem, and MenuItem interfaces
+- [x] T020 Update frontend/src/styles/tokens.ts to include auth/login-specific design token overrides (accessible form styling, error states, lockout countdown colors)
+- [x] T021 Create frontend/src/hooks/useResponsiveNavigation.ts hook to detect viewport size and toggle sidebar visibility (desktop 1024px+, tablet 768-1023px, mobile <768px)
 
 **Checkpoint**: Auth lifecycle management, token interceptors, navigation components, and layout infrastructure ready - user story implementation can now begin in parallel
 
@@ -64,21 +64,21 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T022 [P] [US1] Create frontend/src/hooks/useAuthSession.test.ts contract test for BFF POST /api/auth/login with valid/invalid credentials response envelope validation
-- [ ] T023 [P] [US1] Create frontend/src/pages/LoginPage.test.tsx unit test suite with MSW mocks: default pre-fill, skeleton display within 300ms, error handling, lockout countdown
-- [ ] T024 [US1] Create frontend/src/pages/LoginPage.integration.test.tsx integration test: user lands on login → sees auto-filled credentials → submits → lands on dashboard under 5s
-- [ ] T025 [US1] Create frontend/src/pages/LoginPage.a11y.test.tsx accessibility test: keyboard-only navigation (Tab, Enter) without mouse
+- [x] T022 [P] [US1] Create frontend/src/hooks/useAuthSession.test.ts contract test for BFF POST /api/auth/login with valid/invalid credentials response envelope validation
+- [x] T023 [P] [US1] Create frontend/src/pages/LoginPage.test.tsx unit test suite with MSW mocks: default pre-fill, skeleton display within 300ms, error handling, lockout countdown
+- [x] T024 [US1] Create frontend/src/pages/LoginPage.integration.test.tsx integration test: user lands on login → sees auto-filled credentials → submits → lands on dashboard under 5s
+- [x] T025 [US1] Create frontend/src/pages/LoginPage.a11y.test.tsx accessibility test: keyboard-only navigation (Tab, Enter) without mouse
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] [US1] Create frontend/src/pages/LoginPage.tsx component with auto-filled defaults from env vars, skeleton placeholder, error display, lockout countdown
-- [ ] T027 [P] [US1] Create frontend/src/hooks/useAuthSession.ts hook with login(username, password) mutation, BFF POST /api/auth/login, response validation, error/lockout handling
-- [ ] T028 [P] [US1] Create frontend/src/components/ErrorMessage.tsx component with clear error display and lockout countdown timer
-- [ ] T029 [P] [US1] Create frontend/src/types/auth-response.schema.ts with zod schema for login/refresh response and lockout metadata
-- [ ] T030 [P] [US1] Add loading state indicators to LoginPage: skeleton placeholder appears within 300ms, login button shows disabled + spinner during submission
-- [ ] T031 [P] [US1] Create frontend/src/config/auth.config.ts for VITE_DEFAULT_USERNAME/VITE_DEFAULT_PASSWORD from environment with production safety check
-- [ ] T032 [US1] Add keyboard accessibility to LoginPage: Tab order (username → password → button), Enter submits, focus management
-- [ ] T033 [US1] Update frontend/src/styles/tokens.ts to include login-specific design tokens: colorInputError, colorLockoutWarning, colorLoadingSkeleton
+- [x] T026 [P] [US1] Create frontend/src/pages/LoginPage.tsx component with auto-filled defaults from env vars, skeleton placeholder, error display, lockout countdown
+- [x] T027 [P] [US1] Create frontend/src/hooks/useAuthSession.ts hook with login(username, password) mutation, BFF POST /api/auth/login, response validation, error/lockout handling
+- [x] T028 [P] [US1] Create frontend/src/components/ErrorMessage.tsx component with clear error display and lockout countdown timer
+- [x] T029 [P] [US1] Create frontend/src/types/auth-response.schema.ts with zod schema for login/refresh response and lockout metadata
+- [x] T030 [P] [US1] Add loading state indicators to LoginPage: skeleton placeholder appears within 300ms, login button shows disabled + spinner during submission
+- [x] T031 [P] [US1] Create frontend/src/config/auth.config.ts for VITE_DEFAULT_USERNAME/VITE_DEFAULT_PASSWORD from environment with production safety check
+- [x] T032 [US1] Add keyboard accessibility to LoginPage: Tab order (username → password → button), Enter submits, focus management
+- [x] T033 [US1] Update frontend/src/styles/tokens.ts to include login-specific design tokens: colorInputError, colorLockoutWarning, colorLoadingSkeleton
 
 **Checkpoint**: User Story 1 complete - login screen fully functional, all tests pass, default credentials work, lockout protection active, skeleton loading visible, error messages clear, keyboard accessible
 
@@ -94,23 +94,23 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T034 [P] [US2] Create frontend/src/components/Sidebar.test.tsx unit test: all menu items render, current route highlighted, click navigates, keyboard-accessible
-- [ ] T035 [P] [US2] Create frontend/src/components/HamburgerMenu.test.tsx unit test: hidden on desktop, visible on mobile/tablet, toggle sidebar visibility
-- [ ] T036 [US2] Create frontend/src/app/AppLayout.integration.test.tsx integration test: log in → sidebar displays → click each route → page loads → URL updates → active highlighting accurate
-- [ ] T037 [US2] Create frontend/src/app/AppLayout.a11y.test.tsx accessibility test: menu keyboard-traversable, active item announced by screen readers, hamburger has aria-label
+- [x] T034 [P] [US2] Create frontend/src/components/Sidebar.test.tsx unit test: all menu items render, current route highlighted, click navigates, keyboard-accessible
+- [x] T035 [P] [US2] Create frontend/src/components/HamburgerMenu.test.tsx unit test: hidden on desktop, visible on mobile/tablet, toggle sidebar visibility
+- [x] T036 [US2] Create frontend/src/app/AppLayout.integration.test.tsx integration test: log in → sidebar displays → click each route → page loads → URL updates → active highlighting accurate
+- [x] T037 [US2] Create frontend/src/app/AppLayout.a11y.test.tsx accessibility test: menu keyboard-traversable, active item announced by screen readers, hamburger has aria-label
 
 ### Implementation for User Story 2
 
-- [ ] T038 [P] [US2] Create frontend/src/components/Sidebar.tsx component with menu items (Dashboard, Documents, Bills, Payments, Analytics, Settings), active highlighting, icons, keyboard nav
-- [ ] T039 [P] [US2] Create frontend/src/components/HamburgerMenu.tsx component with three-line icon, aria-label, aria-pressed, desktop hidden, mobile/tablet visible
-- [ ] T040 [US2] Update frontend/src/app/AppLayout.tsx to integrate Sidebar + HamburgerMenu with responsive grid layout: desktop (200px fixed sidebar + flex content), mobile (full width toggle)
-- [ ] T041 [P] [US2] Create frontend/src/app/router.config.ts with route definitions: Dashboard (/dashboard), Documents, Bills, Payments, Analytics, Settings with path/element/icon/label
-- [ ] T042 [P] [US2] Create placeholder page components: DashboardPage, DocumentsPage, BillsPage, PaymentsPage, AnalyticsPage, SettingsPage in frontend/src/pages/
-- [ ] T043 [US2] Update frontend/src/main.tsx to wire BrowserRouter with configured routes from router.config.ts and AppLayout as root container
-- [ ] T044 [US2] Implement responsive behavior via frontend/src/hooks/useResponsiveNavigation.ts: track viewport, breakpoints (≥1024px desktop, 768-1023px tablet, <768px mobile)
-- [ ] T045 [P] [US2] Create frontend/src/types/navigation.ts with MenuItem, NavigationConfig interfaces
-- [ ] T046 [P] [US2] Add navigation design tokens to frontend/src/styles/tokens.ts: colorSidebarBackground, colorMenuItemText, colorMenuItemActive, colorHamburgerIcon, sidebarWidth, hamburgerButtonSize
-- [ ] T047 [US2] Auto-hide sidebar on mobile after navigation: detect mobile in Sidebar, close sidebar after link click via parent callback
+- [x] T038 [P] [US2] Create frontend/src/components/Sidebar.tsx component with menu items (Dashboard, Documents, Bills, Payments, Analytics, Settings), active highlighting, icons, keyboard nav
+- [x] T039 [P] [US2] Create frontend/src/components/HamburgerMenu.tsx component with three-line icon, aria-label, aria-pressed, desktop hidden, mobile/tablet visible
+- [x] T040 [US2] Update frontend/src/app/AppLayout.tsx to integrate Sidebar + HamburgerMenu with responsive grid layout: desktop (200px fixed sidebar + flex content), mobile (full width toggle)
+- [x] T041 [P] [US2] Create frontend/src/app/router.config.ts with route definitions: Dashboard (/dashboard), Documents, Bills, Payments, Analytics, Settings with path/element/icon/label
+- [x] T042 [P] [US2] Create placeholder page components: DashboardPage, DocumentsPage, BillsPage, PaymentsPage, AnalyticsPage, SettingsPage in frontend/src/pages/
+- [x] T043 [US2] Update frontend/src/main.tsx to wire BrowserRouter with configured routes from router.config.ts and AppLayout as root container
+- [x] T044 [US2] Implement responsive behavior via frontend/src/hooks/useResponsiveNavigation.ts: track viewport, breakpoints (≥1024px desktop, 768-1023px tablet, <768px mobile)
+- [x] T045 [P] [US2] Create frontend/src/types/navigation.ts with MenuItem, NavigationConfig interfaces
+- [x] T046 [P] [US2] Add navigation design tokens to frontend/src/styles/tokens.ts: colorSidebarBackground, colorMenuItemText, colorMenuItemActive, colorHamburgerIcon, sidebarWidth, hamburgerButtonSize
+- [x] T047 [US2] Auto-hide sidebar on mobile after navigation: detect mobile in Sidebar, close sidebar after link click via parent callback
 
 **Checkpoint**: User Story 2 complete - sidebar navigation fully functional on all viewports, responsive hamburger menu, route switching without page reload, active highlighting accurate, accessibility tests pass
 
@@ -126,25 +126,25 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T048 [P] [US3] Create frontend/src/hooks/useAuthRefresh.test.ts unit test: refresh scheduled at 75% of lifetime, refresh request sent to BFF, new token stored, timer reset, silent operation
-- [ ] T049 [P] [US3] Create frontend/src/hooks/useTokenRefreshInterceptor.test.ts unit test: 401 intercepted, token refresh attempted, original request retried, failed refresh redirects
-- [ ] T050 [P] [US3] Create frontend/src/hooks/useDraftStateRestore.test.ts unit test: draft saved to localStorage with TTL, restored after re-login, one-time restore enforced
-- [ ] T051 [P] [US3] Create frontend/src/services/auth.api.test.ts test: BFF refresh endpoint POST /api/auth/refresh accepts refresh_token, returns new token + expires_in
-- [ ] T052 [US3] Create frontend/src/app/AppLayout.integration.test.tsx test for token refresh lifecycle: login → wait 75% of lifetime → verify silent refresh → API call succeeds
-- [ ] T053 [US3] Create LoginPage integration test: login → edit document → force token expiry → verify draft saved → re-login → verify restore prompt → restore → continue editing
+- [x] T048 [P] [US3] Create frontend/src/hooks/useAuthRefresh.test.ts unit test: refresh scheduled at 75% of lifetime, refresh request sent to BFF, new token stored, timer reset, silent operation
+- [x] T049 [P] [US3] Create frontend/src/hooks/useTokenRefreshInterceptor.test.ts unit test: 401 intercepted, token refresh attempted, original request retried, failed refresh redirects
+- [x] T050 [P] [US3] Create frontend/src/hooks/useDraftStateRestore.test.ts unit test: draft saved to localStorage with TTL, restored after re-login, one-time restore enforced
+- [x] T051 [P] [US3] Create frontend/src/services/auth.api.test.ts test: BFF refresh endpoint POST /api/auth/refresh accepts refresh_token, returns new token + expires_in
+- [x] T052 [US3] Create frontend/src/app/AppLayout.integration.test.tsx test for token refresh lifecycle: login → wait 75% of lifetime → verify silent refresh → API call succeeds
+- [x] T053 [US3] Create LoginPage integration test: login → edit document → force token expiry → verify draft saved → re-login → verify restore prompt → restore → continue editing
 
 ### Implementation for User Story 3
 
-- [ ] T054 [US3] Update frontend/src/hooks/useAuthRefresh.ts: calculate refreshTime = expiresIn * 0.75, schedule timer with setInterval, POST to /api/auth/refresh, handle response, reset timer on unmount
-- [ ] T055 [US3] Update frontend/src/services/api.client.ts to add refreshAccessToken(refreshToken) function: POST /api/auth/refresh, credentials: include, zod validation, return AuthResponse
-- [ ] T056 [US3] Create frontend/src/hooks/useTokenRefreshInterceptor.ts: intercept all API requests, on 401 attempt refresh, retry original request, prevent retry loop (max 1 attempt)
-- [ ] T057 [US3] Create frontend/src/hooks/usePersistentSession.ts: serialize auth context to localStorage on login, restore session on app mount, check expiry, clear on logout
-- [ ] T058 [US3] Create frontend/src/hooks/useDraftStateRestore.ts: saveDraftState(key, data, ttl), getDraftState(key), clearDraftState(key) with TTL enforcement and one-time restore
-- [ ] T059 [P] [US3] Create frontend/src/components/DraftRestoreModal.tsx: modal with "Restore your work?" prompt, Restore/Discard buttons, auto-dismiss on TTL expiry
-- [ ] T060 [US3] Update LoginPage to integrate draft state restoration: check for available draft after login, show DraftRestoreModal, navigate with draft data on restore
-- [ ] T061 [P] [US3] Add HTTP-only cookie handling to frontend/src/services/api.client.ts: include credentials: 'include' in all requests, document that BFF sets HttpOnly/SameSite=Strict
-- [ ] T062 [US3] Create frontend/src/types/session.schema.ts with zod schemas: session metadata (userId, expiryTimestamp, refreshAtTimestamp), draft restore data (key, data, savedAt, ttl, used)
-- [ ] T063 [P] [US3] Update frontend/src/styles/tokens.ts with session tokens: colorSessionWarning, colorDraftRestoreModal
+- [x] T054 [US3] Update frontend/src/hooks/useAuthRefresh.ts: calculate refreshTime = expiresIn * 0.75, schedule timer with setInterval, POST to /api/auth/refresh, handle response, reset timer on unmount
+- [x] T055 [US3] Update frontend/src/services/api.client.ts to add refreshAccessToken(refreshToken) function: POST /api/auth/refresh, credentials: include, zod validation, return AuthResponse
+- [x] T056 [US3] Create frontend/src/hooks/useTokenRefreshInterceptor.ts: intercept all API requests, on 401 attempt refresh, retry original request, prevent retry loop (max 1 attempt)
+- [x] T057 [US3] Create frontend/src/hooks/usePersistentSession.ts: serialize auth context to localStorage on login, restore session on app mount, check expiry, clear on logout
+- [x] T058 [US3] Create frontend/src/hooks/useDraftStateRestore.ts: saveDraftState(key, data, ttl), getDraftState(key), clearDraftState(key) with TTL enforcement and one-time restore
+- [x] T059 [P] [US3] Create frontend/src/components/DraftRestoreModal.tsx: modal with "Restore your work?" prompt, Restore/Discard buttons, auto-dismiss on TTL expiry
+- [x] T060 [US3] Update LoginPage to integrate draft state restoration: check for available draft after login, show DraftRestoreModal, navigate with draft data on restore
+- [x] T061 [P] [US3] Add HTTP-only cookie handling to frontend/src/services/api.client.ts: include credentials: 'include' in all requests, document that BFF sets HttpOnly/SameSite=Strict
+- [x] T062 [US3] Create frontend/src/types/session.schema.ts with zod schemas: session metadata (userId, expiryTimestamp, refreshAtTimestamp), draft restore data (key, data, savedAt, ttl, used)
+- [x] T063 [P] [US3] Update frontend/src/styles/tokens.ts with session tokens: colorSessionWarning, colorDraftRestoreModal
 
 **Checkpoint**: User Story 3 complete - token refresh works silently at 75% of lifetime, session persists across page reloads, 401 triggers refresh + retry, draft state restoration available, all tests pass
 
@@ -154,15 +154,15 @@
 
 **Purpose**: Final integration, documentation, performance, and security hardening
 
-- [ ] T064 [P] Run full integration test suite: LoginPage, AppLayout, token refresh tests
-- [ ] T065 [P] Run accessibility test suite: LoginPage.a11y + AppLayout.a11y tests
-- [ ] T066 Create/update frontend/README.md: auth system architecture, env variables, login flow diagram, token refresh, draft restoration, running tests
-- [ ] T067 [P] Update specs/002-frontend-auth-navigation/quickstart.md: step-by-step testing (login, navigate, refresh, logout, restore draft)
-- [ ] T068 Create specs/002-frontend-auth-navigation/checklists/implementation.md with verification checklist covering all functional requirements
-- [ ] T069 [P] Security review: credentials not logged, refresh token HTTP-only, CSRF handling, no sensitive data in localStorage except draft metadata
-- [ ] T070 [P] Performance optimization: code splitting (lazy-load pages), memoize components, useCallback for handlers, Core Web Vitals, Lighthouse ≥90
-- [ ] T071 Add error boundary to frontend/src/app/root.tsx: catch render errors, display fallback with session-expired message
-- [ ] T072 Final validation against spec success criteria in frontend/src/VALIDATION.md: verify all SC-001 through SC-010
+- [x] T064 [P] Run full integration test suite: LoginPage, AppLayout, token refresh tests
+- [x] T065 [P] Run accessibility test suite: LoginPage.a11y + AppLayout.a11y tests
+- [x] T066 Create/update frontend/README.md: auth system architecture, env variables, login flow diagram, token refresh, draft restoration, running tests
+- [x] T067 [P] Update specs/002-frontend-auth-navigation/quickstart.md: step-by-step testing (login, navigate, refresh, logout, restore draft)
+- [x] T068 Create specs/002-frontend-auth-navigation/checklists/implementation.md with verification checklist covering all functional requirements
+- [x] T069 [P] Security review: credentials not logged, refresh token HTTP-only, CSRF handling, no sensitive data in localStorage except draft metadata
+- [x] T070 [P] Performance optimization: code splitting (lazy-load pages), memoize components, useCallback for handlers, Core Web Vitals, Lighthouse ≥90
+- [x] T071 Add error boundary to frontend/src/app/root.tsx: catch render errors, display fallback with session-expired message
+- [x] T072 Final validation against spec success criteria in frontend/src/VALIDATION.md: verify all SC-001 through SC-010
 
 ---
 
@@ -268,19 +268,19 @@ Recommended for initial release:
 - ⚠️ Do NOT test token refresh with real backend token expiry (mock with MSW)
 - ⚠️ Do NOT hardcode credentials in source code (use env variables)
 - ⚠️ Do NOT access HTTP-only cookies with `document.cookie` (browser prevents this)
-- [ ] T038 [P] [US3] Add refresh endpoint integration test for cookie-based session in `backend/tests/integration/auth_refresh_cookie_test.go`
+- [x] T038 [P] [US3] Add refresh endpoint integration test for cookie-based session in `backend/tests/integration/auth_refresh_cookie_test.go`
 
 ### Implementation for User Story 3
 
-- [ ] T039 [US3] Implement refresh API call and session metadata mapping in `frontend/src/services/auth_service.ts`
-- [ ] T040 [US3] Implement `useAuthRefresh` hook with 75%-lifetime scheduling in `frontend/src/hooks/useAuthRefresh.ts`
-- [ ] T041 [US3] Implement 401 interception and single-flight retry policy in `frontend/src/services/http_client.ts`
-- [ ] T042 [US3] Implement short-TTL draft state persistence utility in `frontend/src/services/draft_restore_store.ts`
-- [ ] T043 [US3] Implement one-time draft restoration after re-login in `frontend/src/hooks/useDraftRestore.ts`
-- [ ] T044 [US3] Implement session-expired redirect flow preserving draft state in `frontend/src/app/auth_provider.tsx`
-- [ ] T045 [US3] Add protected-page bootstrap skeleton states in `frontend/src/components/layout/app_shell.tsx`
-- [ ] T046 [US3] Update BFF refresh controller response metadata (`expiresIn`, `refreshAt`) in `backend/internals/bff/financial/controllers/auth_controller.go`
-- [ ] T047 [US3] Update BFF auth refresh service behavior and cookie rotation in `backend/internals/bff/services/auth_service.go`
+- [x] T039 [US3] Implement refresh API call and session metadata mapping in `frontend/src/services/auth_service.ts`
+- [x] T040 [US3] Implement `useAuthRefresh` hook with 75%-lifetime scheduling in `frontend/src/hooks/useAuthRefresh.ts`
+- [x] T041 [US3] Implement 401 interception and single-flight retry policy in `frontend/src/services/http_client.ts`
+- [x] T042 [US3] Implement short-TTL draft state persistence utility in `frontend/src/services/draft_restore_store.ts`
+- [x] T043 [US3] Implement one-time draft restoration after re-login in `frontend/src/hooks/useDraftRestore.ts`
+- [x] T044 [US3] Implement session-expired redirect flow preserving draft state in `frontend/src/app/auth_provider.tsx`
+- [x] T045 [US3] Add protected-page bootstrap skeleton states in `frontend/src/components/layout/app_shell.tsx`
+- [x] T046 [US3] Update BFF refresh controller response metadata (`expiresIn`, `refreshAt`) in `backend/internals/bff/financial/controllers/auth_controller.go`
+- [x] T047 [US3] Update BFF auth refresh service behavior and cookie rotation in `backend/internals/bff/services/auth_service.go`
 
 **Checkpoint**: User Story 3 is independently functional and testable.
 
@@ -290,11 +290,11 @@ Recommended for initial release:
 
 **Purpose**: Hardening, consistency, and end-to-end validation across all stories.
 
-- [ ] T048 [P] Update auth/navigation quickstart verification steps in `specs/002-frontend-auth-navigation/quickstart.md`
-- [ ] T049 [P] Add accessibility refinements for loading and navigation focus behavior in `frontend/src/components/navigation/sidebar.tsx`
-- [ ] T050 Validate responsive behavior at 320/375/768/1024/1280 widths in `frontend/src/components/layout/app_shell.tsx`
-- [ ] T051 Run full frontend test suite and fix regressions in `frontend/package.json`
-- [ ] T052 Run backend integration tests covering auth contract and lockout in `backend/tests/integration/`
+- [x] T048 [P] Update auth/navigation quickstart verification steps in `specs/002-frontend-auth-navigation/quickstart.md`
+- [x] T049 [P] Add accessibility refinements for loading and navigation focus behavior in `frontend/src/components/navigation/sidebar.tsx`
+- [x] T050 Validate responsive behavior at 320/375/768/1024/1280 widths in `frontend/src/components/layout/app_shell.tsx`
+- [x] T051 Run full frontend test suite and fix regressions in `frontend/package.json`
+- [x] T052 Run backend integration tests covering auth contract and lockout in `backend/tests/integration/`
 
 ---
 

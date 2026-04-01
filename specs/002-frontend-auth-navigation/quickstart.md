@@ -13,43 +13,102 @@
 ### Quick Start
 
 ```bash
+# Install dependencies
+cd frontend && npm install
+
 # Start the frontend development server
 make frontend/dev
 
-# Opens http://localhost:5173
+# Opens http://localhost:3000
 
 # The login screen loads automatically with:
-# - Username: demo (or configured default)
-# - Password: demo123 (or configured default)
-# Note: defaults come from frontend env config and are non-production only
+# - Username: demo (or configured via VITE_DEFAULT_USERNAME)
+# - Password: demo123 (or configured via VITE_DEFAULT_PASSWORD)
+# Note: defaults come from .env.local and are non-production only
 
-# Click "Login" to authenticate
+# Click "Sign in" to authenticate
+```
+
+### Environment Setup (Dev)
+
+Create `frontend/.env.local`:
+
+```bash
+VITE_DEFAULT_USERNAME=demo
+VITE_DEFAULT_PASSWORD=demo123
 ```
 
 ### Testing the Feature
 
 ```bash
-# Run frontend tests
-npm run test
+# Run all frontend tests (unit + integration + a11y)
+cd frontend && npm test
+
+# Run tests with coverage
+npm test -- --coverage
 
 # Run integration tests with backend
 make test/integration
-
-# Test token refresh behavior
-# 1. Log in successfully
-# 2. Wait for token refresh (check console logs)
-# 3. Make an authenticated API call
-# 4. Verify it succeeds without re-login
 ```
+
+### Step-by-Step Test Scenarios
+
+**Login flow**
+1. Open `http://localhost:3000`
+2. Verify login screen is displayed as the first view
+3. Verify username and password are pre-filled from env vars
+4. Click "Sign in" — observe skeleton loading state briefly
+5. Verify redirect to `/dashboard` occurs after successful auth
+
+**Sidebar navigation**
+1. Log in successfully
+2. Verify sidebar appears on the left with 6 items: Dashboard, Documents, Bills, Payments, Analytics, Settings
+3. Click each item — verify URL changes and active item is highlighted
+4. Use browser Back/Forward — verify correct page loads
+
+**Mobile responsive**
+1. Open DevTools → set viewport to 375px wide
+2. Verify sidebar is hidden; hamburger button is visible (top-left)
+3. Click hamburger → verify sidebar slides in
+4. Click a nav item → verify sidebar collapses and page loads
+
+**Token refresh (silent)**
+1. Log in successfully
+2. In DevTools Network tab, filter for `/api/auth/refresh`
+3. Wait for ~75% of `expires_in` to elapse
+4. Observe a refresh request is made silently without interrupting the session
+5. Verify subsequent API calls succeed with the new token
+
+**Session persistence**
+1. Log in successfully
+2. Close the browser tab
+3. Open `http://localhost:3000` again
+4. Verify the session is restored if the `cfa:session` in localStorage is not expired
+
+**Logout and session clear**
+1. Log out from the application
+2. Open DevTools → Application → Local Storage
+3. Verify `cfa:session` key has been removed
+
+**Error handling**
+1. Enter invalid credentials and click "Sign in"
+2. Verify an error message appears below the form
+3. Submit 5+ times → verify lockout message with countdown appears
+4. Verify the button is disabled during lockout
+
+**Draft state restoration**
+1. Log in and navigate to a page with a form
+2. Trigger a session expiry (or use `localStorage.removeItem('cfa:session')` + refresh)
+3. Log in again
+4. Verify the draft restore modal appears if the application saved draft state
 
 ### Browser DevTools Checklist
 
-- [ ] Check Application > Cookies for auth cookies set by BFF (`HttpOnly`, `SameSite=Strict`)
-- [ ] Check Network tab for login request and response
-- [ ] Check Console for authentication logs
-- [ ] Test sidebar navigation by clicking items
-- [ ] Test responsive design by resizing the browser window
-- [ ] Confirm skeleton placeholders appear during login/protected-page loading
+- [ ] Application → Cookies: verify `access_token` has `HttpOnly`, `SameSite=Strict`
+- [ ] Network: verify `/api/auth/login` POST on login
+- [ ] Network: verify `/api/auth/refresh` POST fires at ~75% of token lifetime
+- [ ] Application → Local Storage: verify `cfa:session` contains only metadata (no tokens)
+- [ ] Accessibility: Tab through login form — username → password → Sign in button
 
 ## For QA / Testers
 
@@ -58,7 +117,7 @@ make test/integration
 1. Open the application in your browser
 2. Verify the login screen displays
 3. Verify username and password are pre-filled
-4. Click "Login"
+4. Click "Sign in"
 5. Verify the dashboard loads within 5 seconds
 6. Verify the sidebar is visible with navigation items
 
