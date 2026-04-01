@@ -4,6 +4,8 @@ import './styles/index.css'
 import { AppRouter } from './app/router'
 import { AppProviders } from './app/providers'
 import { ThemeProvider } from './app/theme/ThemeProvider'
+import { AuthProvider } from './hooks/useAuthContext'
+import { ErrorBoundary } from './app/ErrorBoundary'
 
 const container = document.getElementById('root')
 if (!container) {
@@ -12,10 +14,14 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <ThemeProvider>
-      <AppProviders>
-        <AppRouter />
-      </AppProviders>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppProviders>
+            <AppRouter />
+          </AppProviders>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   </StrictMode>
 )

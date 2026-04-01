@@ -51,6 +51,18 @@ type SemanticTokens = {
   colorWarning: string
   colorWarningBg: string
   colorOverlay: string
+  // Auth / login-specific tokens
+  colorInputError: string
+  colorLockoutWarning: string
+  colorLoadingSkeleton: string
+  // Navigation tokens
+  colorSidebarBg: string
+  colorMenuItemText: string
+  colorMenuItemActiveBg: string
+  colorHamburgerIcon: string
+  // Session / draft restore tokens
+  colorSessionWarning: string
+  colorDraftRestoreModal: string
 }
 
 export const lightTokens: SemanticTokens = {
@@ -69,6 +81,18 @@ export const lightTokens: SemanticTokens = {
   colorWarning: palette.amber500,
   colorWarningBg: palette.amber50,
   colorOverlay: 'rgba(0, 0, 0, 0.4)',
+  // Auth
+  colorInputError: palette.red600,
+  colorLockoutWarning: palette.amber500,
+  colorLoadingSkeleton: palette.gray200,
+  // Navigation
+  colorSidebarBg: palette.white,
+  colorMenuItemText: palette.gray600,
+  colorMenuItemActiveBg: palette.indigo50,
+  colorHamburgerIcon: palette.gray600,
+  // Session
+  colorSessionWarning: palette.amber500,
+  colorDraftRestoreModal: palette.white,
 }
 
 export const darkTokens: SemanticTokens = {
@@ -87,6 +111,18 @@ export const darkTokens: SemanticTokens = {
   colorWarning: '#f6e05e',
   colorWarningBg: '#3b2f1a',
   colorOverlay: 'rgba(0, 0, 0, 0.7)',
+  // Auth
+  colorInputError: '#fc8181',
+  colorLockoutWarning: '#f6e05e',
+  colorLoadingSkeleton: '#3a3a5c',
+  // Navigation
+  colorSidebarBg: '#1e1e2e',
+  colorMenuItemText: '#a0aec0',
+  colorMenuItemActiveBg: '#2a2a3d',
+  colorHamburgerIcon: '#a0aec0',
+  // Session
+  colorSessionWarning: '#f6e05e',
+  colorDraftRestoreModal: '#2a2a3d',
 }
 
 export type Theme = 'light' | 'dark'
