@@ -191,3 +191,26 @@ applyTo: "**/*_test.go,**/*.test.ts,**/*.spec.ts"
 **Example input → expected Copilot output**:
 - Input: "Add hook test for upload document flow."
 - Expected output: test file in `frontend/src/hooks/useUploadDocument.test.ts` with `describe` blocks using BDD names, `// Arrange / Act / Assert` sections, and mocked API mutation.
+
+---
+
+## Rule: Route-Level Integration Coverage (BFF)
+
+**Description**: Every declared BFF route MUST have at least one passing integration scenario in a resource-scoped test suite.
+
+**When it applies**: Adding or modifying any BFF route module in `backend/internals/bff/transport/http/routes/`.
+
+**Copilot MUST**:
+- Create or update a resource-scoped integration test file named `<resource>_routes_integration_test.go` in `backend/tests/integration/` for every route module.
+- Use the `buildBFFTestServer` helper from `backend/tests/integration/bff_route_test_helpers.go` to construct an in-process Huma test server with stub capability implementations.
+- Assert that each expected operation ID is registered in `api.OpenAPI().Paths` and that the corresponding HTTP endpoint responds without a 404 or 405.
+- Track the route-to-test mapping in `specs/004-segregate-bff-routing/contracts/route-coverage-matrix.md`.
+
+**Copilot MUST NOT**:
+- Add a new BFF route without a corresponding integration test scenario.
+- Register routes in controller structs — route registration belongs exclusively to route module files (`*_routes.go`).
+- Skip the route coverage matrix update when adding new routes.
+
+**Example input → expected Copilot output**:
+- Input: "Add a new GET /api/v1/reports endpoint."
+- Expected output: add the route to a `reports_routes.go` route module, create/update `reports_routes_integration_test.go` asserting the operation ID is registered and the endpoint is reachable, and update the route coverage matrix.

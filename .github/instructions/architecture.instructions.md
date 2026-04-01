@@ -86,23 +86,28 @@ go func() {
 
 ## Rule: BFF with Echo + Huma (OpenAPI-First)
 
-**Description**: The BFF service MUST use Echo as the HTTP server and Huma for OpenAPI-first route registration.
+**Description**: The BFF service MUST use Echo as the HTTP server and Huma for OpenAPI-first route registration. All `huma.Register(...)` calls MUST live exclusively in route module files (`*_routes.go`); controllers are pure behaviour structs.
 
 **When it applies**: Adding or modifying BFF routes, handlers, or middleware.
 
 **Copilot MUST**:
 - Register every route via `huma.Register` with `OperationID`, `Summary`, `Description`, and `Tags`.
+- Place all `huma.Register(...)` calls in dedicated route module files under `backend/internals/bff/transport/http/routes/`.
+- Have each route module accept a narrow capability interface (not a concrete controller type) via its constructor.
+- Provide controllers to the dig container using `dig.As(new(routes.XxxCapability))` so they are resolved as capability interfaces.
 - Wire `otelecho` as the first middleware for distributed trace propagation.
 - Keep all business decisions in `backend/internals/bff/services/` away from controllers.
 - Place JWT validation and JWKS cache logic in `backend/internals/bff/transport/http/middleware/`.
 - Place project-membership and role guard logic in `backend/internals/bff/transport/http/middleware/project_guard.go`.
 
 **Copilot MUST NOT**:
+- Call `huma.Register(...)` inside a controller method — route registration belongs to route modules.
+- Add a `Register(api, auth)` method to any controller struct.
 - Register raw Echo routes that skip Huma operation metadata.
 - Embed business rules in controller-level handler closures.
 - Use any HTTP framework other than Echo (no Gin, Fiber, Chi).
 
-**Reference files**: `backend/cmd/bff/container.go` (bootstrap), `backend/internals/bff/financial/controllers/` (controllers).
+**Reference files**: `backend/cmd/bff/container.go` (bootstrap), `backend/internals/bff/transport/http/routes/` (route modules), `backend/internals/bff/transport/http/controllers/` (controllers).
 
 ---
 

@@ -24,7 +24,17 @@ Validate that the BFF transport layer can be refactored to dedicated route modul
 
 ```bash
 cd backend
+
+# Unit/package-level build verification
+go build ./...
+
+# Unit tests (no integration DB needed)
 go test ./...
+
+# Route-level integration tests (requires no live DB — uses stub capabilities)
+go test -tags=integration -run 'TestBFF' ./tests/integration/...
+
+# Full integration suite (requires TEST_DB_DSN or default local DSN)
 go test -tags=integration ./tests/integration/...
 ```
 
