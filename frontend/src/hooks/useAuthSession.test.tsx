@@ -5,7 +5,7 @@
  * correctly validates and maps login/error/lockout responses.
  */
 
-import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterEach, afterAll } from 'vitest'
 import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { renderHook, act } from '@testing-library/react'
@@ -27,7 +27,8 @@ function Wrapper({ children }: { children: ReactNode }) {
 const server = setupServer()
 
 beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
+beforeEach(() => localStorage.clear())
+afterEach(() => { server.resetHandlers(); localStorage.clear() })
 afterAll(() => server.close())
 
 describe('useAuthSession — BFF /api/auth/login contract', () => {

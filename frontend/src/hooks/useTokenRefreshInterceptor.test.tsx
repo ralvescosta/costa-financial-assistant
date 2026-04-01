@@ -84,7 +84,7 @@ describe('useTokenRefreshInterceptor', () => {
     renderHook(() => useTokenRefreshInterceptor(), { wrapper: Wrapper })
 
     await act(async () => {
-      await fetch('/api/protected').catch(() => {})
+      await fetch('/api/protected').catch(() => { })
     })
 
     // Should have called fetch at least twice (original + refresh attempt)

@@ -1,9 +1,9 @@
-# Feature Specification: [FEATURE NAME]
+# Feature Specification: BFF Route-Controller Segregation
 
-**Feature Branch**: `[###-feature-name]`  
-**Created**: [DATE]  
+**Feature Branch**: `[004-segregate-bff-routing]`  
+**Created**: 2026-04-01  
 **Status**: Draft  
-**Input**: User description: "$ARGUMENTS"
+**Input**: User description: "refactor the bff http controllers to segregate the controllers with the routing, the bff controllers are doing the controller logic also declaring the routes, we must segregate this responsibility, we must have a route declaration separated than the controllers, each controller must be a struct which implements a default controller interface that could have default methods that we could or could not implement and the routes must be also a struct which implements a default interface and will receive the controller through dependency injection and will use the controllers into the routes. you also must ensure all the routes we have integration tests for them."
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -20,109 +20,94 @@
   - Demonstrated to users independently
 -->
 
-### User Story 1 - [Brief Title] (Priority: P1)
+### User Story 1 - Separate Route Registration from Controller Behavior (Priority: P1)
 
-[Describe this user journey in plain language]
+As a backend maintainer, I want route declarations to be separated from controller behavior so that HTTP entrypoints are easier to read, change, and validate without mixing responsibilities.
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: This is the core architectural change requested and unlocks predictable maintenance for all BFF endpoints.
 
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-### User Story 2 - [Brief Title] (Priority: P2)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: Can be fully tested by reviewing route setup modules and confirming controllers no longer own route declaration while existing endpoint behavior remains unchanged.
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** existing BFF endpoints, **When** route setup is inspected, **Then** route declarations are defined in dedicated route structures and not inside controller behavior structures.
+2. **Given** the refactored codebase, **When** an existing endpoint is called, **Then** it preserves the same externally observable request/response behavior and authorization expectations.
 
 ---
 
-### User Story 3 - [Brief Title] (Priority: P3)
+### User Story 2 - Standardize Controller and Route Contracts (Priority: P2)
 
-[Describe this user journey in plain language]
+As a backend maintainer, I want controllers and routes to follow default contracts so that new endpoints can be introduced consistently with lower onboarding cost and fewer integration mistakes.
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**Why this priority**: Contract consistency reduces divergence between modules and improves development speed for future features.
 
-**Independent Test**: [Describe how this can be tested independently]
+**Independent Test**: Can be independently tested by introducing or updating one endpoint module and confirming it can use the standard controller and route contracts without custom wiring patterns.
 
 **Acceptance Scenarios**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **Given** a controller module, **When** it is implemented, **Then** it can conform to a shared controller contract while only implementing behavior relevant to that module.
+2. **Given** a route module, **When** dependencies are wired, **Then** it receives controller dependencies through dependency injection and uses those controllers to handle endpoint registration and execution flow.
 
 ---
 
-[Add more user stories as needed, each with an assigned priority]
+### User Story 3 - Ensure Route-Level Integration Coverage (Priority: P3)
+
+As a quality owner, I want integration tests to cover all BFF routes so that refactoring does not silently break endpoint exposure, middleware flow, or route accessibility.
+
+**Why this priority**: Full route coverage protects against regressions introduced by routing reorganization.
+
+**Independent Test**: Can be independently tested by running integration tests and verifying every declared BFF route is represented by at least one integration scenario.
+
+**Acceptance Scenarios**:
+
+1. **Given** the full list of declared BFF routes, **When** integration tests are executed, **Then** each route has at least one passing integration test validating expected accessibility and response behavior.
+2. **Given** a new BFF route is added after this feature, **When** quality checks run, **Then** missing integration coverage for that route is detectable and considered incomplete work.
+
+---
 
 ### Edge Cases
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
-
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
+- A controller supports only a subset of optional default contract methods; unimplemented optional behavior must not block route registration for supported actions.
+- A route is declared but not wired through dependency injection; startup or validation must fail clearly rather than silently exposing partial routing.
+- A route exists in declarations but has no corresponding integration test; the quality process must identify the gap before feature acceptance.
+- Existing middleware (authentication, authorization, project guard) must remain consistently applied after routing is moved out of controllers.
 
 ## Requirements *(mandatory)*
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
-
 ### Functional Requirements
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
-
-*Example of marking unclear requirements:*
-
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+- **FR-001**: The BFF module MUST separate route declaration responsibilities from controller behavior responsibilities for all HTTP endpoints in scope.
+- **FR-002**: The system MUST provide a default controller contract that allows controllers to share common behavior while permitting module-specific controllers to implement only relevant behaviors.
+- **FR-003**: The system MUST provide a default route contract that standardizes how route groups register endpoints and consume controller dependencies.
+- **FR-004**: Route structures MUST receive controller dependencies through the existing dependency injection flow rather than creating controller instances locally.
+- **FR-005**: Existing endpoint paths, HTTP methods, and externally visible response behavior MUST remain functionally equivalent after segregation, unless explicitly documented as a deliberate change.
+- **FR-006**: Existing authentication, authorization, and project-isolation protections MUST remain enforced on the same route behaviors after refactoring.
+- **FR-007**: Every declared BFF route MUST be covered by at least one integration test that verifies successful routing and expected outcome for the route's intended access pattern.
+- **FR-008**: The route-to-test mapping MUST be maintainable, allowing maintainers to identify which integration test(s) validate each declared route.
+- **FR-009**: Feature completion MUST require passing integration tests for all route coverage defined by this specification.
 
 ### Key Entities *(include if feature involves data)*
 
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
+- **Controller Contract**: A standard behavioral contract for controller modules. Includes shared/default behavior points and optional implementation points for domain-specific operations.
+- **Route Contract**: A standard registration contract for route modules. Defines how a route module receives dependencies and declares endpoint mappings.
+- **Controller Module**: A concrete controller unit that executes request handling behavior and conforms to the controller contract.
+- **Route Module**: A concrete routing unit that declares endpoint mappings and delegates handling to injected controller modules.
+- **Route Coverage Record**: A maintainable mapping artifact that links each declared route to one or more integration tests validating that route.
 
 ## Success Criteria *(mandatory)*
 
-<!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
--->
-
 ### Measurable Outcomes
 
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+- **SC-001**: 100% of BFF routes in scope are declared via dedicated route modules rather than inside controller behavior modules.
+- **SC-002**: 100% of controller modules in scope conform to the default controller contract and are wired through dependency injection.
+- **SC-003**: 100% of declared BFF routes in scope have at least one passing integration test.
+- **SC-004**: No regression in existing route accessibility and expected response outcomes is detected across the full integration test suite for BFF routes in scope.
+- **SC-005**: During code review, maintainers can identify route declarations and controller behavior locations for any in-scope endpoint in under 2 minutes.
 
 ## Assumptions
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right assumptions based on reasonable defaults
-  chosen when the feature description did not specify certain details.
--->
 
-- [Assumption about target users, e.g., "Users have stable internet connectivity"]
-- [Assumption about scope boundaries, e.g., "Mobile support is out of scope for v1"]
-- [Assumption about data/environment, e.g., "Existing authentication system will be reused"]
-- [Dependency on existing system/service, e.g., "Requires access to the existing user profile API"]
+- The refactor targets existing BFF HTTP routes and does not introduce new business capabilities beyond structural segregation and coverage completion.
+- Existing dependency injection and middleware mechanisms remain the baseline and are reused rather than replaced.
+- Integration route coverage is evaluated for routes that are active and supported in the BFF module at feature completion time.
+- Existing API contracts consumed by clients remain stable unless a separate approved change request explicitly expands this scope.

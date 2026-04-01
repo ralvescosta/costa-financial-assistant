@@ -6,7 +6,7 @@
  * by the parent layout via `isOpen` / `onClose` props.
  */
 
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useMatch } from 'react-router-dom'
 import { NAVIGATION_ITEMS } from '@/app/router.config'
 import type { MenuItem } from '@/types/navigation'
 
@@ -16,10 +16,12 @@ interface SidebarProps {
 }
 
 function NavItem({ item, onClose }: { item: MenuItem; onClose: () => void }) {
+  const match = useMatch(item.path)
   return (
     <NavLink
       to={item.path}
       onClick={onClose}
+      aria-current={match ? 'page' : undefined}
       className={({ isActive }) =>
         [
           'flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium',
@@ -30,7 +32,6 @@ function NavItem({ item, onClose }: { item: MenuItem; onClose: () => void }) {
             : 'text-[color:var(--color-menu-item-text)] hover:bg-surface-raised',
         ].join(' ')
       }
-      aria-current={({ isActive }: { isActive: boolean }) => (isActive ? 'page' : undefined)}
     >
       {item.icon && (
         <span className="text-lg" aria-hidden="true">
