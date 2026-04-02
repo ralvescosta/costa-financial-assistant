@@ -152,6 +152,10 @@ func (r *PostgresBillPaymentRepository) GetDashboardEntries(
 		var (
 			dueDate     string
 			amountDue   float64
+			billTypeID  sql.NullString
+			pixPayload  sql.NullString
+			pixQRRef    sql.NullString
+			barcode     sql.NullString
 			paidAt      sql.NullTime
 			markedBy    sql.NullString
 			createdAt   time.Time
@@ -166,9 +170,9 @@ func (r *PostgresBillPaymentRepository) GetDashboardEntries(
 		)
 
 		if scanErr := rows.Scan(
-			&bill.Id, &bill.ProjectId, &bill.DocumentId, &bill.BillTypeId,
-			&dueDate, &amountDue, &bill.PixPayload, &bill.PixQrImageRef,
-			&bill.Barcode, &statusStr, &paidAt, &markedBy,
+			&bill.Id, &bill.ProjectId, &bill.DocumentId, &billTypeID,
+			&dueDate, &amountDue, &pixPayload, &pixQRRef,
+			&barcode, &statusStr, &paidAt, &markedBy,
 			&createdAt, &updatedAt,
 			&btID, &btProjectID, &btName, &btCreatedAt,
 			&isOverdue, &daysUntil,
@@ -178,6 +182,18 @@ func (r *PostgresBillPaymentRepository) GetDashboardEntries(
 
 		bill.DueDate = dueDate
 		bill.AmountDue = fmt.Sprintf("%.2f", amountDue)
+		if billTypeID.Valid {
+			bill.BillTypeId = billTypeID.String
+		}
+		if pixPayload.Valid {
+			bill.PixPayload = pixPayload.String
+		}
+		if pixQRRef.Valid {
+			bill.PixQrImageRef = pixQRRef.String
+		}
+		if barcode.Valid {
+			bill.Barcode = barcode.String
+		}
 		bill.PaymentStatus = stringToPaymentStatus(statusStr)
 		if paidAt.Valid {
 			bill.PaidAt = paidAt.Time.Format(time.RFC3339)
@@ -274,20 +290,24 @@ func (r *PostgresBillPaymentRepository) StoreIdempotencyKey(ctx context.Context,
 // scanBillRecord scans a single BillRecord from a QueryRow.
 func (r *PostgresBillPaymentRepository) scanBillRecord(_ context.Context, row *sql.Row) (*billsv1.BillRecord, error) {
 	var (
-		bill      billsv1.BillRecord
-		dueDate   string
-		amountDue float64
-		paidAt    sql.NullTime
-		markedBy  sql.NullString
-		createdAt time.Time
-		updatedAt time.Time
-		statusStr string
+		bill       billsv1.BillRecord
+		dueDate    string
+		amountDue  float64
+		billTypeID sql.NullString
+		pixPayload sql.NullString
+		pixQRRef   sql.NullString
+		barcode    sql.NullString
+		paidAt     sql.NullTime
+		markedBy   sql.NullString
+		createdAt  time.Time
+		updatedAt  time.Time
+		statusStr  string
 	)
 
 	err := row.Scan(
-		&bill.Id, &bill.ProjectId, &bill.DocumentId, &bill.BillTypeId,
-		&dueDate, &amountDue, &bill.PixPayload, &bill.PixQrImageRef,
-		&bill.Barcode, &statusStr, &paidAt, &markedBy,
+		&bill.Id, &bill.ProjectId, &bill.DocumentId, &billTypeID,
+		&dueDate, &amountDue, &pixPayload, &pixQRRef,
+		&barcode, &statusStr, &paidAt, &markedBy,
 		&createdAt, &updatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -299,6 +319,18 @@ func (r *PostgresBillPaymentRepository) scanBillRecord(_ context.Context, row *s
 
 	bill.DueDate = dueDate
 	bill.AmountDue = fmt.Sprintf("%.2f", amountDue)
+	if billTypeID.Valid {
+		bill.BillTypeId = billTypeID.String
+	}
+	if pixPayload.Valid {
+		bill.PixPayload = pixPayload.String
+	}
+	if pixQRRef.Valid {
+		bill.PixQrImageRef = pixQRRef.String
+	}
+	if barcode.Valid {
+		bill.Barcode = barcode.String
+	}
 	bill.PaymentStatus = stringToPaymentStatus(statusStr)
 	if paidAt.Valid {
 		bill.PaidAt = paidAt.Time.Format(time.RFC3339)
@@ -315,20 +347,24 @@ func (r *PostgresBillPaymentRepository) scanBillRecord(_ context.Context, row *s
 // scanRowBillRecord scans a single BillRecord from sql.Rows.
 func (r *PostgresBillPaymentRepository) scanRowBillRecord(rows *sql.Rows) (*billsv1.BillRecord, error) {
 	var (
-		bill      billsv1.BillRecord
-		dueDate   string
-		amountDue float64
-		paidAt    sql.NullTime
-		markedBy  sql.NullString
-		createdAt time.Time
-		updatedAt time.Time
-		statusStr string
+		bill       billsv1.BillRecord
+		dueDate    string
+		amountDue  float64
+		billTypeID sql.NullString
+		pixPayload sql.NullString
+		pixQRRef   sql.NullString
+		barcode    sql.NullString
+		paidAt     sql.NullTime
+		markedBy   sql.NullString
+		createdAt  time.Time
+		updatedAt  time.Time
+		statusStr  string
 	)
 
 	if err := rows.Scan(
-		&bill.Id, &bill.ProjectId, &bill.DocumentId, &bill.BillTypeId,
-		&dueDate, &amountDue, &bill.PixPayload, &bill.PixQrImageRef,
-		&bill.Barcode, &statusStr, &paidAt, &markedBy,
+		&bill.Id, &bill.ProjectId, &bill.DocumentId, &billTypeID,
+		&dueDate, &amountDue, &pixPayload, &pixQRRef,
+		&barcode, &statusStr, &paidAt, &markedBy,
 		&createdAt, &updatedAt,
 	); err != nil {
 		return nil, fmt.Errorf("bill payment repo: scan row: %w", err)
@@ -336,6 +372,18 @@ func (r *PostgresBillPaymentRepository) scanRowBillRecord(rows *sql.Rows) (*bill
 
 	bill.DueDate = dueDate
 	bill.AmountDue = fmt.Sprintf("%.2f", amountDue)
+	if billTypeID.Valid {
+		bill.BillTypeId = billTypeID.String
+	}
+	if pixPayload.Valid {
+		bill.PixPayload = pixPayload.String
+	}
+	if pixQRRef.Valid {
+		bill.PixQrImageRef = pixQRRef.String
+	}
+	if barcode.Valid {
+		bill.Barcode = barcode.String
+	}
 	bill.PaymentStatus = stringToPaymentStatus(statusStr)
 	if paidAt.Valid {
 		bill.PaidAt = paidAt.Time.Format(time.RFC3339)
