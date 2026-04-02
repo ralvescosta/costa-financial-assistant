@@ -26,7 +26,8 @@ RESET := \033[0m
         $(addprefix svc/run/,$(SERVICES)) \
         $(addprefix svc/test/,$(SERVICES)) \
         $(addprefix migrate/up/,$(SERVICES)) \
-        $(addprefix migrate/down/,$(SERVICES))
+	$(addprefix migrate/down/,$(SERVICES)) \
+	migrate/up migrate/down migrate/status migrate/validate
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z/_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -84,21 +85,51 @@ test/integration: ## Run backend integration tests with ephemeral DB
 	@cd backend && go test -race -count=1 -v -tags integration ./tests/integration/...
 
 # ─── Migrations ──────────────────────────────────────────────────────────────
-DB_URL_bff         ?= postgres://financial:financial@localhost:5432/financial_payments?sslmode=disable
-DB_URL_onboarding  ?= postgres://financial:financial@localhost:5432/financial_onboarding?sslmode=disable
-DB_URL_files       ?= postgres://financial:financial@localhost:5432/financial_files?sslmode=disable
-DB_URL_bills       ?= postgres://financial:financial@localhost:5432/financial_bills?sslmode=disable
-DB_URL_payments    ?= postgres://financial:financial@localhost:5432/financial_payments?sslmode=disable
+DB_URL_bff         ?= postgres://postgres:postgres@localhost:5432/financial_payments?sslmode=disable
+DB_URL_onboarding  ?= postgres://postgres:postgres@localhost:5432/financial_onboarding?sslmode=disable
+DB_URL_files       ?= postgres://postgres:postgres@localhost:5432/financial_files?sslmode=disable
+DB_URL_bills       ?= postgres://postgres:postgres@localhost:5432/financial_bills?sslmode=disable
+DB_URL_payments    ?= postgres://postgres:postgres@localhost:5432/financial_payments?sslmode=disable
+
+MIGRATIONS_DB_DSN ?= postgres://postgres:postgres@localhost:5432/financial_assistant?sslmode=disable
+MIGRATIONS_ENV    ?= local
+
+migrate/up: ## Apply migrations for all services
+	@cd backend && \
+	  MIGRATIONS_SERVICE_NAME=migrations \
+	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
+	  go run . migrations up --env $(MIGRATIONS_ENV)
+
+migrate/down: ## Rollback migrations for one service (set service=<name>)
+	@cd backend && \
+	  MIGRATIONS_SERVICE_NAME=migrations \
+	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
+	  go run . migrations down --service $(service)
+
+migrate/status: ## Show migration status
+	@cd backend && \
+	  MIGRATIONS_SERVICE_NAME=migrations \
+	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
+	  go run . migrations status --format table
+
+migrate/validate: ## Validate migration folders and file pairs
+	@cd backend && go run . migrations validate
 
 define MIGRATE_TARGETS
-migrate/up/$(1): ## Apply migrations for: $(1)
-	@migrate -path backend/internals/$(1)/migrations -database "$$(DB_URL_$(1))" up
+migrate/up/$(1): ## Apply migrations for service: $(1)
+	@cd backend && \
+	  MIGRATIONS_SERVICE_NAME=migrations \
+	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
+	  go run . migrations up --service $(1) --env $(MIGRATIONS_ENV)
 
-migrate/down/$(1): ## Rollback migrations for: $(1)
-	@migrate -path backend/internals/$(1)/migrations -database "$$(DB_URL_$(1))" down 1
+migrate/down/$(1): ## Rollback one migration for service: $(1)
+	@cd backend && \
+	  MIGRATIONS_SERVICE_NAME=migrations \
+	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
+	  go run . migrations down --service $(1)
 
 endef
-$(foreach svc,onboarding files bills payments,$(eval $(call MIGRATE_TARGETS,$(svc))))
+$(foreach svc,onboarding files bills identity payments,$(eval $(call MIGRATE_TARGETS,$(svc))))
 
 # ─── Proto generation ────────────────────────────────────────────────────────
 PROTO_SRC_DIR := backend/protos

@@ -34,7 +34,7 @@
 
 ## Phase 1: Setup
 
-### T001: Add golang-migrate/migrate to Dependencies [Setup]
+### [X] T001: Add golang-migrate/migrate to Dependencies [Setup]
 
 **Objective**: Integrate golang-migrate/migrate library into the backend project.
 
@@ -63,7 +63,7 @@ go mod tidy
 
 ---
 
-### T002: Create Migration Tracking Tables (DDL) [Setup]
+### [X] T002: Create Migration Tracking Tables (DDL) [Setup]
 
 **Objective**: Design and create the two foundational migration tracking tables (`migrations_ddl` and `migrations_dml`) in each service schema.
 
@@ -90,7 +90,7 @@ go mod tidy
 
 ---
 
-### T003: Setup Migration Service Go Module [Setup]
+### [X] T003: Setup Migration Service Go Module [Setup]
 
 **Objective**: Create the foundational Go module structure for the migration service with stub interfaces.
 
@@ -118,7 +118,7 @@ go mod tidy
 
 ## Phase 2: Foundational
 
-### T004: Implement golang-migrate Wrapper (Low-Level) [Foundational]
+### [X] T004: Implement golang-migrate Wrapper (Low-Level) [Foundational]
 
 **Objective**: Create a thin wrapper around golang-migrate that discovers migrations from the standardized folder structure and executes them.
 
@@ -149,7 +149,7 @@ go mod tidy
 
 ---
 
-### T005: Implement Migration Discovery Algorithm [Foundational]
+### [X] T005: Implement Migration Discovery Algorithm [Foundational]
 
 **Objective**: Implement folder scanning logic to auto-discover migration files from the standardized structure.
 
@@ -186,7 +186,7 @@ go mod tidy
 
 ---
 
-### T006: Implement Production Safety Check [Foundational]
+### [X] T006: Implement Production Safety Check [Foundational]
 
 **Objective**: Implement two-factor safety validation to prevent accidental production migration execution.
 
@@ -223,7 +223,7 @@ go mod tidy
 
 ---
 
-### T007: Implement Migration Record Tracking [Foundational]
+### [X] T007: Implement Migration Record Tracking [Foundational]
 
 **Objective**: Create functions to insert/query migration records into tracking tables with proper error handling.
 
@@ -260,7 +260,7 @@ go mod tidy
 
 ---
 
-### T008: Implement Environment Variable Reading with Logging [Foundational]
+### [X] T008: Implement Environment Variable Reading with Logging [Foundational]
 
 **Objective**: Centralize environment variable reading with comprehensive logging and validation.
 
@@ -283,7 +283,7 @@ go mod tidy
 
 ---
 
-### T009: Setup Cobra CLI Command Structure [Foundational]
+### [X] T009: Setup Cobra CLI Command Structure [Foundational]
 
 **Objective**: Create the Cobra command scaffold for all migration CLI commands.
 
@@ -309,7 +309,7 @@ go mod tidy
 
 ## Phase 3: US1 — Migrate DDL Schema Changes (Priority: P0)
 
-### T010: Implement DDL Migration Orchestration Logic [US1-DDL]
+### [X] T010: Implement DDL Migration Orchestration Logic [US1-DDL]
 
 **Objective**: Implement the core DDL execution flow: discover DDL files, validate prerequisites, execute in order, track records.
 
@@ -358,7 +358,7 @@ go mod tidy
 
 ---
 
-### T011: Create Initial DDL Migrations for Bills Service [US1-DDL]
+### [X] T011: Create Initial DDL Migrations for Bills Service [US1-DDL]
 
 **Objective**: Create foundational DDL migrations for the bills service to establish its schema.
 
@@ -382,7 +382,7 @@ go mod tidy
 
 ---
 
-### T012: Create DDL Migrations for Files Service [US1-DDL]
+### [X] T012: Create DDL Migrations for Files Service [US1-DDL]
 
 **Objective**: Create DDL migrations for files service (documents, metadata, etc.).
 
@@ -404,7 +404,7 @@ go mod tidy
 
 ---
 
-### T013: Create DDL Migrations for Identity Service [US1-DDL]
+### [X] T013: Create DDL Migrations for Identity Service [US1-DDL]
 
 **Objective**: Create DDL migrations for identity service (users, roles, permissions).
 
@@ -424,7 +424,7 @@ go mod tidy
 
 ---
 
-### T014: Create DDL Migrations for Onboarding Service [US1-DDL]
+### [X] T014: Create DDL Migrations for Onboarding Service [US1-DDL]
 
 **Objective**: Create DDL migrations for onboarding service (registrations, projects, etc.).
 
@@ -442,7 +442,7 @@ go mod tidy
 
 ---
 
-### T015: Create DDL Migrations for Payments Service [US1-DDL]
+### [X] T015: Create DDL Migrations for Payments Service [US1-DDL]
 
 **Objective**: Create DDL migrations for payments service (transactions, reconciliation).
 
@@ -460,7 +460,7 @@ go mod tidy
 
 ---
 
-### T016: Implement Rollback Logic for DDL [US1-DDL]
+### [X] T016: Implement Rollback Logic for DDL [US1-DDL]
 
 **Objective**: Implement the `.down.sql` execution flow with proper cascade ordering and error recovery.
 
@@ -502,7 +502,7 @@ go mod tidy
 
 ---
 
-### T017: Implement Status Command for DDL Queries [US1-DDL]
+### [X] T017: Implement Status Command for DDL Queries [US1-DDL]
 
 **Objective**: Implement migration status reporting showing applied vs pending migrations.
 
@@ -579,7 +579,7 @@ type MigrationStatus struct {
 
 **[P] This phase runs parallel with US2-DML after US1 completes. Can be executed by a second developer/team.**
 
-### T019: Implement migrate up CLI Command [US3-CLI]
+### [X] T019: Implement migrate up CLI Command [US3-CLI]
 
 **Objective**: Implement the Cobra command handler for `migrate up` with all flags and validation.
 
@@ -610,7 +610,7 @@ type MigrationStatus struct {
 
 ---
 
-### T020: Implement migrate down CLI Command [US3-CLI]
+### [X] T020: Implement migrate down CLI Command [US3-CLI]
 
 **Objective**: Implement Cobra command handler for `migrate down` with version targeting and force-rollback support.
 
@@ -635,7 +635,7 @@ type MigrationStatus struct {
 
 ---
 
-### T021: Implement migrate status CLI Command [US3-CLI]
+### [X] T021: Implement migrate status CLI Command [US3-CLI]
 
 **Objective**: Implement Cobra command for `migrate status` displaying migration state.
 
@@ -661,7 +661,7 @@ type MigrationStatus struct {
 
 ---
 
-### T022: Add migrate/up/% Makefile Targets [US3-CLI]
+### [X] T022: Add migrate/up/% Makefile Targets [US3-CLI]
 
 **Objective**: Create Makefile targets for easy invocation of migration commands.
 
@@ -685,7 +685,7 @@ type MigrationStatus struct {
 
 ---
 
-### T023: Implement Logging and Structured Output [US3-CLI]
+### [X] T023: Implement Logging and Structured Output [US3-CLI]
 
 **Objective**: Add comprehensive structured logging to all CLI commands using zap/slog.
 
@@ -789,7 +789,7 @@ type MigrationStatus struct {
 
 **[P] This phase runs parallel with US3-CLI after US1 completes. Can be executed by a second developer/team.**
 
-### T028: Implement DML Migration Logic [US2-DML]
+### [X] T028: Implement DML Migration Logic [US2-DML]
 
 **Objective**: Implement DML execution flow with environment filtering.
 
@@ -824,7 +824,7 @@ type MigrationStatus struct {
 
 ---
 
-### T029: Create DML Migrations for Bills Service [US2-DML]
+### [X] T029: Create DML Migrations for Bills Service [US2-DML]
 
 **Objective**: Create environment-specific DML seed migrations for bills service.
 
@@ -850,7 +850,7 @@ type MigrationStatus struct {
 
 ---
 
-### T030: Create DML Migrations for Files Service [US2-DML]
+### [X] T030: Create DML Migrations for Files Service [US2-DML]
 
 **Objective**: Create environment-specific DML seed migrations for files service.
 
@@ -869,7 +869,7 @@ type MigrationStatus struct {
 
 ---
 
-### T031: Create DML Migrations for Identity Service [US2-DML]
+### [X] T031: Create DML Migrations for Identity Service [US2-DML]
 
 **Objective**: Create environment-specific DML seed migrations for identity service (users, roles).
 
@@ -888,7 +888,7 @@ type MigrationStatus struct {
 
 ---
 
-### T032: Create DML Migrations for Onboarding Service [US2-DML]
+### [X] T032: Create DML Migrations for Onboarding Service [US2-DML]
 
 **Objective**: Create environment-specific DML seed migrations for onboarding service (projects, registrations).
 
@@ -905,7 +905,7 @@ type MigrationStatus struct {
 
 ---
 
-### T033: Create DML Migrations for Payments Service [US2-DML]
+### [X] T033: Create DML Migrations for Payments Service [US2-DML]
 
 **Objective**: Create environment-specific DML seed migrations for payments service.
 
@@ -977,7 +977,7 @@ type MigrationStatus struct {
 
 **[P] This phase runs parallel with US2 and US3 after Foundational completes. Can be executed concurrently.**
 
-### T036: Validate and Standardize Bills Migrations Folder [US4-Folder]
+### [X] T036: Validate and Standardize Bills Migrations Folder [US4-Folder]
 
 **Objective**: Ensure bills service migrations folder follows standardized structure.
 
@@ -1001,7 +1001,7 @@ type MigrationStatus struct {
 
 ---
 
-### T037: Implement Folder Structure Validation Tool [US4-Folder]
+### [X] T037: Implement Folder Structure Validation Tool [US4-Folder]
 
 **Objective**: Create a validation command to check that all services follow the standardized folder structure.
 
@@ -1030,7 +1030,7 @@ type MigrationStatus struct {
 
 ---
 
-### T038: Create Makefile Target for Folder Validation [US4-Folder]
+### [X] T038: Create Makefile Target for Folder Validation [US4-Folder]
 
 **Objective**: Add `make migrate/validate` target to run folder structure check.
 
