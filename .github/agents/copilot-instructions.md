@@ -13,6 +13,8 @@ Monorepo web application: a multi-tenant financial bill organizer.
 - Browser HTTP-only cookies for auth/session (set by BFF), local client storage only for UI preferences and short-lived draft restore metadata (002-frontend-auth-navigation)
 - Go 1.25.6; Markdown governance artifacts + `testing` (stdlib), `github.com/stretchr/testify`, `github.com/testcontainers/testcontainers-go` (to be standardized in scope), `github.com/golang-migrate/migrate/v4` (005-standardize-integration-tests)
 - PostgreSQL ephemeral test database for integration runs (005-standardize-integration-tests)
+- Go 1.25.6 + Echo v4.15.1, Huma v2.37.3, Dig v1.19.0, Zap v1.27.1, gRPC v1.80.0 generated clients, Testify v1.11.1, go-playground/validator for controller-side HTTP contract validation (006-bff-http-separation)
+- Existing downstream PostgreSQL-backed services and payments repositories; no new persistent store introduced (006-bff-http-separation)
 
 ### Backend (Go — latest stable)
 - HTTP framework: `github.com/labstack/echo/v4` + `github.com/danielgtaylor/huma/v2` (OpenAPI-first BFF)
@@ -155,5 +157,6 @@ make test/integration/bills
 
 
 ## Recent Changes
+- 006-bff-http-separation: Added Go 1.25.6 + Echo v4.15.1, Huma v2.37.3, Dig v1.19.0, Zap v1.27.1, gRPC v1.80.0 generated clients, Testify v1.11.1, go-playground/validator for controller-side HTTP contract validation
 - 005-standardize-integration-tests: Added Go 1.25.6; Markdown governance artifacts + `testing` (stdlib), `github.com/stretchr/testify`, `github.com/testcontainers/testcontainers-go` (to be standardized in scope), `github.com/golang-migrate/migrate/v4`
 - 002-frontend-auth-navigation: Added TypeScript 5.8.x, React 18.3.x + react-router-dom 6.30.x, @tanstack/react-query 5.76.x, zod 3.24.x, TailwindCSS 3.4.x

@@ -9,17 +9,12 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
 // ErrBillRecordNotFound is returned when a bill record does not exist for the given document.
 var ErrBillRecordNotFound = errors.New("bill record not found")
-
-// BillRecordRepository defines the persistence contract for extracted bill data.
-type BillRecordRepository interface {
-	Create(ctx context.Context, tx *sql.Tx, record *filesv1.BillRecord) (*filesv1.BillRecord, error)
-	FindByProjectAndDocumentID(ctx context.Context, projectID, documentID string) (*filesv1.BillRecord, error)
-}
 
 // PostgresBillRecordRepository implements BillRecordRepository using PostgreSQL.
 type PostgresBillRecordRepository struct {
@@ -28,7 +23,7 @@ type PostgresBillRecordRepository struct {
 }
 
 // NewBillRecordRepository constructs a PostgresBillRecordRepository.
-func NewBillRecordRepository(db *sql.DB, logger *zap.Logger) BillRecordRepository {
+func NewBillRecordRepository(db *sql.DB, logger *zap.Logger) interfaces.BillRecordRepository {
 	return &PostgresBillRecordRepository{db: db, logger: logger}
 }
 

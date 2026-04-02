@@ -11,6 +11,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -23,14 +24,6 @@ var ErrDuplicateBankAccount = errors.New("bank account label already exists in t
 // ErrBankAccountInUse is returned when the bank account is referenced by one or more statement records.
 var ErrBankAccountInUse = errors.New("bank account is referenced by statement records and cannot be deleted")
 
-// BankAccountRepository defines the project-scoped persistence contract for bank accounts.
-type BankAccountRepository interface {
-	Create(ctx context.Context, account *filesv1.BankAccount) (*filesv1.BankAccount, error)
-	ListByProject(ctx context.Context, projectID string) ([]*filesv1.BankAccount, error)
-	FindByProjectAndID(ctx context.Context, projectID, id string) (*filesv1.BankAccount, error)
-	Delete(ctx context.Context, projectID, id string) error
-}
-
 // PostgresBankAccountRepository implements BankAccountRepository using PostgreSQL.
 type PostgresBankAccountRepository struct {
 	db     *sql.DB
@@ -38,7 +31,7 @@ type PostgresBankAccountRepository struct {
 }
 
 // NewBankAccountRepository constructs a PostgresBankAccountRepository.
-func NewBankAccountRepository(db *sql.DB, logger *zap.Logger) BankAccountRepository {
+func NewBankAccountRepository(db *sql.DB, logger *zap.Logger) interfaces.BankAccountRepository {
 	return &PostgresBankAccountRepository{db: db, logger: logger}
 }
 

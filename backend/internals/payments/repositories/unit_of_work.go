@@ -4,14 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-)
 
-// UnitOfWork manages transactional boundaries for multi-step database writes.
-type UnitOfWork interface {
-	Begin(ctx context.Context) (*sql.Tx, error)
-	Commit(tx *sql.Tx) error
-	Rollback(tx *sql.Tx) error
-}
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+)
 
 // PostgresUnitOfWork implements UnitOfWork using a *sql.DB connection pool.
 type PostgresUnitOfWork struct {
@@ -19,7 +14,7 @@ type PostgresUnitOfWork struct {
 }
 
 // NewUnitOfWork constructs a PostgresUnitOfWork.
-func NewUnitOfWork(db *sql.DB) UnitOfWork {
+func NewUnitOfWork(db *sql.DB) interfaces.UnitOfWork {
 	return &PostgresUnitOfWork{db: db}
 }
 

@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/services"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
@@ -118,11 +119,11 @@ func (m *mockPDFExtractor) ExtractStatement(ctx context.Context, storageKey stri
 
 func newExtractionService(
 	t *testing.T,
-	docRepo repositories.DocumentRepository,
-	jobRepo repositories.AnalysisJobRepository,
-	billRepo repositories.BillRecordRepository,
-	stmtRepo repositories.StatementRecordRepository,
-	uow repositories.UnitOfWork,
+	docRepo interfaces.DocumentRepository,
+	jobRepo interfaces.AnalysisJobRepository,
+	billRepo interfaces.BillRecordRepository,
+	stmtRepo interfaces.StatementRecordRepository,
+	uow interfaces.UnitOfWork,
 	extractor services.PDFExtractorIface,
 ) services.ExtractionServiceIface {
 	t.Helper()

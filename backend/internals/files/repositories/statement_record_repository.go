@@ -9,17 +9,12 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
 // ErrStatementRecordNotFound is returned when a statement record does not exist for the given document.
 var ErrStatementRecordNotFound = errors.New("statement record not found")
-
-// StatementRecordRepository defines the persistence contract for extracted statement data.
-type StatementRecordRepository interface {
-	Create(ctx context.Context, tx *sql.Tx, record *filesv1.StatementRecord) (*filesv1.StatementRecord, error)
-	FindByProjectAndDocumentID(ctx context.Context, projectID, documentID string) (*filesv1.StatementRecord, error)
-}
 
 // PostgresStatementRecordRepository implements StatementRecordRepository using PostgreSQL.
 type PostgresStatementRecordRepository struct {
@@ -28,7 +23,7 @@ type PostgresStatementRecordRepository struct {
 }
 
 // NewStatementRecordRepository constructs a PostgresStatementRecordRepository.
-func NewStatementRecordRepository(db *sql.DB, logger *zap.Logger) StatementRecordRepository {
+func NewStatementRecordRepository(db *sql.DB, logger *zap.Logger) interfaces.StatementRecordRepository {
 	return &PostgresStatementRecordRepository{db: db, logger: logger}
 }
 

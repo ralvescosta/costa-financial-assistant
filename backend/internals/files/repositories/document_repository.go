@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -23,15 +24,6 @@ var ErrDocumentNotFound = errors.New("document not found")
 // ErrDuplicateDocument is returned when a file with the same hash already exists in the project.
 var ErrDuplicateDocument = errors.New("document already uploaded in this project")
 
-// DocumentRepository defines the project-scoped persistence contract for documents.
-type DocumentRepository interface {
-	Create(ctx context.Context, tx *sql.Tx, doc *filesv1.Document) (*filesv1.Document, error)
-	FindByProjectAndHash(ctx context.Context, projectID, hash string) (*filesv1.Document, error)
-	FindByProjectAndID(ctx context.Context, projectID, id string) (*filesv1.Document, error)
-	UpdateKind(ctx context.Context, tx *sql.Tx, projectID, id string, kind filesv1.DocumentKind) (*filesv1.Document, error)
-	ListByProject(ctx context.Context, projectID string, pageSize int32, offsetToken string) ([]*filesv1.Document, error)
-}
-
 // PostgresDocumentRepository implements DocumentRepository using PostgreSQL.
 type PostgresDocumentRepository struct {
 	db     *sql.DB
@@ -39,7 +31,7 @@ type PostgresDocumentRepository struct {
 }
 
 // NewDocumentRepository constructs a PostgresDocumentRepository.
-func NewDocumentRepository(db *sql.DB, logger *zap.Logger) DocumentRepository {
+func NewDocumentRepository(db *sql.DB, logger *zap.Logger) interfaces.DocumentRepository {
 	return &PostgresDocumentRepository{db: db, logger: logger}
 }
 
@@ -220,10 +212,10 @@ func (r *PostgresDocumentRepository) ListByProject(ctx context.Context, projectI
 	var docs []*filesv1.Document
 	for rows.Next() {
 		var (
-			id, projectID, uploadedBy                           string
-			kindStr, storageProvider, storageKey                string
+			id, projectID, uploadedBy                            string
+			kindStr, storageProvider, storageKey                 string
 			fileName, fileHash, analysisStatusStr, failureReason string
-			uploadedAt, updatedAt                               string
+			uploadedAt, updatedAt                                string
 		)
 		if err := rows.Scan(
 			&id, &projectID, &uploadedBy,
@@ -263,10 +255,10 @@ type rowScanner interface {
 
 func scanDocument(row rowScanner) (*filesv1.Document, error) {
 	var (
-		id, projectID, uploadedBy                           string
-		kindStr, storageProvider, storageKey                string
+		id, projectID, uploadedBy                            string
+		kindStr, storageProvider, storageKey                 string
 		fileName, fileHash, analysisStatusStr, failureReason string
-		uploadedAt, updatedAt                               string
+		uploadedAt, updatedAt                                string
 	)
 	if err := row.Scan(
 		&id, &projectID, &uploadedBy,

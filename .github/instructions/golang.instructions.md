@@ -81,15 +81,17 @@ applyTo: "**/*.go"
 - Keep interfaces small and purpose-specific.
 - Define interfaces in the consuming package (`backend/internals/<service>/services/` or `backend/internals/bff/financial/controllers/`) so the layer depends on an abstraction it owns.
 - Use constructor injection against interfaces in `backend/cmd/<service>/container.go`.
+- For repository contracts, follow the architecture rule and declare them in `backend/internals/<service>/interfaces/`.
 
 **Copilot MUST NOT**:
 - Create broad "do everything" interfaces.
 - Bind upper layers to concrete repository or client implementations.
 - Add interface methods that are not used by any consumer.
+- Declare exported repository interfaces in `backend/internals/<service>/repositories/`.
 
 **Example input → expected Copilot output**:
 - Input: "Add a new repository dependency to the document service."
-- Expected output: define a narrow repository interface in `backend/internals/files/services/document_service.go`, implement it in `backend/internals/files/repositories/document_repository.go`, and wire via `backend/cmd/files/container.go`.
+- Expected output: define a narrow repository interface in `backend/internals/files/interfaces/`, implement it in `backend/internals/files/repositories/document_repository.go`, and wire via `backend/cmd/files/container.go`.
 
 ---
 

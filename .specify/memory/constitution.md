@@ -1,30 +1,31 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.9.0 → 1.10.0
-Bump rationale: MINOR — New "Memory References" section added to Governance, establishing
-  architecture diagrams as living authoritative documentation with versioning, maintenance
-  process, and integration into sprint planning and PR reviews. Future feature diagrams
-  also scoped.
+Version change: 1.10.0 → 1.11.0
+Bump rationale: MINOR — Material governance expansion that makes end-of-execution
+  memory-flow updates mandatory in every spec/plan workflow and requires instruction
+  updates for refactor/reorganization work to preserve implementation patterns.
 Modified principles:
-  - (Governance section): New "Memory References" subsection added defining architecture
-    diagram governance, update obligations, usage patterns in development workflow,
-    versioning rules, and consistency obligations.
-Added principles:
-  - Memory References governance and diagram maintenance workflow
-  - Architecture diagram update triggers and integration into sprint cycles
-  - Future feature diagram standards (data models, workflows, integration patterns)
+  - (Development Workflow): Added PR-blocking checks that reject specs/plans/tasks
+    missing mandatory memory-flow synchronization and instruction updates for
+    refactor/reorganization work.
+  - (Governance): Added mandatory spec and plan completion obligations for memory
+    diagram sync and instruction sync.
+  - (Memory References): Added explicit service-flow mapping and required end-of-
+    execution update workflow for BFF, files, bills, and migration-related changes.
+Added sections:
+  - Governance → "Spec & Plan Completion Enforcement"
+  - Memory References → "Mandatory Service-Flow Mapping"
 Removed sections: None
 Templates requiring updates:
-  - .specify/templates/plan-template.md ⚠ PENDING — Add "Architecture Impact" checkbox
-    to spec impact section to identify diagrams affected by planned feature.
-  - .specify/templates/spec-template.md ⚠ PENDING — Add "Architecture Impact" section
-    stating whether feature introduces new services, connections, or data flows.
-  - .specify/templates/tasks-template.md ⚠ PENDING — If architecture affected, add
-    explicit "Update architecture diagram" task.
-  - .github/instructions/architecture.instructions.md ✅ — Already references memory
-    diagrams; no update needed.
-Deferred TODOs: None — all fields resolved.
+  - .specify/templates/plan-template.md ✅ updated
+  - .specify/templates/spec-template.md ✅ updated
+  - .specify/templates/tasks-template.md ✅ updated
+  - .specify/memory/architecture-diagram-maintenance.md ✅ updated
+  - README.md ✅ updated
+  - .specify/templates/commands/*.md ⚠ pending (directory not present in repository;
+    equivalent command prompts in .github/prompts/*.prompt.md were reviewed)
+Deferred TODOs: None.
 -->
 
 
@@ -743,6 +744,14 @@ A PR is blocked if:
 31. A backend integration test that requires database access does not use an ephemeral
     test database (provision → `migrate up` → test → destroy), OR individual tests
     assert against state they did not set up themselves.
+32. The feature spec or plan omits mandatory memory-flow impact and end-of-execution
+  memory diagram update tasks for all impacted services.
+33. A feature touching `bff`, `files`, `bills`, or migration-driven data/service flows
+  is merged without updating the corresponding files under `.specify/memory/`
+  in the same PR.
+34. A refactor or structural reorganization is merged without updating affected
+  instruction files under `.github/instructions/` (and `.specify/templates/` when
+  workflow patterns change) to preserve implementation consistency.
 
 Code review MUST verify that each gRPC service definition is accompanied by updated
 `.proto` files committed under `backend/protos/<module>/v<N>/` following the
@@ -765,6 +774,27 @@ Complexity violations MUST be documented in the plan's Complexity Tracking table
 justification.
 Refer to `.specify/memory/constitution.md` as the authoritative governance reference
 during feature planning and implementation.
+
+### Spec & Plan Completion Enforcement
+
+Every feature specification and implementation plan is governed by a mandatory
+"definition of done" that includes documentation synchronization.
+
+Mandatory rules:
+1. Every `spec.md` MUST declare a `Memory Diagram Flow Impact` section identifying
+  whether the feature affects memory diagrams and which files are impacted.
+2. Every `plan.md` MUST include end-of-execution tasks that update all impacted memory
+  diagram flow files in `.specify/memory/` within the same execution cycle.
+3. If the feature changes service structure, communication paths, migrations that alter
+  flow semantics, or BFF/files/bills responsibilities, the plan MUST include explicit
+  updates to the corresponding memory flow documents and
+  `.specify/memory/architecture-diagram.md` when cross-service flow changes occur.
+4. If the feature is a refactor or structural reorganization, `spec.md` and `plan.md`
+  MUST include an `Instruction Impact` section and explicit tasks to update all
+  impacted instruction files under `.github/instructions/` so future implementations
+  continue to follow the updated pattern.
+5. A feature implementation is incomplete until these synchronization tasks are done;
+  they MUST NOT be deferred to a separate PR.
 
 ## Memory References
 
@@ -795,6 +825,27 @@ whenever:
 See `.specify/memory/architecture-diagram-maintenance.md` for the complete maintenance
 process, including trigger checklists, step-by-step update instructions, versioning
 rules (MAJOR/MINOR/PATCH), and integration into sprint planning and PR reviews.
+
+### Mandatory Service-Flow Mapping
+
+For every feature, memory-flow documentation MUST be updated by impacted service scope.
+
+Required mapping:
+- `bff` changes MUST update `.specify/memory/bff-flows.md`.
+- `files` changes MUST update `.specify/memory/files-service-flows.md`.
+- `bills` changes MUST update `.specify/memory/bills-service-flows.md`.
+- `identity` changes MUST update `.specify/memory/identity-service-flows.md`.
+- `onboarding` changes MUST update `.specify/memory/onboarding-service-flows.md`.
+- `migrations` changes MUST update all affected service-flow files above and MUST
+  update `.specify/memory/architecture-diagram.md` whenever migration work changes
+  cross-service data flow, ownership boundaries, or integration behavior.
+
+Execution-close obligation:
+- The final execution step for every spec/plan MUST include memory-flow diagram updates
+  for every impacted service.
+- If no memory files change, the plan MUST document an explicit no-impact rationale.
+- A reviewer MUST reject any implementation where changed flows are not reflected in
+  `.specify/memory/` before merge.
 
 ### Feature Diagrams (Future)
 
@@ -864,4 +915,4 @@ no longer exists, a communication pattern is not reflected in code), the diagram
 be updated within the sprint or explicitly marked as deprecated with a clear explanation
 of why the documented pattern is no longer in use.
 
-**Version**: 1.10.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-03-31
+**Version**: 1.11.0 | **Ratified**: 2026-03-30 | **Last Amended**: 2026-04-02

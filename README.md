@@ -23,6 +23,11 @@ This repository follows Spec-Driven Development as the primary delivery method.
 
 Feature development starts in the specs folder and moves to code only after requirements, plan, data model, contracts, and tasks are defined.
 
+Every feature execution must close with documentation sync: update the impacted memory
+flow diagrams in `.specify/memory/`, and for refactor/reorganization work, update
+the impacted files in `.github/instructions/` so future implementations keep the same
+patterns.
+
 ## Architecture (Planned)
 
 The platform uses a modular backend plus web frontend:

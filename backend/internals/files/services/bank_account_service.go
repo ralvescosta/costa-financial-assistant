@@ -7,6 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
@@ -20,12 +21,12 @@ type BankAccountServiceIface interface {
 
 // BankAccountService implements BankAccountServiceIface.
 type BankAccountService struct {
-	repo   repositories.BankAccountRepository
+	repo   interfaces.BankAccountRepository
 	logger *zap.Logger
 }
 
 // NewBankAccountService constructs a BankAccountService.
-func NewBankAccountService(repo repositories.BankAccountRepository, logger *zap.Logger) BankAccountServiceIface {
+func NewBankAccountService(repo interfaces.BankAccountRepository, logger *zap.Logger) BankAccountServiceIface {
 	return &BankAccountService{repo: repo, logger: logger}
 }
 
