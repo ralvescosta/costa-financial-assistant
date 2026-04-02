@@ -21,9 +21,9 @@ import (
 //   - Flags ambiguous matches (multiple bills with same amount) without auto-linking
 //   - Leaves unmatched transactions with status 'unmatched'
 func TestUS5_AutoReconciliation(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/bills/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/payments/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/bills/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/payments/migrations"))
 
 	const (
 		projectID = "00000000-0000-0000-0000-000000000010"
@@ -77,7 +77,7 @@ func TestUS5_AutoReconciliation(t *testing.T) {
 		INSERT INTO statement_records (id, project_id, document_id, period_start, period_end)
 		VALUES ($1, $2, $3, $4, $5)
 	`, stmtID, projectID, docStmt,
-time.Now().AddDate(0, -1, 0).Format("2006-01-02"),
+		time.Now().AddDate(0, -1, 0).Format("2006-01-02"),
 		time.Now().Format("2006-01-02"))
 	require.NoError(t, err)
 
@@ -108,38 +108,38 @@ time.Now().AddDate(0, -1, 0).Format("2006-01-02"),
 	require.NotNil(t, summary)
 
 	t.Run("GivenExactMatch WhenAutoReconcile ThenTransactionStatusIsMatchedAuto", func(t *testing.T) {
-var status string
-err := testDB.QueryRowContext(ctx,
-"SELECT reconciliation_status FROM transaction_lines WHERE id = $1", txLine1,
-).Scan(&status)
+		var status string
+		err := testDB.QueryRowContext(ctx,
+			"SELECT reconciliation_status FROM transaction_lines WHERE id = $1", txLine1,
+		).Scan(&status)
 		require.NoError(t, err)
 		assert.Equal(t, string(interfaces.TransactionMatchedAuto), status)
 	})
 
 	t.Run("GivenNoMatch WhenAutoReconcile ThenTransactionStatusRemainsUnmatched", func(t *testing.T) {
-var status string
-err := testDB.QueryRowContext(ctx,
-"SELECT reconciliation_status FROM transaction_lines WHERE id = $1", txLine2,
-).Scan(&status)
+		var status string
+		err := testDB.QueryRowContext(ctx,
+			"SELECT reconciliation_status FROM transaction_lines WHERE id = $1", txLine2,
+		).Scan(&status)
 		require.NoError(t, err)
 		assert.Equal(t, string(interfaces.TransactionUnmatched), status)
 	})
 
 	t.Run("GivenAmbiguousMatch WhenAutoReconcile ThenTransactionStatusIsAmbiguous", func(t *testing.T) {
-var status string
-err := testDB.QueryRowContext(ctx,
-"SELECT reconciliation_status FROM transaction_lines WHERE id = $1", txAmbig,
-).Scan(&status)
+		var status string
+		err := testDB.QueryRowContext(ctx,
+			"SELECT reconciliation_status FROM transaction_lines WHERE id = $1", txAmbig,
+		).Scan(&status)
 		require.NoError(t, err)
 		assert.Equal(t, string(interfaces.TransactionAmbiguous), status)
 	})
 
 	t.Run("GivenExactMatch WhenAutoReconcile ThenReconciliationLinkExists", func(t *testing.T) {
-var count int
-err := testDB.QueryRowContext(ctx,
-"SELECT COUNT(*) FROM reconciliation_links WHERE transaction_line_id = $1 AND link_type = 'auto'",
-txLine1,
-).Scan(&count)
+		var count int
+		err := testDB.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM reconciliation_links WHERE transaction_line_id = $1 AND link_type = 'auto'",
+			txLine1,
+		).Scan(&count)
 		require.NoError(t, err)
 		assert.Equal(t, 1, count)
 	})

@@ -68,3 +68,13 @@ A change is compliant only if all checks pass:
 ## 10. Versioning
 - Contract version: `v1`
 - Any breaking change to placement/naming/structure rules requires constitution and instruction updates in the same change set.
+
+## 11. Canonical Maintainer Checklist
+
+- [ ] Test file is under `backend/tests/integration/<service>/` or `backend/tests/integration/cross_service/`
+- [ ] Filename follows `^[a-z0-9]+(_[a-z0-9]+)*_test\.go$`
+- [ ] No legacy `us*_*.go` naming remains
+- [ ] Scenarios are table-driven with explicit `given/when/then`
+- [ ] Scenario bodies are readable with explicit `Arrange`, `Act`, `Assert`
+- [ ] Database lifecycle uses deterministic `TestMain` + migration setup + teardown
+- [ ] Mapping artifacts are updated (`migration-mapping.md`, `migration-baseline.md`)

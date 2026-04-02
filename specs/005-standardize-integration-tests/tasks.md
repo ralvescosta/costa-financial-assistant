@@ -11,9 +11,9 @@
 
 **Purpose**: Initialize migration workspace and baseline inventory for integration test standardization.
 
-- [ ] T001 Create service-segment directories in backend/tests/integration/bff, backend/tests/integration/bills, backend/tests/integration/files, backend/tests/integration/identity, backend/tests/integration/onboarding, backend/tests/integration/payments, and backend/tests/integration/cross_service
-- [ ] T002 Create migration traceability table in specs/005-standardize-integration-tests/migration-mapping.md with legacy path, target path, status, and coverage note columns
-- [ ] T003 [P] Capture baseline integration suite inventory in specs/005-standardize-integration-tests/migration-baseline.md from backend/tests/integration/*.go
+- [X] T001 Create service-segment directories in backend/tests/integration/bff, backend/tests/integration/bills, backend/tests/integration/files, backend/tests/integration/identity, backend/tests/integration/onboarding, backend/tests/integration/payments, and backend/tests/integration/cross_service
+- [X] T002 Create migration traceability table in specs/005-standardize-integration-tests/migration-mapping.md with legacy path, target path, status, and coverage note columns
+- [X] T003 [P] Capture baseline integration suite inventory in specs/005-standardize-integration-tests/migration-baseline.md from backend/tests/integration/*.go
 
 ---
 
@@ -23,12 +23,12 @@
 
 **CRITICAL**: No user-story migration should start until these tasks are complete.
 
-- [ ] T004 Finalize canonical integration standard checklist in specs/005-standardize-integration-tests/contracts/integration-test-conventions.md
-- [ ] T005 [P] Add compliance review checklist section to specs/005-standardize-integration-tests/quickstart.md
-- [ ] T006 [P] Introduce shared BDD scenario struct and helper utilities in backend/tests/integration/helpers/scenario_helpers_test.go
-- [ ] T007 [P] Implement testcontainers-go based ephemeral PostgreSQL lifecycle in backend/tests/integration/testmain_test.go with deterministic setup, migration application, and teardown
-- [ ] T008 Record approved-library policy note in specs/005-standardize-integration-tests/research.md referencing testing, testify, and testcontainers-go
-- [ ] T031 [P] Add integration-test convention validation script in backend/scripts/validate_integration_test_conventions.sh to enforce scenario structure and required file layout checks
+- [X] T004 Finalize canonical integration standard checklist in specs/005-standardize-integration-tests/contracts/integration-test-conventions.md
+- [X] T005 [P] Add compliance review checklist section to specs/005-standardize-integration-tests/quickstart.md
+- [X] T006 [P] Introduce shared BDD scenario struct and helper utilities in backend/tests/integration/helpers/scenario_helpers_test.go
+- [X] T007 [P] Implement testcontainers-go based ephemeral PostgreSQL lifecycle in backend/tests/integration/testmain_test.go with deterministic setup, migration application, and teardown
+- [X] T008 Record approved-library policy note in specs/005-standardize-integration-tests/research.md referencing testing, testify, and testcontainers-go
+- [X] T031 [P] Add integration-test convention validation script in backend/scripts/validate_integration_test_conventions.sh to enforce scenario structure and required file layout checks
 
 **Checkpoint**: Foundation ready. US1, US2, and US3 can proceed.
 
@@ -42,17 +42,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T009 [US1] Validate migration map completeness by reconciling backend/tests/integration/*.go with specs/005-standardize-integration-tests/migration-mapping.md
-- [ ] T010 [US1] Capture pre-migration integration package listing baseline in specs/005-standardize-integration-tests/migration-baseline.md from backend/tests/integration
+- [X] T009 [US1] Validate migration map completeness by reconciling backend/tests/integration/*.go with specs/005-standardize-integration-tests/migration-mapping.md
+- [X] T010 [US1] Capture pre-migration integration package listing baseline in specs/005-standardize-integration-tests/migration-baseline.md from backend/tests/integration
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Migrate BFF integration tests to canonical names under backend/tests/integration/bff/ from backend/tests/integration/auth_token_rejection_test.go, backend/tests/integration/bff_metrics_test.go, and backend/tests/integration/openapi_contract_test.go
-- [ ] T012 [P] [US1] Migrate files-domain integration tests to canonical names under backend/tests/integration/files/ from backend/tests/integration/us1_upload_classify_test.go, backend/tests/integration/us2_analysis_pipeline_test.go, and backend/tests/integration/us3_bank_accounts_test.go
-- [ ] T013 [P] [US1] Migrate payments-domain integration tests to canonical names under backend/tests/integration/payments/ from backend/tests/integration/us4_mark_paid_idempotency_test.go and backend/tests/integration/us4_payment_dashboard_test.go
-- [ ] T014 [P] [US1] Migrate reconciliation/history/project-guard scenarios to canonical names under backend/tests/integration/cross_service/ from backend/tests/integration/us5_auto_reconciliation_test.go, backend/tests/integration/us5_manual_reconciliation_test.go, backend/tests/integration/us6_history_metrics_test.go, backend/tests/integration/us6_history_timeline_test.go, backend/tests/integration/us7_project_isolation_test.go, and backend/tests/integration/us7_role_enforcement_test.go
-- [ ] T015 [US1] Migrate identity contract test to canonical name under backend/tests/integration/identity/ from backend/tests/integration/identity_jwks_contract_test.go and update specs/005-standardize-integration-tests/migration-mapping.md statuses to moved
-- [ ] T032 [US1] Run post-migration package listing check and compare against baseline in specs/005-standardize-integration-tests/migration-baseline.md
+- [X] T011 [P] [US1] Migrate BFF integration tests to canonical names under backend/tests/integration/bff/ from backend/tests/integration/auth_token_rejection_test.go, backend/tests/integration/bff_metrics_test.go, and backend/tests/integration/openapi_contract_test.go
+- [X] T012 [P] [US1] Migrate files-domain integration tests to canonical names under backend/tests/integration/files/ from backend/tests/integration/us1_upload_classify_test.go, backend/tests/integration/us2_analysis_pipeline_test.go, and backend/tests/integration/us3_bank_accounts_test.go
+- [X] T013 [P] [US1] Migrate payments-domain integration tests to canonical names under backend/tests/integration/payments/ from backend/tests/integration/us4_mark_paid_idempotency_test.go and backend/tests/integration/us4_payment_dashboard_test.go
+- [X] T014 [P] [US1] Migrate reconciliation/history/project-guard scenarios to canonical names under backend/tests/integration/cross_service/ from backend/tests/integration/us5_auto_reconciliation_test.go, backend/tests/integration/us5_manual_reconciliation_test.go, backend/tests/integration/us6_history_metrics_test.go, backend/tests/integration/us6_history_timeline_test.go, backend/tests/integration/us7_project_isolation_test.go, and backend/tests/integration/us7_role_enforcement_test.go
+- [X] T015 [US1] Migrate identity contract test to canonical name under backend/tests/integration/identity/ from backend/tests/integration/identity_jwks_contract_test.go and update specs/005-standardize-integration-tests/migration-mapping.md statuses to moved
+- [X] T032 [US1] Run post-migration package listing check and compare against baseline in specs/005-standardize-integration-tests/migration-baseline.md
 
 **Checkpoint**: All integration tests use canonical placement and behavior-based snake_case filenames.
 
@@ -88,16 +88,16 @@
 
 ### Tests for User Story 3
 
-- [ ] T022 [US3] Validate governance consistency across .specify/memory/constitution.md, .github/instructions/testing.instructions.md, and .github/instructions/ai-behavior.instructions.md against specs/005-standardize-integration-tests/contracts/integration-test-conventions.md
+- [X] T022 [US3] Validate governance consistency across .specify/memory/constitution.md, .github/instructions/testing.instructions.md, and .github/instructions/ai-behavior.instructions.md against specs/005-standardize-integration-tests/contracts/integration-test-conventions.md
 
 ### Implementation for User Story 3
 
-- [ ] T023 [P] [US3] Update backend integration testing policy in .specify/memory/constitution.md to require canonical directories, behavior-based filenames, and table-driven BDD scenarios
-- [ ] T024 [P] [US3] Update enforcement rules in .github/instructions/testing.instructions.md for canonical placement, naming, and required given/when/then plus AAA structure
-- [ ] T025 [P] [US3] Update AI deterministic-generation policy in .github/instructions/ai-behavior.instructions.md to require adherence to the integration-test standard when generating or editing integration tests
-- [ ] T026 [US3] Add maintainer-facing compliance section to specs/005-standardize-integration-tests/quickstart.md linking governance rules and review expectations
-- [ ] T033 [P] [US3] Update .specify/templates/spec-template.md to require integration-testing standards reference for backend behavior features
-- [ ] T034 [P] [US3] Update .specify/templates/plan-template.md and .specify/templates/tasks-template.md to include integration-testing compliance gates for future feature planning
+- [X] T023 [P] [US3] Update backend integration testing policy in .specify/memory/constitution.md to require canonical directories, behavior-based filenames, and table-driven BDD scenarios
+- [X] T024 [P] [US3] Update enforcement rules in .github/instructions/testing.instructions.md for canonical placement, naming, and required given/when/then plus AAA structure
+- [X] T025 [P] [US3] Update AI deterministic-generation policy in .github/instructions/ai-behavior.instructions.md to require adherence to the integration-test standard when generating or editing integration tests
+- [X] T026 [US3] Add maintainer-facing compliance section to specs/005-standardize-integration-tests/quickstart.md linking governance rules and review expectations
+- [X] T033 [P] [US3] Update .specify/templates/spec-template.md to require integration-testing standards reference for backend behavior features
+- [X] T034 [P] [US3] Update .specify/templates/plan-template.md and .specify/templates/tasks-template.md to include integration-testing compliance gates for future feature planning
 
 **Checkpoint**: Governance and instruction systems enforce the new integration-testing standard for future feature delivery.
 

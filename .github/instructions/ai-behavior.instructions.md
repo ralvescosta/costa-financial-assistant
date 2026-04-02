@@ -109,6 +109,7 @@ applyTo: "**/*"
 - Implement interfaces correctly
 - Add appropriate logging and tracing
 - Write tests for new code
+- When creating or editing backend integration tests, enforce canonical placement under `backend/tests/integration/<service>/` or `backend/tests/integration/cross_service/`, behavior-based snake_case filenames, and table-driven BDD scenarios with explicit Given/When/Then + AAA structure.
 - Follow naming conventions
 - Reference similar existing code
 
@@ -352,3 +353,4 @@ When generating code, ensure:
 8. Verify quality gates
 9. Use existing patterns
 10. Maintain architecture consistency
+11. Enforce integration-test standard when generating or modifying backend integration tests

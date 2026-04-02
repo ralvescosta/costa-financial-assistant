@@ -42,6 +42,9 @@ Mandatory gates:
   update tasks for impacted `.github/instructions/*.instructions.md` files.
 - [ ] If workflow behavior changes, plan includes updates to impacted
   `.specify/templates/*.md` files.
+- [ ] If backend integration behavior is in scope, plan includes canonical test-placement
+  and naming compliance tasks (`backend/tests/integration/<service>/` or
+  `backend/tests/integration/cross_service/`, behavior-based snake_case, BDD + AAA).
 
 ## Project Structure
 

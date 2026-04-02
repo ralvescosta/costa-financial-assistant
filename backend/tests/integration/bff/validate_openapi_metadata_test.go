@@ -17,7 +17,7 @@ import (
 // Route modules in routes/*_routes.go are the canonical source of huma.Register calls;
 // controllers are pure behaviour structs with no HTTP contract knowledge.
 func TestOpenAPIOperationMetadataCompleteness(t *testing.T) {
-	routeGlob := filepath.Clean("../../internals/bff/transport/http/routes/*_routes.go")
+	routeGlob := filepath.Clean("../../../internals/bff/transport/http/routes/*_routes.go")
 	files, err := filepath.Glob(routeGlob)
 	require.NoError(t, err)
 	require.NotEmpty(t, files, "no route module files found using glob: %s", routeGlob)

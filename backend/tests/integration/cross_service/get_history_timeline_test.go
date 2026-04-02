@@ -19,9 +19,9 @@ import (
 //   - Respects the look-back window (months parameter)
 //   - Handles months with no bills gracefully (no entry = gap)
 func TestUS6_HistoryTimeline(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/bills/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/payments/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/bills/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/payments/migrations"))
 
 	const (
 		projectID = "00000000-0000-0000-0000-000000000010"

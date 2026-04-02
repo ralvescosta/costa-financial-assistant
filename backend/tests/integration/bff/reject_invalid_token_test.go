@@ -72,10 +72,10 @@ func TestAuthTokenRejectionMatrix(t *testing.T) {
 	require.NoError(t, err)
 
 	cases := []struct {
-		name          string
-		token         string
-		expectValid   bool
-		expectErrNil  bool
+		name         string
+		token        string
+		expectValid  bool
+		expectErrNil bool
 	}{
 		{
 			name:         "valid token is accepted",

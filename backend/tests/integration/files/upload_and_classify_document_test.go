@@ -27,7 +27,7 @@ import (
 // sends a document upload request, classifies it, and verifies the project-scoped list
 // returns the expected record in pending-analysis state, then classified state.
 func TestUS1_UploadAndClassifyDocument(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
 
 	t.Cleanup(func() {
 		_, _ = testDB.ExecContext(context.Background(), "DELETE FROM documents")

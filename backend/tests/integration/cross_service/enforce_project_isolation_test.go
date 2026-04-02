@@ -28,7 +28,7 @@ import (
 // TestUS7_CrossProjectIsolation verifies that documents uploaded in project A are
 // invisible when the request is made with a project B context.
 func TestUS7_CrossProjectIsolation(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
 
 	t.Cleanup(func() {
 		_, _ = testDB.ExecContext(context.Background(), "DELETE FROM documents")
@@ -39,7 +39,7 @@ func TestUS7_CrossProjectIsolation(t *testing.T) {
 	})
 
 	onboardingClient := newOnboardingClient(t, testDB)
-	filesClient := newFilesClient(t, testDB)
+	filesClient := filesClientForProject(t, testDB)
 
 	const (
 		ownerID    = "00000000-0000-0000-0000-000000000001" // bootstrap user
