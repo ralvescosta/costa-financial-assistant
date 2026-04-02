@@ -15,6 +15,22 @@ The architecture diagram serves as the **single source of truth** for system des
 
 ## When to Update
 
+### Service-Flow Mapping Enforcement (MUST)
+
+When a feature impacts a service, update the corresponding memory flow file in the
+same execution cycle:
+
+- `bff` → `.specify/memory/bff-flows.md`
+- `files` → `.specify/memory/files-service-flows.md`
+- `bills` → `.specify/memory/bills-service-flows.md`
+- `identity` → `.specify/memory/identity-service-flows.md`
+- `onboarding` → `.specify/memory/onboarding-service-flows.md`
+
+For migration-heavy features:
+- Update the affected service flow files above.
+- Update `.specify/memory/architecture-diagram.md` whenever migration changes modify
+  cross-service flow semantics, ownership boundaries, or integration behavior.
+
 ### Mandatory Update Triggers (MUST update immediately)
 
 | Event | Impact | Section to Update |
@@ -36,6 +52,14 @@ The architecture diagram serves as the **single source of truth** for system des
 | New middleware or pattern introduced | Communication | Document in communication matrix if cross-cutting |
 | Performance optimization (caching, indexing) | Data layer | May affect Redis/cache discussion if architectural change |
 | Integration test coverage expands | Test dependencies | Not typically in main diagram, but note in changelog |
+
+### Refactor/Reorganization Trigger (MUST)
+
+If a feature refactors or reorganizes project or service structure, the same feature
+execution MUST include instruction updates under `.github/instructions/` for every
+impacted architectural/coding/testing pattern.
+If Speckit workflow behavior changes, update impacted `.specify/templates/*.md` files
+in the same feature cycle.
 
 ### Optional/Periodic Updates
 
@@ -136,6 +160,9 @@ docs: update architecture diagram v1.0.2 (clarify Redis usage)
 - Check if `.specify/templates/plan-template.md` needs architecture section updates
 - Check if `README.md` architecture section aligns with diagram
 - Update `.specify/memory/constitution.md` if architectural principles changed
+- For refactor/reorganization work, update impacted instruction files in
+  `.github/instructions/` and any affected `.specify/templates/*.md` workflow templates
+  before merge
 
 ---
 
@@ -161,11 +188,16 @@ docs: update architecture diagram v1.0.2 (clarify Redis usage)
   - [x] New gRPC service contract? (Yes/No)
   - Diagram sections affected: Data flow, Communication matrix
   ```
+- Spec author MUST list impacted service flow files under `.specify/memory/` and provide
+  explicit no-impact rationale if no update is required.
 
 ### During Sprint Planning
 - Tech lead reviews all approved specs' architecture impacts
 - Planning task: "Update architecture diagram per spec XYZ changes"
 - Assign to implementer or architecture owner with explicit trigger checklist
+- Planning MUST include explicit task(s) to update impacted service-flow memory files.
+- For refactor/reorganization specs, planning MUST include explicit instruction update
+  tasks under `.github/instructions/`.
 
 ### Before Merge (PR Checklist)
 If PR touches service creation, communication, or infrastructure:

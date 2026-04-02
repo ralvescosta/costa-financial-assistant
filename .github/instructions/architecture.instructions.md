@@ -149,6 +149,27 @@ go func() {
 
 ---
 
+## Rule: Repository Contracts Placement
+
+**Description**: Repository interfaces are centralized in each service `interfaces/` package, and repository packages contain implementations only.
+
+**When it applies**: Adding or modifying repository contracts or repository implementations.
+
+**Copilot MUST**:
+- Declare repository interfaces in `backend/internals/<service>/interfaces/`.
+- Keep `backend/internals/<service>/repositories/` focused on concrete implementations, SQL, and repository-scoped errors.
+- Return `interfaces.<RepositoryContract>` from repository constructors.
+- Inject repository contracts as interfaces into services via constructor parameters.
+
+**Copilot MUST NOT**:
+- Declare exported repository contracts in `backend/internals/<service>/repositories/*.go`.
+- Duplicate the same repository contract across `interfaces/` and `repositories/` packages.
+- Make service constructors depend on concrete repository structs unless explicitly required for a legacy exception.
+
+**Reference files**: `backend/internals/files/interfaces/`, `backend/internals/files/repositories/`, `backend/cmd/files/container.go`.
+
+---
+
 ## Rule: Multi-Tenant Project Isolation
 
 **Description**: ALL domain data is scoped to `project_id`. No cross-project data access is allowed.

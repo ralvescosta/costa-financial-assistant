@@ -7,6 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
@@ -25,11 +26,11 @@ type ExtractionServiceIface interface {
 
 // ExtractionService implements ExtractionServiceIface.
 type ExtractionService struct {
-	docRepo       repositories.DocumentRepository
-	jobRepo       repositories.AnalysisJobRepository
-	billRepo      repositories.BillRecordRepository
-	statementRepo repositories.StatementRecordRepository
-	uow           repositories.UnitOfWork
+	docRepo       interfaces.DocumentRepository
+	jobRepo       interfaces.AnalysisJobRepository
+	billRepo      interfaces.BillRecordRepository
+	statementRepo interfaces.StatementRecordRepository
+	uow           interfaces.UnitOfWork
 	logger        *zap.Logger
 	// extractor is the PDF extraction backend (swappable for testing).
 	extractor PDFExtractorIface
@@ -37,11 +38,11 @@ type ExtractionService struct {
 
 // NewExtractionService constructs an ExtractionService.
 func NewExtractionService(
-	docRepo repositories.DocumentRepository,
-	jobRepo repositories.AnalysisJobRepository,
-	billRepo repositories.BillRecordRepository,
-	statementRepo repositories.StatementRecordRepository,
-	uow repositories.UnitOfWork,
+	docRepo interfaces.DocumentRepository,
+	jobRepo interfaces.AnalysisJobRepository,
+	billRepo interfaces.BillRecordRepository,
+	statementRepo interfaces.StatementRecordRepository,
+	uow interfaces.UnitOfWork,
 	extractor PDFExtractorIface,
 	logger *zap.Logger,
 ) ExtractionServiceIface {

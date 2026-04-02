@@ -7,6 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
@@ -31,13 +32,13 @@ type UploadDocumentInput struct {
 
 // DocumentService implements DocumentServiceIface.
 type DocumentService struct {
-	repo   repositories.DocumentRepository
-	uow    repositories.UnitOfWork
+	repo   interfaces.DocumentRepository
+	uow    interfaces.UnitOfWork
 	logger *zap.Logger
 }
 
 // NewDocumentService constructs a DocumentService.
-func NewDocumentService(repo repositories.DocumentRepository, uow repositories.UnitOfWork, logger *zap.Logger) DocumentServiceIface {
+func NewDocumentService(repo interfaces.DocumentRepository, uow interfaces.UnitOfWork, logger *zap.Logger) DocumentServiceIface {
 	return &DocumentService{repo: repo, uow: uow, logger: logger}
 }
 

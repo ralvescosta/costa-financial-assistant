@@ -11,6 +11,8 @@ description: "Task list template for feature implementation"
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
+Every feature task list MUST include a final mandatory governance sync phase for
+memory-flow diagrams, and for instruction updates when refactor/reorganization is in scope.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -159,6 +161,23 @@ Examples of foundational tasks (adjust based on your project):
 
 ---
 
+## Phase N+1: Mandatory Governance Sync (Blocking)
+
+**Purpose**: Ensure implementation artifacts and guidance stay aligned with architecture and patterns.
+
+- [ ] TXXX Update impacted `.specify/memory/*-flows.md` files identified in spec/plan
+- [ ] TXXX Update `.specify/memory/architecture-diagram.md` when cross-service flow,
+  protocol, or ownership boundaries changed
+- [ ] TXXX Add or update memory diagram version/date metadata and change trigger notes
+- [ ] TXXX (Refactor/Reorg only) Update impacted `.github/instructions/*.instructions.md`
+  to preserve implementation patterns
+- [ ] TXXX (Workflow change only) Update impacted `.specify/templates/*.md`
+  to keep command outputs consistent with new patterns
+
+**Checkpoint**: Feature is not complete until this phase is complete
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -169,6 +188,8 @@ Examples of foundational tasks (adjust based on your project):
   - User stories can then proceed in parallel (if staffed)
   - Or sequentially in priority order (P1 → P2 → P3)
 - **Polish (Final Phase)**: Depends on all desired user stories being complete
+- **Mandatory Governance Sync (Phase N+1)**: Depends on all implementation phases and
+  MUST complete before merge
 
 ### User Story Dependencies
 
@@ -226,6 +247,7 @@ Task: "Create [Entity2] model in src/models/[entity2].py"
 3. Add User Story 2 → Test independently → Deploy/Demo
 4. Add User Story 3 → Test independently → Deploy/Demo
 5. Each story adds value without breaking previous stories
+6. Complete Mandatory Governance Sync phase before opening/finalizing PR
 
 ### Parallel Team Strategy
 

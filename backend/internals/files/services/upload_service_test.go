@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/services"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
@@ -88,7 +89,7 @@ func (m *mockUnitOfWork) Rollback(tx *sql.Tx) error {
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-func newService(t *testing.T, repo repositories.DocumentRepository, uow repositories.UnitOfWork) services.DocumentServiceIface {
+func newService(t *testing.T, repo interfaces.DocumentRepository, uow interfaces.UnitOfWork) services.DocumentServiceIface {
 	t.Helper()
 	logger := zaptest.NewLogger(t)
 	return services.NewDocumentService(repo, uow, logger)

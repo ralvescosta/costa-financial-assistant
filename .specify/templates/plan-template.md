@@ -33,6 +33,16 @@
 
 [Gates determined based on constitution file]
 
+Mandatory gates:
+- [ ] `spec.md` includes `Architecture & Memory Diagram Flow Impact` with impacted
+  `.specify/memory/*.md` file list or explicit no-impact rationale.
+- [ ] End-of-execution tasks include updates to all impacted service-flow memory files
+  and `.specify/memory/architecture-diagram.md` when cross-service flow changes exist.
+- [ ] If the feature is refactor/reorganization, plan includes explicit instruction
+  update tasks for impacted `.github/instructions/*.instructions.md` files.
+- [ ] If workflow behavior changes, plan includes updates to impacted
+  `.specify/templates/*.md` files.
+
 ## Project Structure
 
 ### Documentation (this feature)
@@ -93,6 +103,26 @@ ios/ or android/
 
 **Structure Decision**: [Document the selected structure and reference the real
 directories captured above]
+
+## Mandatory End-of-Execution Sync
+
+**Memory Diagram Sync (required)**:
+- Impacted memory files: [list exact `.specify/memory/*.md` paths]
+- Update tasks required in `tasks.md`: [Yes/No]
+- If `No`, rationale: [explicit reason]
+
+**Instruction Sync (required for refactor/reorganization)**:
+- Refactor/reorganization in scope: [Yes/No]
+- If `Yes`, impacted instruction files to update:
+  - `.github/instructions/[name].instructions.md`
+  - [additional files]
+- If `Yes`, impacted workflow templates to update:
+  - `.specify/templates/[name].md`
+  - [additional files]
+
+**Completion gate**:
+Implementation is not complete until all required sync tasks above are executed in the
+same feature cycle.
 
 ## Complexity Tracking
 

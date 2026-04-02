@@ -75,6 +75,43 @@
 - What happens when [boundary condition]?
 - How does system handle [error scenario]?
 
+## Architecture & Memory Diagram Flow Impact *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Determine whether this feature changes service flows,
+  responsibilities, or cross-service communication. This section is mandatory.
+-->
+
+- Affected services: [e.g., bff, files, bills, identity, onboarding, migrations]
+- Requires architecture diagram update (`.specify/memory/architecture-diagram.md`):
+  [Yes/No + rationale]
+- Required service-flow file updates in `.specify/memory/`:
+  - [ ] `.specify/memory/bff-flows.md` (if BFF impacted)
+  - [ ] `.specify/memory/files-service-flows.md` (if Files impacted)
+  - [ ] `.specify/memory/bills-service-flows.md` (if Bills impacted)
+  - [ ] `.specify/memory/identity-service-flows.md` (if Identity impacted)
+  - [ ] `.specify/memory/onboarding-service-flows.md` (if Onboarding impacted)
+  - [ ] Other impacted memory file(s): [list exact file paths]
+- If none are impacted, include explicit no-impact rationale:
+  [Explain why no memory flow update is required]
+
+## Instruction Impact *(mandatory for refactor/reorganization)*
+
+<!--
+  ACTION REQUIRED: Fill this section whenever the feature refactors or reorganizes
+  project/service structure, module boundaries, layering, or implementation patterns.
+-->
+
+- Is this feature a refactor/reorganization?: [Yes/No]
+- If Yes, impacted instruction files under `.github/instructions/`:
+  - [ ] [exact path]
+  - [ ] [exact path]
+- If Yes, impacted workflow templates under `.specify/templates/`:
+  - [ ] [exact path]
+  - [ ] [exact path]
+- Pattern-preservation statement: [How instructions are updated so future features
+  follow the same pattern deterministically]
+
 ## Requirements *(mandatory)*
 
 <!--

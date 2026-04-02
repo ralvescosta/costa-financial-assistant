@@ -9,19 +9,12 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 
+	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
 // ErrAnalysisJobNotFound is returned when a queried analysis job does not exist.
 var ErrAnalysisJobNotFound = errors.New("analysis job not found")
-
-// AnalysisJobRepository defines the persistence contract for async analysis jobs.
-type AnalysisJobRepository interface {
-	Create(ctx context.Context, tx *sql.Tx, job *filesv1.AnalysisJob) (*filesv1.AnalysisJob, error)
-	FindByDocumentID(ctx context.Context, projectID, documentID string) (*filesv1.AnalysisJob, error)
-	UpdateStatus(ctx context.Context, tx *sql.Tx, jobID, status, lastError string, attemptCount int32) error
-	UpdateDocumentAnalysisStatus(ctx context.Context, tx *sql.Tx, projectID, documentID, analysisStatus, failureReason string) error
-}
 
 // PostgresAnalysisJobRepository implements AnalysisJobRepository using PostgreSQL.
 type PostgresAnalysisJobRepository struct {
@@ -30,7 +23,7 @@ type PostgresAnalysisJobRepository struct {
 }
 
 // NewAnalysisJobRepository constructs a PostgresAnalysisJobRepository.
-func NewAnalysisJobRepository(db *sql.DB, logger *zap.Logger) AnalysisJobRepository {
+func NewAnalysisJobRepository(db *sql.DB, logger *zap.Logger) interfaces.AnalysisJobRepository {
 	return &PostgresAnalysisJobRepository{db: db, logger: logger}
 }
 
