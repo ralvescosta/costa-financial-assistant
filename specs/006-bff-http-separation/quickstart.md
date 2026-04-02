@@ -49,6 +49,7 @@ rg 'ServiceClient|New.*Repository|repositories\.' internals/bff/transport/http/c
 - Confirm all route capability interfaces in `routes/contracts.go` reference `views` types.
 - Confirm the 20 active routes listed in `contracts/route-coverage-matrix.md` remain registered with the same methods, paths, and operation IDs.
 - Confirm OpenAPI metadata tests still pass after moving contracts to `views/`.
+- Confirm all 6 BFF service test files in `backend/internals/bff/services/` pass with `go test ./internals/bff/services/...`.
 
 ## Expected Outcome
 
@@ -56,3 +57,14 @@ rg 'ServiceClient|New.*Repository|repositories\.' internals/bff/transport/http/c
 - Controllers become thin HTTP adapters that validate requests, invoke services, and format responses.
 - BFF services become the only layer that orchestrates downstream gRPC clients and repository-backed operations.
 - The route inventory remains stable and fully covered by integration tests.
+
+## SC-006 Timed Maintainer Placement Check
+
+**Goal**: Verify that the controller/service/views boundary is self-evident to a new contributor within 2 minutes using only 3 prompts.
+
+**Steps**:
+1. Open `backend/internals/bff/transport/http/controllers/payments_controller.go` — confirm it contains no gRPC client imports and no struct definitions (only call to a service method and view type mapping). Time: ~30s.
+2. Open `backend/internals/bff/services/payments_service.go` — confirm it contains all downstream gRPC orchestration and returns transport-agnostic types. Time: ~30s.
+3. Open `backend/internals/bff/transport/http/views/payments_views.go` — confirm it contains all HTTP request and response struct definitions for the payments resource. Time: ~30s.
+
+**Pass criterion**: All three files are found, confirm expected content, and total elapsed time is under 2 minutes.

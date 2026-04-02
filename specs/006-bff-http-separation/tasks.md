@@ -11,10 +11,10 @@
 
 **Purpose**: Add the shared package scaffolding and dependencies the refactor will build on.
 
-- [ ] T001 Add the validator dependency for BFF HTTP contract checks in `backend/go.mod`
-- [ ] T002 [P] Create the BFF service contract scaffold in `backend/internals/bff/interfaces/services.go`
-- [ ] T003 [P] Create the HTTP views package scaffold in `backend/internals/bff/transport/http/views/documents_views.go`, `backend/internals/bff/transport/http/views/projects_views.go`, `backend/internals/bff/transport/http/views/settings_views.go`, `backend/internals/bff/transport/http/views/payments_views.go`, `backend/internals/bff/transport/http/views/reconciliation_views.go`, and `backend/internals/bff/transport/http/views/history_views.go`
-- [ ] T004 [P] Create the BFF service implementation scaffold in `backend/internals/bff/services/documents_service.go`, `backend/internals/bff/services/projects_service.go`, `backend/internals/bff/services/settings_service.go`, `backend/internals/bff/services/payments_service.go`, `backend/internals/bff/services/reconciliation_service.go`, and `backend/internals/bff/services/history_service.go`
+- [X] T001 Add the validator dependency for BFF HTTP contract checks in `backend/go.mod`
+- [X] T002 [P] Create the BFF service contract scaffold in `backend/internals/bff/interfaces/services.go`
+- [X] T003 [P] Create the HTTP views package scaffold in `backend/internals/bff/transport/http/views/documents_views.go`, `backend/internals/bff/transport/http/views/projects_views.go`, `backend/internals/bff/transport/http/views/settings_views.go`, `backend/internals/bff/transport/http/views/payments_views.go`, `backend/internals/bff/transport/http/views/reconciliation_views.go`, and `backend/internals/bff/transport/http/views/history_views.go`
+- [X] T004 [P] Create the BFF service implementation scaffold in `backend/internals/bff/services/documents_service.go`, `backend/internals/bff/services/projects_service.go`, `backend/internals/bff/services/settings_service.go`, `backend/internals/bff/services/payments_service.go`, `backend/internals/bff/services/reconciliation_service.go`, and `backend/internals/bff/services/history_service.go`
 
 **Checkpoint**: The dependency, interfaces, service files, and views files exist and are ready for shared refactor work.
 
@@ -26,13 +26,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005 Update shared controller helpers for validator-driven request checks and service error translation in `backend/internals/bff/transport/http/controllers/base_controller.go`
-- [ ] T006 Define the shared BFF service interfaces for all active route groups in `backend/internals/bff/interfaces/services.go`
-- [ ] T007 Update route capability interfaces to depend on view contracts in `backend/internals/bff/transport/http/routes/contracts.go`
-- [ ] T008 [P] Wire the validator instance and BFF service providers through Dig in `backend/cmd/bff/container.go`
-- [ ] T009 [P] Update the BFF route test bootstrap for service-backed route modules in `backend/tests/integration/bff/bff_route_test_helpers.go`
-- [ ] T010 [P] Update the architecture governance for the `transport/http/views` layer and controller/service boundary in `.specify/memory/constitution.md` and `.github/instructions/architecture.instructions.md`
-- [ ] T011 [P] Update the route coverage testing rule for active BFF routes in `.github/instructions/testing.instructions.md`
+- [X] T005 Update shared controller helpers for validator-driven request checks and service error translation in `backend/internals/bff/transport/http/controllers/base_controller.go`
+- [X] T006 Define the shared BFF service interfaces for all active route groups in `backend/internals/bff/interfaces/services.go`
+- [X] T007 Update route capability interfaces to depend on view contracts in `backend/internals/bff/transport/http/routes/contracts.go`
+- [X] T008 [P] Wire the validator instance and BFF service providers through Dig in `backend/cmd/bff/container.go`
+- [X] T009 [P] Update the BFF route test bootstrap for service-backed route modules in `backend/tests/integration/bff/bff_route_test_helpers.go`
+- [X] T010 [P] Update the architecture governance for the `transport/http/views` layer and controller/service boundary in `.specify/memory/constitution.md` and `.github/instructions/architecture.instructions.md`
+- [X] T011 [P] Update the route coverage testing rule for active BFF routes in `.github/instructions/testing.instructions.md`
 
 **Checkpoint**: The shared controller, route, service, DI, and governance foundations are in place, and every user story can build on the same boundary model.
 
@@ -46,17 +46,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T012 [P] [US1] Add documents and projects BFF service unit tests in `backend/internals/bff/services/documents_service_test.go` and `backend/internals/bff/services/projects_service_test.go`
-- [ ] T013 [P] [US1] Add settings, payments, reconciliation, and history BFF service unit tests in `backend/internals/bff/services/settings_service_test.go`, `backend/internals/bff/services/payments_service_test.go`, `backend/internals/bff/services/reconciliation_service_test.go`, and `backend/internals/bff/services/history_service_test.go`
+- [X] T012 [P] [US1] Add documents and projects BFF service unit tests in `backend/internals/bff/services/documents_service_test.go` and `backend/internals/bff/services/projects_service_test.go`
+- [X] T013 [P] [US1] Add settings, payments, reconciliation, and history BFF service unit tests in `backend/internals/bff/services/settings_service_test.go`, `backend/internals/bff/services/payments_service_test.go`, `backend/internals/bff/services/reconciliation_service_test.go`, and `backend/internals/bff/services/history_service_test.go`
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Implement documents and projects BFF services in `backend/internals/bff/services/documents_service.go` and `backend/internals/bff/services/projects_service.go`
-- [ ] T015 [P] [US1] Implement settings and payments BFF services in `backend/internals/bff/services/settings_service.go` and `backend/internals/bff/services/payments_service.go`
-- [ ] T016 [P] [US1] Implement reconciliation and history BFF services in `backend/internals/bff/services/reconciliation_service.go` and `backend/internals/bff/services/history_service.go`
-- [ ] T017 [P] [US1] Refactor the documents, projects, and settings controllers to depend on BFF services instead of direct downstream orchestration in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, and `backend/internals/bff/transport/http/controllers/settings_controller.go`
-- [ ] T018 [P] [US1] Refactor the payments, reconciliation, and history controllers to depend on BFF services instead of direct downstream orchestration in `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
-- [ ] T019 [US1] Update BFF container wiring to provide service-backed controllers and remove direct downstream constructor dependencies in `backend/cmd/bff/container.go`
+- [X] T014 [P] [US1] Implement documents and projects BFF services in `backend/internals/bff/services/documents_service.go` and `backend/internals/bff/services/projects_service.go`
+- [X] T015 [P] [US1] Implement settings and payments BFF services in `backend/internals/bff/services/settings_service.go` and `backend/internals/bff/services/payments_service.go`
+- [X] T016 [P] [US1] Implement reconciliation and history BFF services in `backend/internals/bff/services/reconciliation_service.go` and `backend/internals/bff/services/history_service.go`
+- [X] T017 [P] [US1] Refactor the documents, projects, and settings controllers to depend on BFF services instead of direct downstream orchestration in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, and `backend/internals/bff/transport/http/controllers/settings_controller.go`
+- [X] T018 [P] [US1] Refactor the payments, reconciliation, and history controllers to depend on BFF services instead of direct downstream orchestration in `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
+- [X] T019 [US1] Update BFF container wiring to provide service-backed controllers and remove direct downstream constructor dependencies in `backend/cmd/bff/container.go`
 
 **Checkpoint**: All active BFF controllers are HTTP-only adapters and no controller owns direct gRPC client or repository orchestration.
 
@@ -70,17 +70,17 @@
 
 ### Tests for User Story 2
 
-- [ ] T020 [P] [US2] Add HTTP contract validation coverage for documents, projects, and settings routes in `backend/tests/integration/bff/documents_routes_registration_test.go`, `backend/tests/integration/bff/projects_routes_registration_test.go`, and `backend/tests/integration/bff/settings_routes_registration_test.go`
-- [ ] T021 [P] [US2] Add HTTP contract validation coverage for payments, reconciliation, and history routes in `backend/tests/integration/bff/payments_routes_registration_test.go`, `backend/tests/integration/bff/reconciliation_routes_registration_test.go`, and `backend/tests/integration/bff/history_routes_registration_test.go`
+- [X] T020 [P] [US2] Add HTTP contract validation coverage for documents, projects, and settings routes in `backend/tests/integration/bff/documents_routes_registration_test.go`, `backend/tests/integration/bff/projects_routes_registration_test.go`, and `backend/tests/integration/bff/settings_routes_registration_test.go`
+- [X] T021 [P] [US2] Add HTTP contract validation coverage for payments, reconciliation, and history routes in `backend/tests/integration/bff/payments_routes_registration_test.go`, `backend/tests/integration/bff/reconciliation_routes_registration_test.go`, and `backend/tests/integration/bff/history_routes_registration_test.go`
 
 ### Implementation for User Story 2
 
-- [ ] T022 [P] [US2] Move documents and projects HTTP request/response contracts into `backend/internals/bff/transport/http/views/documents_views.go` and `backend/internals/bff/transport/http/views/projects_views.go`
-- [ ] T023 [P] [US2] Move settings and payments HTTP request/response contracts into `backend/internals/bff/transport/http/views/settings_views.go` and `backend/internals/bff/transport/http/views/payments_views.go`
-- [ ] T024 [P] [US2] Move reconciliation and history HTTP request/response contracts into `backend/internals/bff/transport/http/views/reconciliation_views.go` and `backend/internals/bff/transport/http/views/history_views.go`
-- [ ] T025 [US2] Refactor route capability interfaces and all route modules to use view contracts in `backend/internals/bff/transport/http/routes/contracts.go`, `backend/internals/bff/transport/http/routes/documents_routes.go`, `backend/internals/bff/transport/http/routes/projects_routes.go`, `backend/internals/bff/transport/http/routes/settings_routes.go`, `backend/internals/bff/transport/http/routes/payments_routes.go`, `backend/internals/bff/transport/http/routes/reconciliation_routes.go`, and `backend/internals/bff/transport/http/routes/history_routes.go`
-- [ ] T026 [US2] Refactor all BFF controllers to validate and return view contracts in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, `backend/internals/bff/transport/http/controllers/settings_controller.go`, `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
-- [ ] T027 [US2] Add validator tags while preserving Huma binding and OpenAPI metadata in `backend/internals/bff/transport/http/views/documents_views.go`, `backend/internals/bff/transport/http/views/projects_views.go`, `backend/internals/bff/transport/http/views/settings_views.go`, `backend/internals/bff/transport/http/views/payments_views.go`, `backend/internals/bff/transport/http/views/reconciliation_views.go`, and `backend/internals/bff/transport/http/views/history_views.go`
+- [X] T022 [P] [US2] Move documents and projects HTTP request/response contracts into `backend/internals/bff/transport/http/views/documents_views.go` and `backend/internals/bff/transport/http/views/projects_views.go`
+- [X] T023 [P] [US2] Move settings and payments HTTP request/response contracts into `backend/internals/bff/transport/http/views/settings_views.go` and `backend/internals/bff/transport/http/views/payments_views.go`
+- [X] T024 [P] [US2] Move reconciliation and history HTTP request/response contracts into `backend/internals/bff/transport/http/views/reconciliation_views.go` and `backend/internals/bff/transport/http/views/history_views.go`
+- [X] T025 [US2] Refactor route capability interfaces and all route modules to use view contracts in `backend/internals/bff/transport/http/routes/contracts.go`, `backend/internals/bff/transport/http/routes/documents_routes.go`, `backend/internals/bff/transport/http/routes/projects_routes.go`, `backend/internals/bff/transport/http/routes/settings_routes.go`, `backend/internals/bff/transport/http/routes/payments_routes.go`, `backend/internals/bff/transport/http/routes/reconciliation_routes.go`, and `backend/internals/bff/transport/http/routes/history_routes.go`
+- [X] T026 [US2] Refactor all BFF controllers to validate and return view contracts in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, `backend/internals/bff/transport/http/controllers/settings_controller.go`, `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
+- [X] T027 [US2] Add validator tags while preserving Huma binding and OpenAPI metadata in `backend/internals/bff/transport/http/views/documents_views.go`, `backend/internals/bff/transport/http/views/projects_views.go`, `backend/internals/bff/transport/http/views/settings_views.go`, `backend/internals/bff/transport/http/views/payments_views.go`, `backend/internals/bff/transport/http/views/reconciliation_views.go`, and `backend/internals/bff/transport/http/views/history_views.go`
 
 **Checkpoint**: All active BFF HTTP contracts live in the dedicated views package, controllers validate those contracts, and route capability interfaces no longer depend on controller-owned transport types.
 
@@ -94,16 +94,16 @@
 
 ### Tests for User Story 3
 
-- [ ] T028 [P] [US3] Expand registration and metadata regression coverage in `backend/tests/integration/bff/bff_route_registration_smoke_test.go` and `backend/tests/integration/bff/validate_openapi_metadata_test.go`
-- [ ] T029 [P] [US3] Complete resource-scoped coverage for documents, projects, settings, and payments routes in `backend/tests/integration/bff/documents_routes_registration_test.go`, `backend/tests/integration/bff/projects_routes_registration_test.go`, `backend/tests/integration/bff/settings_routes_registration_test.go`, and `backend/tests/integration/bff/payments_routes_registration_test.go`
-- [ ] T030 [P] [US3] Complete resource-scoped coverage for reconciliation and history routes in `backend/tests/integration/bff/reconciliation_routes_registration_test.go` and `backend/tests/integration/bff/history_routes_registration_test.go`
+- [X] T028 [P] [US3] Expand registration and metadata regression coverage in `backend/tests/integration/bff/bff_route_registration_smoke_test.go` and `backend/tests/integration/bff/validate_openapi_metadata_test.go`
+- [X] T029 [P] [US3] Complete resource-scoped coverage for documents, projects, settings, and payments routes in `backend/tests/integration/bff/documents_routes_registration_test.go`, `backend/tests/integration/bff/projects_routes_registration_test.go`, `backend/tests/integration/bff/settings_routes_registration_test.go`, and `backend/tests/integration/bff/payments_routes_registration_test.go`
+- [X] T030 [P] [US3] Complete resource-scoped coverage for reconciliation and history routes in `backend/tests/integration/bff/reconciliation_routes_registration_test.go` and `backend/tests/integration/bff/history_routes_registration_test.go`
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Align the active 20-route inventory with the integration suites in `specs/006-bff-http-separation/contracts/route-coverage-matrix.md`
-- [ ] T032 [US3] Update the route, controller, and service boundary contract to match the implemented BFF shape in `specs/006-bff-http-separation/contracts/route-controller-service-contract.md`
-- [ ] T033 [US3] Update the feature validation workflow for the final route and contract checks in `specs/006-bff-http-separation/quickstart.md`
-- [ ] T034 [US3] Preserve authentication, role enforcement, and project-isolation regression coverage in `backend/tests/integration/bff/reject_invalid_token_test.go`, `backend/tests/integration/cross_service/enforce_role_permissions_test.go`, and `backend/tests/integration/cross_service/enforce_project_isolation_test.go`
+- [X] T031 [US3] Align the active 20-route inventory with the integration suites in `specs/006-bff-http-separation/contracts/route-coverage-matrix.md`
+- [X] T032 [US3] Update the route, controller, and service boundary contract to match the implemented BFF shape in `specs/006-bff-http-separation/contracts/route-controller-service-contract.md`
+- [X] T033 [US3] Update the feature validation workflow for the final route and contract checks in `specs/006-bff-http-separation/quickstart.md`
+- [X] T034 [US3] Preserve authentication, role enforcement, and project-isolation regression coverage in `backend/tests/integration/bff/reject_invalid_token_test.go`, `backend/tests/integration/cross_service/enforce_role_permissions_test.go`, and `backend/tests/integration/cross_service/enforce_project_isolation_test.go`
 
 **Checkpoint**: Every active BFF route is still registered with the same external behavior and is explicitly covered by integration tests and feature documentation.
 
@@ -113,11 +113,11 @@
 
 **Purpose**: Final cleanup, repo guidance alignment, and end-to-end verification.
 
-- [ ] T035 [P] Update agent guidance for the final 006 boundary model in `.github/agents/copilot-instructions.md`
-- [ ] T036 Run `go test ./...` from `backend/` to validate the packages rooted at `backend/go.mod`
-- [ ] T037 Run `go test -tags=integration ./tests/integration/...` from `backend/` to validate the suites bootstrapped by `backend/tests/integration/testmain_test.go`
-- [ ] T038 Update the implementation guidance and living architecture references to match the delivered boundary model in `.github/instructions/architecture.instructions.md`, `.github/instructions/testing.instructions.md`, `.specify/memory/constitution.md`, `.specify/memory/bff-flows.md`, and `.specify/memory/architecture-diagram.md`
-- [ ] T039 Add and document the timed maintainer placement check (three prompts under 2 minutes) for SC-006 in `specs/006-bff-http-separation/quickstart.md` and `specs/006-bff-http-separation/contracts/route-controller-service-contract.md`
+- [X] T035 [P] Update agent guidance for the final 006 boundary model in `.github/agents/copilot-instructions.md`
+- [X] T036 Run `go test ./...` from `backend/` to validate the packages rooted at `backend/go.mod`
+- [X] T037 Run `go test -tags=integration ./tests/integration/...` from `backend/` to validate the suites bootstrapped by `backend/tests/integration/testmain_test.go`
+- [X] T038 Update the implementation guidance and living architecture references to match the delivered boundary model in `.github/instructions/architecture.instructions.md`, `.github/instructions/testing.instructions.md`, `.specify/memory/constitution.md`, `.specify/memory/bff-flows.md`, and `.specify/memory/architecture-diagram.md`
+- [X] T039 Add and document the timed maintainer placement check (three prompts under 2 minutes) for SC-006 in `specs/006-bff-http-separation/quickstart.md` and `specs/006-bff-http-separation/contracts/route-controller-service-contract.md`
 
 ---
 

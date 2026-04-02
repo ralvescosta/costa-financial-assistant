@@ -80,10 +80,31 @@ internals/
   controller dependencies via dependency injection and MUST register themselves from
   `cmd/container.go`.
 - Controllers MUST NOT contain business logic and MUST NOT own `huma.Register(...)`
-  declarations. They translate HTTP Input structs to domain calls on the service
-  interface and translate the result to an Output struct.
+  declarations. They translate HTTP view contracts to calls on the BFF service
+  interface and map results to view response structs.
 - Services MUST NOT import `huma` or `echo` packages. The service layer is
   transport-agnostic.
+
+**BFF Layered Boundary (spec 006-bff-http-separation — ENFORCED)**:
+The BFF service MUST enforce the following strict three-layer separation:
+
+1. **`transport/http/views/`** — sole owner of ALL HTTP request and response struct
+   definitions. View structs MUST declare `validate:` tags on any field requiring
+   runtime validation. No HTTP contract struct may live in a controller file.
+2. **`transport/http/controllers/`** — pure HTTP adapters ONLY. Each handler method
+   MUST: extract JWT/context claims, call `b.validateInput(input)`, invoke one BFF
+   service method, map the result to a view response, return. Controllers MUST NOT
+   import generated gRPC client packages or repository implementations directly.
+3. **`services/`** — owns ALL downstream gRPC orchestration and transport-neutral
+   application workflows. Service interfaces are declared in
+   `backend/internals/bff/interfaces/services.go`. Service methods accept and return
+   transport-agnostic types; they MUST NOT import `huma` or `echo` packages.
+
+Route capability interfaces in `transport/http/routes/contracts.go` MUST reference
+only `views.*` types; they MUST NOT reference types owned by controllers.
+Route modules (`*_routes.go`) keep exclusive ownership of `huma.Register(...)` calls.
+`cmd/bff/container.go` wires `validator.New()` and provides each controller as its
+route capability interface via `dig.As(new(routes.XxxCapability))`.
 
 **OpenAPI documentation**:
 Every Huma route registration MUST supply a fully populated `huma.Operation` with:

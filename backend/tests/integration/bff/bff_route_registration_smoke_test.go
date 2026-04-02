@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 
-	controllers "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers"
 	bfftransportroutes "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/routes"
+	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 )
 
 // ── Stub capability implementations ──────────────────────────────────────────
@@ -20,40 +20,40 @@ import (
 
 type stubDocuments struct{}
 
-func (stubDocuments) HandleUpload(_ context.Context, _ *controllers.UploadDocumentInput) (*struct{ Body controllers.DocumentResponse }, error) {
+func (stubDocuments) HandleUpload(_ context.Context, _ *views.UploadDocumentInput) (*struct{ Body views.DocumentResponse }, error) {
 	return nil, nil
 }
-func (stubDocuments) HandleClassify(_ context.Context, _ *controllers.ClassifyDocumentInput) (*struct{ Body controllers.DocumentResponse }, error) {
+func (stubDocuments) HandleClassify(_ context.Context, _ *views.ClassifyDocumentInput) (*struct{ Body views.DocumentResponse }, error) {
 	return nil, nil
 }
-func (stubDocuments) HandleList(_ context.Context, _ *controllers.ListDocumentsInput) (*struct {
-	Body controllers.ListDocumentsResponse
+func (stubDocuments) HandleList(_ context.Context, _ *views.ListDocumentsInput) (*struct {
+	Body views.ListDocumentsResponse
 }, error) {
 	return nil, nil
 }
-func (stubDocuments) HandleGet(_ context.Context, _ *controllers.GetDocumentInput) (*struct {
-	Body controllers.DocumentDetailResponse
+func (stubDocuments) HandleGet(_ context.Context, _ *views.GetDocumentInput) (*struct {
+	Body views.DocumentDetailResponse
 }, error) {
 	return nil, nil
 }
 
 type stubProjects struct{}
 
-func (stubProjects) HandleGetCurrent(_ context.Context, _ *struct{}) (*struct{ Body controllers.ProjectResponse }, error) {
+func (stubProjects) HandleGetCurrent(_ context.Context, _ *struct{}) (*struct{ Body views.ProjectResponse }, error) {
 	return nil, nil
 }
-func (stubProjects) HandleListMembers(_ context.Context, _ *controllers.ListMembersInput) (*struct {
-	Body controllers.ListMembersResponse
+func (stubProjects) HandleListMembers(_ context.Context, _ *views.ListMembersInput) (*struct {
+	Body views.ListMembersResponse
 }, error) {
 	return nil, nil
 }
-func (stubProjects) HandleInvite(_ context.Context, _ *controllers.InviteMemberInput) (*struct {
-	Body controllers.ProjectMemberResponse
+func (stubProjects) HandleInvite(_ context.Context, _ *views.InviteMemberInput) (*struct {
+	Body views.ProjectMemberResponse
 }, error) {
 	return nil, nil
 }
-func (stubProjects) HandleUpdateRole(_ context.Context, _ *controllers.UpdateMemberRoleInput) (*struct {
-	Body controllers.ProjectMemberResponse
+func (stubProjects) HandleUpdateRole(_ context.Context, _ *views.UpdateMemberRoleInput) (*struct {
+	Body views.ProjectMemberResponse
 }, error) {
 	return nil, nil
 }
@@ -61,67 +61,67 @@ func (stubProjects) HandleUpdateRole(_ context.Context, _ *controllers.UpdateMem
 type stubSettings struct{}
 
 func (stubSettings) HandleList(_ context.Context, _ *struct{}) (*struct {
-	Body controllers.ListBankAccountsResponse
+	Body views.ListBankAccountsResponse
 }, error) {
 	return nil, nil
 }
-func (stubSettings) HandleCreate(_ context.Context, _ *controllers.CreateBankAccountInput) (*struct {
-	Body controllers.BankAccountResponse
+func (stubSettings) HandleCreate(_ context.Context, _ *views.CreateBankAccountInput) (*struct {
+	Body views.BankAccountResponse
 }, error) {
 	return nil, nil
 }
-func (stubSettings) HandleDelete(_ context.Context, _ *controllers.DeleteBankAccountInput) (*struct{}, error) {
+func (stubSettings) HandleDelete(_ context.Context, _ *views.DeleteBankAccountInput) (*struct{}, error) {
 	return nil, nil
 }
 
 type stubPayments struct{}
 
-func (stubPayments) HandleGetDashboard(_ context.Context, _ *controllers.GetPaymentDashboardInput) (*struct {
-	Body controllers.PaymentDashboardResponse
+func (stubPayments) HandleGetDashboard(_ context.Context, _ *views.GetPaymentDashboardInput) (*struct {
+	Body views.PaymentDashboardResponse
 }, error) {
 	return nil, nil
 }
-func (stubPayments) HandleMarkPaid(_ context.Context, _ *controllers.MarkBillPaidInput) (*struct {
-	Body controllers.MarkBillPaidResponse
+func (stubPayments) HandleMarkPaid(_ context.Context, _ *views.MarkBillPaidInput) (*struct {
+	Body views.MarkBillPaidResponse
 }, error) {
 	return nil, nil
 }
 func (stubPayments) HandleGetPreferredDay(_ context.Context, _ *struct{}) (*struct {
-	Body controllers.CyclePreferenceResponse
+	Body views.CyclePreferenceResponse
 }, error) {
 	return nil, nil
 }
-func (stubPayments) HandleSetPreferredDay(_ context.Context, _ *controllers.SetPreferredDayInput) (*struct {
-	Body controllers.CyclePreferenceResponse
+func (stubPayments) HandleSetPreferredDay(_ context.Context, _ *views.SetPreferredDayInput) (*struct {
+	Body views.CyclePreferenceResponse
 }, error) {
 	return nil, nil
 }
 
 type stubReconciliation struct{}
 
-func (stubReconciliation) HandleGetSummary(_ context.Context, _ *controllers.ReconciliationSummaryInput) (*struct {
-	Body controllers.ReconciliationSummaryResponse
+func (stubReconciliation) HandleGetSummary(_ context.Context, _ *views.ReconciliationSummaryInput) (*struct {
+	Body views.ReconciliationSummaryResponse
 }, error) {
 	return nil, nil
 }
-func (stubReconciliation) HandleCreateLink(_ context.Context, _ *controllers.CreateReconciliationLinkInput) (*struct {
-	Body controllers.ReconciliationLinkResponse
+func (stubReconciliation) HandleCreateLink(_ context.Context, _ *views.CreateReconciliationLinkInput) (*struct {
+	Body views.ReconciliationLinkResponse
 }, error) {
 	return nil, nil
 }
 
 type stubHistory struct{}
 
-func (stubHistory) HandleGetTimeline(_ context.Context, _ *controllers.HistoryQueryInput) (*struct{ Body controllers.TimelineResponse }, error) {
+func (stubHistory) HandleGetTimeline(_ context.Context, _ *views.HistoryQueryInput) (*struct{ Body views.TimelineResponse }, error) {
 	return nil, nil
 }
-func (stubHistory) HandleGetCategories(_ context.Context, _ *controllers.HistoryQueryInput) (*struct {
-	Body controllers.CategoryBreakdownResponse
+func (stubHistory) HandleGetCategories(_ context.Context, _ *views.HistoryQueryInput) (*struct {
+	Body views.CategoryBreakdownResponse
 }, error) {
 	return nil, nil
 }
-func (stubHistory) HandleGetCompliance(_ context.Context, _ *controllers.HistoryQueryInput) (*struct {
-	Body controllers.ComplianceResponse
+func (stubHistory) HandleGetCompliance(_ context.Context, _ *views.HistoryQueryInput) (*struct {
+	Body views.ComplianceResponse
 }, error) {
 	return nil, nil
 }
@@ -198,3 +198,4 @@ func TestBFFRouteRegistrationSmoke(t *testing.T) {
 		assert.True(t, registered[id], "operation %q not registered", id)
 	}
 }
+

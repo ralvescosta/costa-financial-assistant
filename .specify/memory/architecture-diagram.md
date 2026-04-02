@@ -101,7 +101,7 @@ graph TB
 
 | Service | Protocol | Purpose | Dependencies |
 |---------|----------|---------|--------------|
-| **BFF** | Echo HTTP + Huma OpenAPI | API Gateway, user-facing REST endpoints, route to gRPC services | All gRPC services, Redis, PostgreSQL |
+| **BFF** | Echo HTTP + Huma OpenAPI | API Gateway, user-facing REST endpoints; controllers are pure HTTP adapters; BFF services own all downstream gRPC orchestration; HTTP contracts live in `transport/http/views/` | All gRPC services, Redis, PostgreSQL |
 | **Files** | gRPC | PDF document storage, classification (bill vs statement), async processing | PostgreSQL, S3, RabbitMQ, Identity, OpenTelemetry |
 | **Bills** | gRPC | Bill extraction, payment status tracking, overdue analysis | PostgreSQL, Redis, RabbitMQ, Identity, OpenTelemetry |
 | **Payments** | gRPC | Payment tracking, reconciliation, historical dashboards | PostgreSQL, Redis, RabbitMQ, Identity, OpenTelemetry |

@@ -57,7 +57,7 @@ backend/
 │   ├── onboarding/
 │   └── payments/
 ├── internals/
-│   ├── bff/financial/ # controllers/, services/, transport/http/middleware/
+│   ├── bff/           # clients/, interfaces/, services/, transport/http/{routes/,views/,controllers/,middleware/}
 │   ├── bills/         # repositories/, services/, transport/grpc| rmq/
 │   ├── files/         # repositories/, services/, transport/grpc|rmq/
 │   ├── identity/
@@ -135,7 +135,7 @@ make test/integration/bills
 
 1. **BFF only** uses Echo + Huma with `otelecho` middleware. Every route must have `OperationID`, `Summary`, `Description`, and `Tags` in the Huma operation declaration.
 2. **gRPC proto-first**: domain messages in `messages.proto`, service methods in `grpc.proto`, shared types in `common/v1`.
-3. **Clean architecture**: transport → controller/handler → service → repository. No layer may skip down.
+3. **Clean architecture**: transport → controller/handler → BFF service → (gRPC client | repository). No layer may skip down. For BFF: all HTTP contracts live in `transport/http/views/`; controllers are pure HTTP adapters that validate, call one BFF service method, and map to a view response; BFF services own all downstream gRPC orchestration.
 4. **DI via dig**: all wiring in `backend/cmd/<service>/container.go`. Constructors take interfaces.
 5. **Project isolation**: every domain query filters by `project_id` extracted from the verified JWT claim.
 6. **JWT/JWKS**: JWT signing is exclusive to `identity-grpc`. All other services validate via the JWKS endpoint cached in `backend/internals/bff/financial/transport/http/middleware/jwks_cache.go`.
@@ -157,6 +157,29 @@ make test/integration/bills
 | `.github/instructions/commit-message.instructions.md` | Conventional Commits format and rules |
 | `.github/instructions/ai-behavior.instructions.md` | AI code generation rules and precedence |
 
+
+## BFF Boundary Model (006-bff-http-separation)
+
+The BFF service now enforces a strict three-layer contract:
+
+1. **`transport/http/views/`** — sole owner of all HTTP request/response structs. Controllers and route contracts reference only `views.*` types. Every input field that needs runtime validation carries a `validate:` tag.
+2. **`transport/http/controllers/`** — pure HTTP adapters: extract JWT claims, call `b.validateInput(input)`, delegate to one BFF service method, map the result to a view type, return. No gRPC imports, no repository imports.
+3. **`services/`** — owns all downstream gRPC orchestration and transport-neutral application workflows. Service methods accept and return transport-agnostic types.
+
+Route registration lives exclusively in `transport/http/routes/*_routes.go` via `huma.Register(...)`. Route capability interfaces in `routes/contracts.go` are narrow and depend only on `views.*` types.
+
+DI wiring in `cmd/bff/container.go`: `validator.New()` → injected into all controllers; each controller provided as its route capability interface via `dig.As(new(routes.XxxCapability))`.
+
+**Layer call order**:
+```
+[HTTP request]
+  → routes/*_routes.go (huma.Register handler closure)
+    → controller.HandleXxx (validate views.XxxInput, call service)
+      → bffinterfaces.XxxService.XxxMethod (orchestrate gRPC + repos)
+        → billsv1.BillsServiceClient / filesv1.FilesServiceClient / ...
+```
+
+**Integration test layout**: `backend/tests/integration/bff/` — named `<resource>_routes_registration_test.go`, `bff_route_registration_smoke_test.go`, `validate_openapi_metadata_test.go`. Cross-service tests live in `backend/tests/integration/cross_service/`.
 
 ## Recent Changes
 - 007-review-bff-spec: Added Markdown documentation artifacts in monorepo workflow (Speckit v0.4.3) + `.specify/templates/spec-template.md`, `.specify/memory/*.md`, Speckit scripts (`setup-plan.sh`, `update-agent-context.sh`)

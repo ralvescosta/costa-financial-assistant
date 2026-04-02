@@ -111,7 +111,58 @@ go func() {
 
 ---
 
-## Rule: gRPC Service Contracts (Proto-First)
+## Rule: BFF Controller/Service Boundary
+
+**Description**: BFF controllers MUST be pure HTTP adapters. All downstream orchestration (gRPC calls, repository access, multi-step logic) MUST live in `backend/internals/bff/services/`.
+
+**When it applies**: Adding or modifying any BFF controller or service.
+
+**Copilot MUST**:
+- Keep controllers as thin HTTP adapters: extract context claims, call one BFF service method, map the result to a view type, return.
+- Place all gRPC client calls and cross-service orchestration in `backend/internals/bff/services/<resource>_service.go`.
+- Define BFF service contracts in `backend/internals/bff/interfaces/services.go` as narrow interfaces consumed by controllers.
+- Inject BFF service interfaces (not concrete types) into controller constructors via the Dig container.
+- Wire `*validator.Validate` via `validator.New` in `container.go` and pass it to every controller constructor.
+- Call `b.validateInput(input)` on request body structs before delegating to the BFF service.
+
+**Copilot MUST NOT**:
+- Call a gRPC client directly from an HTTP controller handler.
+- Place multi-step orchestration logic (fan-out, aggregation, field mapping from proto types) in a controller.
+- Instantiate `*validator.Validate` inside a controller — always inject it via the Dig container.
+
+**Correct layer order**:
+```
+[HTTP request]
+  → controller.HandleXxx (extract claims, validate, call service)
+    → bffinterfaces.XxxService.XxxMethod (orchestrate downstream)
+      → billsv1.BillsServiceClient / filesv1.FilesServiceClient / etc.
+```
+
+**Reference files**: `backend/internals/bff/interfaces/services.go`, `backend/internals/bff/services/`, `backend/internals/bff/transport/http/controllers/base_controller.go`.
+
+---
+
+## Rule: BFF HTTP Views Layer
+
+**Description**: ALL BFF HTTP request and response contract types MUST be defined in `backend/internals/bff/transport/http/views/`. No HTTP-facing struct may live in a controller file.
+
+**When it applies**: Adding or modifying any BFF HTTP request or response type.
+
+**Copilot MUST**:
+- Define every request input struct (path params, query params, request bodies) and every response output struct under `backend/internals/bff/transport/http/views/<resource>_views.go`.
+- Apply `validate:"..."` struct tags to all input fields that require non-trivial validation (uuid4, required, oneof, etc.).
+- Reference only `views.*` types in route capability interfaces defined in `backend/internals/bff/transport/http/routes/contracts.go`.
+- Reference only `views.*` types in BFF service interface methods defined in `backend/internals/bff/interfaces/services.go`.
+- Return `*views.XxxResponse` from every BFF service method; never return raw proto or repository types.
+
+**Copilot MUST NOT**:
+- Declare HTTP request or response structs inside controller files.
+- Import controller-package types into route modules or route tests — always import from `views`.
+- Return raw proto-generated types (e.g. `*billsv1.BillRecord`) directly from BFF service methods.
+
+**Reference files**: `backend/internals/bff/transport/http/views/`, `backend/internals/bff/transport/http/routes/contracts.go`.
+
+---
 
 **Description**: Inter-service communication MUST use gRPC with proto-first contracts versioned under `backend/protos/`.
 
