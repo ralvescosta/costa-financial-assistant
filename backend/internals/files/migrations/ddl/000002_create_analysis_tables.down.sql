@@ -1,6 +1,3 @@
--- 000002_create_analysis_tables.down.sql
--- Drops analysis_jobs, bill_records, statement_records, and transaction_lines tables.
-
 DROP TABLE IF EXISTS transaction_lines;
 DROP TABLE IF EXISTS statement_records;
 DROP TABLE IF EXISTS bill_records;
