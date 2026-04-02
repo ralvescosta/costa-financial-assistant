@@ -15,6 +15,8 @@ Monorepo web application: a multi-tenant financial bill organizer.
 - PostgreSQL ephemeral test database for integration runs (005-standardize-integration-tests)
 - Go 1.25.6 + Echo v4.15.1, Huma v2.37.3, Dig v1.19.0, Zap v1.27.1, gRPC v1.80.0 generated clients, Testify v1.11.1, go-playground/validator for controller-side HTTP contract validation (006-bff-http-separation)
 - Existing downstream PostgreSQL-backed services and payments repositories; no new persistent store introduced (006-bff-http-separation)
+- Markdown documentation artifacts in monorepo workflow (Speckit v0.4.3) + `.specify/templates/spec-template.md`, `.specify/memory/*.md`, Speckit scripts (`setup-plan.sh`, `update-agent-context.sh`) (007-review-bff-spec)
+- Git-tracked repository files only (no runtime DB changes) (007-review-bff-spec)
 
 ### Backend (Go — latest stable)
 - HTTP framework: `github.com/labstack/echo/v4` + `github.com/danielgtaylor/huma/v2` (OpenAPI-first BFF)
@@ -157,6 +159,6 @@ make test/integration/bills
 
 
 ## Recent Changes
+- 007-review-bff-spec: Added Markdown documentation artifacts in monorepo workflow (Speckit v0.4.3) + `.specify/templates/spec-template.md`, `.specify/memory/*.md`, Speckit scripts (`setup-plan.sh`, `update-agent-context.sh`)
 - 006-bff-http-separation: Added Go 1.25.6 + Echo v4.15.1, Huma v2.37.3, Dig v1.19.0, Zap v1.27.1, gRPC v1.80.0 generated clients, Testify v1.11.1, go-playground/validator for controller-side HTTP contract validation
 - 005-standardize-integration-tests: Added Go 1.25.6; Markdown governance artifacts + `testing` (stdlib), `github.com/stretchr/testify`, `github.com/testcontainers/testcontainers-go` (to be standardized in scope), `github.com/golang-migrate/migrate/v4`
-- 002-frontend-auth-navigation: Added TypeScript 5.8.x, React 18.3.x + react-router-dom 6.30.x, @tanstack/react-query 5.76.x, zod 3.24.x, TailwindCSS 3.4.x

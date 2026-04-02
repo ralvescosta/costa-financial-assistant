@@ -53,6 +53,12 @@ For migration-heavy features:
 | Performance optimization (caching, indexing) | Data layer | May affect Redis/cache discussion if architectural change |
 | Integration test coverage expands | Test dependencies | Not typically in main diagram, but note in changelog |
 
+For spec-review-only features (for example alignment workflows that change wording,
+governance declarations, or ownership documentation without changing runtime
+cross-service topology), `.specify/memory/architecture-diagram.md` SHOULD remain
+unchanged and the feature MUST record an explicit no-topology-change rationale in
+its spec and plan artifacts.
+
 ### Refactor/Reorganization Trigger (MUST)
 
 If a feature refactors or reorganizes project or service structure, the same feature

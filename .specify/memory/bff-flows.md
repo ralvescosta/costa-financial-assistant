@@ -14,6 +14,7 @@ Notes:
 - Auth middleware uses Bearer JWT + JWKS key lookup.
 - JWKS cache is in-memory inside BFF (not Redis).
 - For endpoints that call downstream services via gRPC, DB details happen in those services.
+- Target-state guard (spec 006): controllers are HTTP-only adapters and delegate business orchestration to BFF service-layer interfaces; route modules keep registration ownership and `transport/http/views` owns HTTP contracts.
 
 ## Shared auth and guard pattern (applies to all endpoints)
 
