@@ -10,6 +10,7 @@
 ### Session 2026-04-02
 
 - Q: Which BFF routes are in scope for this architectural standard? → A: All active BFF HTTP routes.
+- Q: What is the authoritative source for the active BFF route inventory in this feature? → A: `specs/006-bff-http-separation/contracts/route-coverage-matrix.md` is the normative route list for scope and coverage checks.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -101,9 +102,9 @@ As a quality owner, I want route declarations, controllers, and HTTP contracts t
 - **FR-003**: BFF controllers MUST NOT own business rules, business decision making, or direct downstream client execution flow.
 - **FR-004**: Route modules MUST remain responsible for endpoint declaration and MUST delegate execution to injected controller capabilities.
 - **FR-005**: The refactor MUST preserve the existing externally visible endpoint behavior for paths, methods, authorization expectations, and response semantics unless a deliberate change is explicitly approved and documented in the same feature cycle.
-- **FR-006**: The transport HTTP layer MUST include a dedicated `transport/http/views` layer that owns every struct representing request or response JSON transmitted through the HTTP boundary.
-- **FR-007**: All HTTP request and response contracts for active BFF endpoints MUST be defined in the dedicated views layer rather than inside controllers, services, or route modules.
-- **FR-008**: Every field in an HTTP contract that requires validation MUST declare validator tags so controllers can perform consistent boundary checks before invoking services.
+- **FR-006**: The transport HTTP layer MUST include a dedicated `transport/http/views` layer as the exclusive owner of HTTP request and response contracts for active BFF endpoints.
+- **FR-007**: Route modules, controllers, and services MUST consume contracts defined in `transport/http/views` and MUST NOT define duplicate HTTP transport structs in those layers.
+- **FR-008**: Validation-tag policy MUST be deterministic: every request-facing field bound from path, query, header, or JSON body (including nested request payload fields) MUST declare `validate` tags; response-only fields and server-computed fields are exempt unless reused as request input.
 - **FR-009**: Controllers MUST use the dedicated HTTP contract structs as the input and output models for transport-layer processing.
 - **FR-010**: Existing authentication, authorization, and project-isolation protections MUST remain enforced after the separation of routes, controllers, and HTTP contracts.
 - **FR-011**: Every declared active BFF route MUST be covered by at least one integration test that verifies expected route accessibility and outcome.
@@ -126,7 +127,7 @@ As a quality owner, I want route declarations, controllers, and HTTP contracts t
 - **SC-003**: 100% of HTTP JSON contracts used by active BFF endpoints are defined in the dedicated HTTP view layer.
 - **SC-004**: 100% of required HTTP contract fields for active BFF endpoints expose validator tags needed for controller-side contract checks.
 - **SC-005**: 100% of declared active BFF routes have at least one passing integration test.
-- **SC-006**: During review, a maintainer can identify where a new route declaration, controller behavior change, and HTTP contract change belong in under 2 minutes.
+- **SC-006**: In a timed review check, a maintainer uses only `contracts/route-controller-service-contract.md` and `contracts/route-coverage-matrix.md` to classify placement for three prompts (new route declaration, controller behavior update, HTTP contract field change) with all three correct in under 2 minutes total.
 - **SC-007**: No regression is detected in existing route accessibility, authorization behavior, and expected response outcomes across the in-scope BFF integration suite.
 - **SC-008**: Route coverage matrix and integration results provide explicit evidence for every active operation before feature completion.
 

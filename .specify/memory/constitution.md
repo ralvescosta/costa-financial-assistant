@@ -66,8 +66,8 @@ The BFF MUST follow the **MVC pattern** with these mandatory layers:
 ```
 internals/
   <domain>/
-    controllers/     # HTTP layer: register Huma routes, parse Input structs,
-                     # call service, return Output structs; NO business logic here
+    controllers/     # HTTP layer: parse/validate HTTP input, call service,
+                     # and return HTTP output structs; NO business logic or route registration here
     services/        # business logic — domain operations, orchestration
     interfaces/      # Go interfaces for services and repositories
     *.go             # domain types, errors

@@ -5,7 +5,7 @@
 
 ## Summary
 
-Complete the BFF transport refactor so all 20 active BFF HTTP routes follow the same boundary model: route modules own Huma registration, controllers perform only HTTP parsing/validation/response translation, all HTTP request and response structs move into `transport/http/views`, and downstream gRPC or repository orchestration shifts into BFF service interfaces. The implementation keeps the current Echo + Huma transport and existing route surface stable while adding a validator-driven contract check path and explicit route-to-test coverage documentation.
+Complete the BFF transport refactor so all 20 active BFF HTTP routes follow the same boundary model: route modules own Huma registration, controllers perform only HTTP parsing/validation/response translation, all HTTP request and response structs move into `transport/http/views`, and downstream gRPC or repository orchestration shifts into BFF service interfaces. The authoritative route inventory for scope and coverage is `specs/006-bff-http-separation/contracts/route-coverage-matrix.md`. The implementation keeps the current Echo + Huma transport and existing route surface stable while adding a validator-driven contract check path and explicit route-to-test coverage documentation.
 
 ## Technical Context
 
@@ -95,14 +95,19 @@ backend/
 │                   └── settings_views.go
 └── tests/
     └── integration/
-        ├── bff_route_registration_smoke_test.go
-        ├── documents_routes_integration_test.go
-        ├── history_routes_integration_test.go
-        ├── openapi_contract_test.go
-        ├── payments_routes_integration_test.go
-        ├── projects_routes_integration_test.go
-        ├── reconciliation_routes_integration_test.go
-        ├── settings_routes_integration_test.go
+        ├── bff/
+        │   ├── bff_route_registration_smoke_test.go
+        │   ├── documents_routes_registration_test.go
+        │   ├── history_routes_registration_test.go
+        │   ├── payments_routes_registration_test.go
+        │   ├── projects_routes_registration_test.go
+        │   ├── reconciliation_routes_registration_test.go
+        │   ├── reject_invalid_token_test.go
+        │   ├── settings_routes_registration_test.go
+        │   └── validate_openapi_metadata_test.go
+        ├── cross_service/
+        │   ├── enforce_project_isolation_test.go
+        │   └── enforce_role_permissions_test.go
         └── testmain_test.go
 ```
 

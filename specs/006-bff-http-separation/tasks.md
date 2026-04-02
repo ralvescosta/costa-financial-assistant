@@ -30,7 +30,7 @@
 - [ ] T006 Define the shared BFF service interfaces for all active route groups in `backend/internals/bff/interfaces/services.go`
 - [ ] T007 Update route capability interfaces to depend on view contracts in `backend/internals/bff/transport/http/routes/contracts.go`
 - [ ] T008 [P] Wire the validator instance and BFF service providers through Dig in `backend/cmd/bff/container.go`
-- [ ] T009 [P] Update the BFF route test bootstrap for service-backed route modules in `backend/tests/integration/bff_route_test_helpers.go`
+- [ ] T009 [P] Update the BFF route test bootstrap for service-backed route modules in `backend/tests/integration/bff/bff_route_test_helpers.go`
 - [ ] T010 [P] Update the architecture governance for the `transport/http/views` layer and controller/service boundary in `.specify/memory/constitution.md` and `.github/instructions/architecture.instructions.md`
 - [ ] T011 [P] Update the route coverage testing rule for active BFF routes in `.github/instructions/testing.instructions.md`
 
@@ -70,8 +70,8 @@
 
 ### Tests for User Story 2
 
-- [ ] T020 [P] [US2] Add HTTP contract validation coverage for documents, projects, and settings routes in `backend/tests/integration/documents_routes_integration_test.go`, `backend/tests/integration/projects_routes_integration_test.go`, and `backend/tests/integration/settings_routes_integration_test.go`
-- [ ] T021 [P] [US2] Add HTTP contract validation coverage for payments, reconciliation, and history routes in `backend/tests/integration/payments_routes_integration_test.go`, `backend/tests/integration/reconciliation_routes_integration_test.go`, and `backend/tests/integration/history_routes_integration_test.go`
+- [ ] T020 [P] [US2] Add HTTP contract validation coverage for documents, projects, and settings routes in `backend/tests/integration/bff/documents_routes_registration_test.go`, `backend/tests/integration/bff/projects_routes_registration_test.go`, and `backend/tests/integration/bff/settings_routes_registration_test.go`
+- [ ] T021 [P] [US2] Add HTTP contract validation coverage for payments, reconciliation, and history routes in `backend/tests/integration/bff/payments_routes_registration_test.go`, `backend/tests/integration/bff/reconciliation_routes_registration_test.go`, and `backend/tests/integration/bff/history_routes_registration_test.go`
 
 ### Implementation for User Story 2
 
@@ -94,16 +94,16 @@
 
 ### Tests for User Story 3
 
-- [ ] T028 [P] [US3] Expand registration and metadata regression coverage in `backend/tests/integration/bff_route_registration_smoke_test.go` and `backend/tests/integration/openapi_contract_test.go`
-- [ ] T029 [P] [US3] Complete resource-scoped coverage for documents, projects, settings, and payments routes in `backend/tests/integration/documents_routes_integration_test.go`, `backend/tests/integration/projects_routes_integration_test.go`, `backend/tests/integration/settings_routes_integration_test.go`, and `backend/tests/integration/payments_routes_integration_test.go`
-- [ ] T030 [P] [US3] Complete resource-scoped coverage for reconciliation and history routes in `backend/tests/integration/reconciliation_routes_integration_test.go` and `backend/tests/integration/history_routes_integration_test.go`
+- [ ] T028 [P] [US3] Expand registration and metadata regression coverage in `backend/tests/integration/bff/bff_route_registration_smoke_test.go` and `backend/tests/integration/bff/validate_openapi_metadata_test.go`
+- [ ] T029 [P] [US3] Complete resource-scoped coverage for documents, projects, settings, and payments routes in `backend/tests/integration/bff/documents_routes_registration_test.go`, `backend/tests/integration/bff/projects_routes_registration_test.go`, `backend/tests/integration/bff/settings_routes_registration_test.go`, and `backend/tests/integration/bff/payments_routes_registration_test.go`
+- [ ] T030 [P] [US3] Complete resource-scoped coverage for reconciliation and history routes in `backend/tests/integration/bff/reconciliation_routes_registration_test.go` and `backend/tests/integration/bff/history_routes_registration_test.go`
 
 ### Implementation for User Story 3
 
 - [ ] T031 [US3] Align the active 20-route inventory with the integration suites in `specs/006-bff-http-separation/contracts/route-coverage-matrix.md`
 - [ ] T032 [US3] Update the route, controller, and service boundary contract to match the implemented BFF shape in `specs/006-bff-http-separation/contracts/route-controller-service-contract.md`
 - [ ] T033 [US3] Update the feature validation workflow for the final route and contract checks in `specs/006-bff-http-separation/quickstart.md`
-- [ ] T034 [US3] Preserve authentication, role enforcement, and project-isolation regression coverage in `backend/tests/integration/auth_token_rejection_test.go`, `backend/tests/integration/us7_role_enforcement_test.go`, and `backend/tests/integration/us7_project_isolation_test.go`
+- [ ] T034 [US3] Preserve authentication, role enforcement, and project-isolation regression coverage in `backend/tests/integration/bff/reject_invalid_token_test.go`, `backend/tests/integration/cross_service/enforce_role_permissions_test.go`, and `backend/tests/integration/cross_service/enforce_project_isolation_test.go`
 
 **Checkpoint**: Every active BFF route is still registered with the same external behavior and is explicitly covered by integration tests and feature documentation.
 
@@ -117,6 +117,7 @@
 - [ ] T036 Run `go test ./...` from `backend/` to validate the packages rooted at `backend/go.mod`
 - [ ] T037 Run `go test -tags=integration ./tests/integration/...` from `backend/` to validate the suites bootstrapped by `backend/tests/integration/testmain_test.go`
 - [ ] T038 Update the implementation guidance and living architecture references to match the delivered boundary model in `.github/instructions/architecture.instructions.md`, `.github/instructions/testing.instructions.md`, `.specify/memory/constitution.md`, `.specify/memory/bff-flows.md`, and `.specify/memory/architecture-diagram.md`
+- [ ] T039 Add and document the timed maintainer placement check (three prompts under 2 minutes) for SC-006 in `specs/006-bff-http-separation/quickstart.md` and `specs/006-bff-http-separation/contracts/route-controller-service-contract.md`
 
 ---
 
@@ -129,7 +130,6 @@
 - **User Story 1 (Phase 3)**: Depends on Foundational and is the MVP.
 - **User Story 2 (Phase 4)**: Depends on User Story 1 because controllers must already depend on BFF services before views become the only HTTP contract types.
 - **User Story 3 (Phase 5)**: Depends on User Story 2 because route and contract coverage must reflect the final views-based transport boundary.
-- **Polish (Phase 6)**: Depends on all user stories being complete.
 - **Polish (Phase 6)**: Depends on all user stories being complete.
 
 ### User Story Dependencies
@@ -178,8 +178,8 @@ Task: T024 backend/internals/bff/transport/http/views/reconciliation_views.go + 
 
 ```bash
 # Expand route coverage suites in parallel by resource group
-Task: T029 backend/tests/integration/documents_routes_integration_test.go + backend/tests/integration/projects_routes_integration_test.go + backend/tests/integration/settings_routes_integration_test.go + backend/tests/integration/payments_routes_integration_test.go
-Task: T030 backend/tests/integration/reconciliation_routes_integration_test.go + backend/tests/integration/history_routes_integration_test.go
+Task: T029 backend/tests/integration/bff/documents_routes_registration_test.go + backend/tests/integration/bff/projects_routes_registration_test.go + backend/tests/integration/bff/settings_routes_registration_test.go + backend/tests/integration/bff/payments_routes_registration_test.go
+Task: T030 backend/tests/integration/bff/reconciliation_routes_registration_test.go + backend/tests/integration/bff/history_routes_registration_test.go
 ```
 
 ---
