@@ -11,8 +11,8 @@
 
 **Purpose**: Create the shared files and test scaffolding that the route refactor will build on.
 
-- [ ] T001 Create the route package scaffold in `backend/internals/bff/transport/http/routes/contracts.go`
-- [ ] T002 [P] Create shared BFF route integration helpers in `backend/tests/integration/bff_route_test_helpers.go`
+- [X] T001 Create the route package scaffold in `backend/internals/bff/transport/http/routes/contracts.go`
+- [X] T002 [P] Create shared BFF route integration helpers in `backend/tests/integration/bff_route_test_helpers.go`
 
 **Checkpoint**: Route package and shared test helpers exist.
 
@@ -24,12 +24,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 Define the shared route registration contract and middleware dependency types in `backend/internals/bff/transport/http/routes/contracts.go`
-- [ ] T004 [P] Add shared controller base behavior in `backend/internals/bff/transport/http/controllers/base_controller.go`
-- [ ] T005 [P] Update OpenAPI metadata validation to scan route files in `backend/tests/integration/openapi_contract_test.go`
-- [ ] T006 Update the BFF routing governance rule in `.specify/memory/constitution.md`
-- [ ] T007 [P] Update the route ownership architecture rule in `.github/instructions/architecture.instructions.md`
-- [ ] T008 [P] Update backend route coverage testing guidance in `.github/instructions/testing.instructions.md`
+- [X] T003 Define the shared route registration contract and middleware dependency types in `backend/internals/bff/transport/http/routes/contracts.go`
+- [X] T004 [P] Add shared controller base behavior in `backend/internals/bff/transport/http/controllers/base_controller.go`
+- [X] T005 [P] Update OpenAPI metadata validation to scan route files in `backend/tests/integration/openapi_contract_test.go`
+- [X] T006 Update the BFF routing governance rule in `.specify/memory/constitution.md`
+- [X] T007 [P] Update the route ownership architecture rule in `.github/instructions/architecture.instructions.md`
+- [X] T008 [P] Update backend route coverage testing guidance in `.github/instructions/testing.instructions.md`
 
 **Checkpoint**: Shared route/controller contracts and governance rules are in place, and route metadata validation points at the new route layer.
 
@@ -43,16 +43,16 @@
 
 ### Tests for User Story 1
 
-- [ ] T009 [P] [US1] Create route registration regression coverage in `backend/tests/integration/bff_route_registration_smoke_test.go`
+- [X] T009 [P] [US1] Create route registration regression coverage in `backend/tests/integration/bff_route_registration_smoke_test.go`
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Create the documents and projects route modules in `backend/internals/bff/transport/http/routes/documents_routes.go` and `backend/internals/bff/transport/http/routes/projects_routes.go`
-- [ ] T011 [P] [US1] Create the settings and payments route modules in `backend/internals/bff/transport/http/routes/settings_routes.go` and `backend/internals/bff/transport/http/routes/payments_routes.go`
-- [ ] T012 [P] [US1] Create the reconciliation and history route modules in `backend/internals/bff/transport/http/routes/reconciliation_routes.go` and `backend/internals/bff/transport/http/routes/history_routes.go`
-- [ ] T013 [P] [US1] Remove `Register(...)` ownership from the documents, projects, and settings controllers in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, and `backend/internals/bff/transport/http/controllers/settings_controller.go`
-- [ ] T014 [P] [US1] Remove `Register(...)` ownership from the payments, reconciliation, and history controllers in `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
-- [ ] T015 [US1] Update Dig wiring to provide and register route modules in `backend/cmd/bff/container.go`
+- [X] T010 [P] [US1] Create the documents and projects route modules in `backend/internals/bff/transport/http/routes/documents_routes.go` and `backend/internals/bff/transport/http/routes/projects_routes.go`
+- [X] T011 [P] [US1] Create the settings and payments route modules in `backend/internals/bff/transport/http/routes/settings_routes.go` and `backend/internals/bff/transport/http/routes/payments_routes.go`
+- [X] T012 [P] [US1] Create the reconciliation and history route modules in `backend/internals/bff/transport/http/routes/reconciliation_routes.go` and `backend/internals/bff/transport/http/routes/history_routes.go`
+- [X] T013 [P] [US1] Remove `Register(...)` ownership from the documents, projects, and settings controllers in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, and `backend/internals/bff/transport/http/controllers/settings_controller.go`
+- [X] T014 [P] [US1] Remove `Register(...)` ownership from the payments, reconciliation, and history controllers in `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
+- [X] T015 [US1] Update Dig wiring to provide and register route modules in `backend/cmd/bff/container.go`
 
 **Checkpoint**: All BFF route declarations live in dedicated route modules, controllers are behavior-only, and the BFF container registers route modules instead of controller `Register(...)` methods.
 
@@ -66,14 +66,14 @@
 
 ### Tests for User Story 2
 
-- [ ] T016 [P] [US2] Create route contract wiring coverage in `backend/tests/integration/bff_route_contract_wiring_test.go`
+- [X] T016 [P] [US2] Create route contract wiring coverage in `backend/tests/integration/bff_route_contract_wiring_test.go`
 
 ### Implementation for User Story 2
 
-- [ ] T017 [US2] Define the shared controller capability interfaces in `backend/internals/bff/transport/http/routes/contracts.go`
-- [ ] T018 [P] [US2] Update the documents, projects, and settings controllers to satisfy capability interfaces in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, and `backend/internals/bff/transport/http/controllers/settings_controller.go`
-- [ ] T019 [P] [US2] Update the payments, reconciliation, and history controllers to satisfy capability interfaces in `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
-- [ ] T020 [US2] Add compile-time assertions and consistent constructor wiring in `backend/internals/bff/transport/http/routes/documents_routes.go`, `backend/internals/bff/transport/http/routes/projects_routes.go`, `backend/internals/bff/transport/http/routes/settings_routes.go`, `backend/internals/bff/transport/http/routes/payments_routes.go`, `backend/internals/bff/transport/http/routes/reconciliation_routes.go`, `backend/internals/bff/transport/http/routes/history_routes.go`, and `backend/cmd/bff/container.go`
+- [X] T017 [US2] Define the shared controller capability interfaces in `backend/internals/bff/transport/http/routes/contracts.go`
+- [X] T018 [P] [US2] Update the documents, projects, and settings controllers to satisfy capability interfaces in `backend/internals/bff/transport/http/controllers/documents_controller.go`, `backend/internals/bff/transport/http/controllers/projects_controller.go`, and `backend/internals/bff/transport/http/controllers/settings_controller.go`
+- [X] T019 [P] [US2] Update the payments, reconciliation, and history controllers to satisfy capability interfaces in `backend/internals/bff/transport/http/controllers/payments_controller.go`, `backend/internals/bff/transport/http/controllers/reconciliation_controller.go`, and `backend/internals/bff/transport/http/controllers/history_controller.go`
+- [X] T020 [US2] Add compile-time assertions and consistent constructor wiring in `backend/internals/bff/transport/http/routes/documents_routes.go`, `backend/internals/bff/transport/http/routes/projects_routes.go`, `backend/internals/bff/transport/http/routes/settings_routes.go`, `backend/internals/bff/transport/http/routes/payments_routes.go`, `backend/internals/bff/transport/http/routes/reconciliation_routes.go`, `backend/internals/bff/transport/http/routes/history_routes.go`, and `backend/cmd/bff/container.go`
 
 **Checkpoint**: Route modules and controllers follow the shared contract model, and future endpoint modules can adopt the same pattern without custom transport wiring.
 
@@ -87,16 +87,16 @@
 
 ### Tests for User Story 3
 
-- [ ] T021 [P] [US3] Create documents and projects route integration suites in `backend/tests/integration/documents_routes_integration_test.go` and `backend/tests/integration/projects_routes_integration_test.go`
-- [ ] T022 [P] [US3] Create settings and payments route integration suites in `backend/tests/integration/settings_routes_integration_test.go` and `backend/tests/integration/payments_routes_integration_test.go`
-- [ ] T023 [P] [US3] Create reconciliation and history route integration suites in `backend/tests/integration/reconciliation_routes_integration_test.go` and `backend/tests/integration/history_routes_integration_test.go`
+- [X] T021 [P] [US3] Create documents and projects route integration suites in `backend/tests/integration/documents_routes_integration_test.go` and `backend/tests/integration/projects_routes_integration_test.go`
+- [X] T022 [P] [US3] Create settings and payments route integration suites in `backend/tests/integration/settings_routes_integration_test.go` and `backend/tests/integration/payments_routes_integration_test.go`
+- [X] T023 [P] [US3] Create reconciliation and history route integration suites in `backend/tests/integration/reconciliation_routes_integration_test.go` and `backend/tests/integration/history_routes_integration_test.go`
 
 ### Implementation for User Story 3
 
-- [ ] T024 [P] [US3] Migrate document and settings route assertions from `backend/tests/integration/us1_upload_classify_test.go` and `backend/tests/integration/us3_bank_accounts_test.go` into `backend/tests/integration/documents_routes_integration_test.go` and `backend/tests/integration/settings_routes_integration_test.go`
-- [ ] T025 [P] [US3] Migrate payments, reconciliation, and history route assertions from `backend/tests/integration/us4_payment_dashboard_test.go`, `backend/tests/integration/us4_mark_paid_idempotency_test.go`, `backend/tests/integration/us5_manual_reconciliation_test.go`, `backend/tests/integration/us5_auto_reconciliation_test.go`, `backend/tests/integration/us6_history_timeline_test.go`, and `backend/tests/integration/us6_history_metrics_test.go` into the corresponding resource-scoped route suites
-- [ ] T026 [US3] Remove or repurpose legacy `us*` route assertions once equivalent resource-scoped coverage is passing in `backend/tests/integration/`
-- [ ] T027 [US3] Update the route-to-test mapping in `specs/004-segregate-bff-routing/contracts/route-coverage-matrix.md`
+- [X] T024 [P] [US3] Migrate document and settings route assertions from `backend/tests/integration/us1_upload_classify_test.go` and `backend/tests/integration/us3_bank_accounts_test.go` into `backend/tests/integration/documents_routes_integration_test.go` and `backend/tests/integration/settings_routes_integration_test.go`
+- [X] T025 [P] [US3] Migrate payments, reconciliation, and history route assertions from `backend/tests/integration/us4_payment_dashboard_test.go`, `backend/tests/integration/us4_mark_paid_idempotency_test.go`, `backend/tests/integration/us5_manual_reconciliation_test.go`, `backend/tests/integration/us5_auto_reconciliation_test.go`, `backend/tests/integration/us6_history_timeline_test.go`, and `backend/tests/integration/us6_history_metrics_test.go` into the corresponding resource-scoped route suites
+- [X] T026 [US3] Remove or repurpose legacy `us*` route assertions once equivalent resource-scoped coverage is passing in `backend/tests/integration/`
+- [X] T027 [US3] Update the route-to-test mapping in `specs/004-segregate-bff-routing/contracts/route-coverage-matrix.md`
 
 **Checkpoint**: All 20 BFF routes are covered by explicit resource-scoped integration suites and the route coverage matrix reflects the actual tests.
 
@@ -106,8 +106,8 @@
 
 **Purpose**: Finalize documentation and validate the full feature end to end.
 
-- [ ] T028 [P] Update the validation workflow in `specs/004-segregate-bff-routing/quickstart.md`
-- [ ] T029 Run `go test ./...` from `backend/`
+- [X] T028 [P] Update the validation workflow in `specs/004-segregate-bff-routing/quickstart.md`
+- [X] T029 Run `go test ./...` from `backend/`
 - [ ] T030 Run `go test -tags=integration ./tests/integration/...` from `backend/`
 
 ---
