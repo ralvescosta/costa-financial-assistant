@@ -1,0 +1,3 @@
+INSERT INTO projects (id, owner_user_id, name, created_at, updated_at)
+VALUES ('00000000-0000-0000-0000-000000000023', '00000000-0000-0000-0000-000000000013', 'Stg Project', NOW(), NOW())
+ON CONFLICT DO NOTHING;
