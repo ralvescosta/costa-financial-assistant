@@ -160,9 +160,47 @@ applyTo: "**/*_test.go,**/*.test.ts,**/*.spec.ts"
 
 ---
 
-## Rule: CI Test Command Compatibility
+## Rule: BFF Route Coverage Standard
 
-**Description**: New tests must run under repository CI commands.
+**Description**: Every active BFF route MUST have an integration test in `backend/tests/integration/bff/` that verifies route registration and endpoint reachability.
+
+**When it applies**: Adding or modifying any BFF route, controller, or views type.
+
+**Copilot MUST**:
+- Add a corresponding route registration test in `backend/tests/integration/bff/<resource>_routes_registration_test.go` for each new route group.
+- Verify route registration via `api.OpenAPI().Paths` (checks paths, HTTP methods, and `OperationID`).
+- Verify endpoint reachability via a live HTTP call to `srv.URL + path` (confirms the route resolves, not 404 or 405).
+- Use stub capability implementations that satisfy the route's capability interface using only `views.*` types.
+- Maintain the 20-operation smoke inventory in `bff_route_registration_smoke_test.go` for all active BFF routes.
+
+**Copilot MUST NOT**:
+- Import controller types (`controllers.XxxInput`, `controllers.XxxResponse`) into any BFF route integration test file.
+- Add route tests that depend on external services (use stub capabilities).
+
+**Reference files**: `backend/tests/integration/bff/bff_route_registration_smoke_test.go`, `backend/tests/integration/bff/documents_routes_registration_test.go`.
+
+---
+
+## Rule: BFF Service Unit Tests
+
+**Description**: Each BFF service in `backend/internals/bff/services/` MUST have a corresponding unit test file using testify mocks.
+
+**When it applies**: Adding or modifying any BFF service (`*_service.go`).
+
+**Copilot MUST**:
+- Create `<resource>_service_test.go` in `backend/internals/bff/services/` using `package services_test`.
+- Use inline testify mock structs (embed `mock.Mock`, implement the downstream interface).
+- Test happy paths, client error paths, and edge cases (default page sizes, nil responses, clamped ranges).
+- Assert view type mapping correctness from proto or repository types.
+
+**Copilot MUST NOT**:
+- Use real gRPC connections in BFF service unit test files.
+
+**Reference files**: `backend/internals/bff/services/documents_service_test.go`, `backend/internals/bff/services/history_service_test.go`.
+
+---
+
+## Rule: CI Test Command Compatibility
 
 **When it applies**: Creating tests or test helpers.
 

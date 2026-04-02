@@ -2,16 +2,25 @@ package controllers
 
 import (
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // BaseController provides shared behavior embedded by all BFF controllers.
-// It holds a logger and implements grpcToHumaError so that individual controllers
-// do not duplicate gRPC-to-HTTP error mapping logic.
+// It holds a logger, a validator instance, and shared error-mapping helpers.
 type BaseController struct {
-	logger *zap.Logger
+	logger   *zap.Logger
+	validate *validator.Validate
+}
+
+// validateInput runs struct-tag validation on v and returns a Huma 400 error on failure.
+func (b *BaseController) validateInput(v interface{}) error {
+	if err := b.validate.Struct(v); err != nil {
+		return huma.Error400BadRequest(err.Error())
+	}
+	return nil
 }
 
 // grpcToHumaError maps a gRPC status error to the appropriate Huma HTTP error.

@@ -10,6 +10,7 @@ import (
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humaecho"
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/labstack/echo/otelecho"
@@ -30,6 +31,9 @@ import (
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
+
+	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
+	bffservices "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services"
 )
 
 // run wires the dependency container and starts the BFF HTTP server.
@@ -143,6 +147,49 @@ func run(ctx context.Context) error {
 	// ─── History repository ───────────────────────────────────────────────────
 	if err := c.Provide(paymentsrepo.NewHistoryRepository); err != nil {
 		return fmt.Errorf("bff: provide history repository: %w", err)
+	}
+
+	// ─── BFF interface adapters (concrete gRPC → BFF narrow interfaces) ────────
+	if err := c.Provide(func(c filesv1.FilesServiceClient) bffinterfaces.FilesClient {
+		return c
+	}); err != nil {
+		return fmt.Errorf("bff: provide files bff interface: %w", err)
+	}
+
+	if err := c.Provide(func(c onboardingv1.OnboardingServiceClient) bffinterfaces.OnboardingClient {
+		return c
+	}); err != nil {
+		return fmt.Errorf("bff: provide onboarding bff interface: %w", err)
+	}
+
+	// ─── BFF Services ────────────────────────────────────────────────────────
+	if err := c.Provide(bffservices.NewDocumentsService); err != nil {
+		return fmt.Errorf("bff: provide documents service: %w", err)
+	}
+
+	if err := c.Provide(bffservices.NewProjectsService); err != nil {
+		return fmt.Errorf("bff: provide projects service: %w", err)
+	}
+
+	if err := c.Provide(bffservices.NewSettingsService); err != nil {
+		return fmt.Errorf("bff: provide settings service: %w", err)
+	}
+
+	if err := c.Provide(bffservices.NewPaymentsService); err != nil {
+		return fmt.Errorf("bff: provide payments service: %w", err)
+	}
+
+	if err := c.Provide(bffservices.NewReconciliationService); err != nil {
+		return fmt.Errorf("bff: provide reconciliation service: %w", err)
+	}
+
+	if err := c.Provide(bffservices.NewHistoryService); err != nil {
+		return fmt.Errorf("bff: provide history service: %w", err)
+	}
+
+	// ─── Validator ───────────────────────────────────────────────────────────
+	if err := c.Provide(validator.New); err != nil {
+		return fmt.Errorf("bff: provide validator: %w", err)
 	}
 
 	// ─── Controllers (provided as capability interfaces) ────────────────────

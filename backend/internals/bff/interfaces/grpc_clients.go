@@ -12,13 +12,16 @@ import (
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
 
-// FilesClient defines the subset of the files gRPC service consumed by BFF controllers.
+// FilesClient defines the subset of the files gRPC service consumed by BFF services.
 // The generated filesv1.FilesServiceClient satisfies this interface.
 type FilesClient interface {
 	UploadDocument(ctx context.Context, in *filesv1.UploadDocumentRequest, opts ...grpc.CallOption) (*filesv1.UploadDocumentResponse, error)
 	ClassifyDocument(ctx context.Context, in *filesv1.ClassifyDocumentRequest, opts ...grpc.CallOption) (*filesv1.ClassifyDocumentResponse, error)
 	GetDocument(ctx context.Context, in *filesv1.GetDocumentRequest, opts ...grpc.CallOption) (*filesv1.GetDocumentResponse, error)
 	ListDocuments(ctx context.Context, in *filesv1.ListDocumentsRequest, opts ...grpc.CallOption) (*filesv1.ListDocumentsResponse, error)
+	ListBankAccounts(ctx context.Context, in *filesv1.ListBankAccountsRequest, opts ...grpc.CallOption) (*filesv1.ListBankAccountsResponse, error)
+	CreateBankAccount(ctx context.Context, in *filesv1.CreateBankAccountRequest, opts ...grpc.CallOption) (*filesv1.CreateBankAccountResponse, error)
+	DeleteBankAccount(ctx context.Context, in *filesv1.DeleteBankAccountRequest, opts ...grpc.CallOption) (*filesv1.DeleteBankAccountResponse, error)
 }
 
 // IdentityClient defines the subset of the identity gRPC service consumed by BFF middleware.

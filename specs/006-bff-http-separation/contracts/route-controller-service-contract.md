@@ -46,3 +46,17 @@ Define the ownership boundary for active BFF HTTP routes after the refactor so r
 - `backend/cmd/bff/container.go` must wire validators, BFF services, controllers, and route modules through Dig.
 - Controllers must be provided as route capability interfaces.
 - Route modules remain the only transport objects directly invoked for Huma registration from container wiring.
+
+## SC-006 Timed Maintainer Placement Check
+
+A new contributor should be able to locate the correct file for any BFF change in under 2 minutes using 3 prompts or fewer:
+
+| Change type | Correct file location |
+|-------------|----------------------|
+| Add or rename an HTTP request/response field | `backend/internals/bff/transport/http/views/<resource>_views.go` |
+| Change controller validation or response mapping | `backend/internals/bff/transport/http/controllers/<resource>_controller.go` |
+| Change downstream gRPC call or orchestration logic | `backend/internals/bff/services/<resource>_service.go` |
+| Register a new route or update OpenAPI metadata | `backend/internals/bff/transport/http/routes/<resource>_routes.go` |
+| Add a new route capability method | `backend/internals/bff/transport/http/routes/contracts.go` AND `backend/internals/bff/interfaces/services.go` |
+
+**Pass criterion**: All placements decided within 3 prompts and under 2 minutes total elapsed time.

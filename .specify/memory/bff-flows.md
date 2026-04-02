@@ -14,7 +14,7 @@ Notes:
 - Auth middleware uses Bearer JWT + JWKS key lookup.
 - JWKS cache is in-memory inside BFF (not Redis).
 - For endpoints that call downstream services via gRPC, DB details happen in those services.
-- Target-state guard (spec 006): controllers are HTTP-only adapters and delegate business orchestration to BFF service-layer interfaces; route modules keep registration ownership and `transport/http/views` owns HTTP contracts.
+- **006 boundary (enforced)**: controllers are pure HTTP adapters — they validate view contracts and call one BFF service method. All downstream gRPC orchestration lives in `internals/bff/services/`. HTTP contracts (request/response structs) are owned exclusively by `transport/http/views/`. Route modules own all `huma.Register(...)` calls.
 
 ## Shared auth and guard pattern (applies to all endpoints)
 
@@ -41,14 +41,16 @@ flowchart LR
     C[Client] -->|HTTPS GET| BFF[BFF /projects/current]
     BFF --> AUTH[Auth + ProjectGuard read_only]
     AUTH --> PC[ProjectsController.handleGetCurrent]
-    PC -->|gRPC| ONB[Onboarding Service GetProject]
+    PC -->|BFF service| SVC[ProjectsService.GetCurrentProject]
+    SVC -->|gRPC| ONB[Onboarding Service GetProject]
     ONB -->|SQL| ONBDB[(PostgreSQL onboarding: projects)]
     ONBDB --> ONB
-    ONB --> PC
+    ONB --> SVC
+    SVC --> PC
     PC --> C
 ```
 
-Protocol: HTTPS -> gRPC
+Protocol: HTTPS -> BFF service -> gRPC
 Data store: PostgreSQL (onboarding service)
 Redis: none in this path
 RabbitMQ: none in this path
@@ -60,14 +62,16 @@ flowchart LR
     C[Client] -->|HTTPS GET| BFF[BFF /projects/members]
     BFF --> AUTH[Auth + ProjectGuard read_only]
     AUTH --> PC[ProjectsController.handleListMembers]
-    PC -->|gRPC| ONB[Onboarding Service ListProjectMembers]
+    PC -->|BFF service| SVC[ProjectsService.ListProjectMembers]
+    SVC -->|gRPC| ONB[Onboarding Service ListProjectMembers]
     ONB -->|SQL| ONBDB[(PostgreSQL onboarding: project_members)]
     ONBDB --> ONB
-    ONB --> PC
+    ONB --> SVC
+    SVC --> PC
     PC --> C
 ```
 
-Protocol: HTTPS -> gRPC
+Protocol: HTTPS -> BFF service -> gRPC
 Data store: PostgreSQL (onboarding service)
 Redis: none in this path
 RabbitMQ: none in this path
