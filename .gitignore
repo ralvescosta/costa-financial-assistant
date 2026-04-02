@@ -36,7 +36,6 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 # ─── Environment & secrets ────────────────────────────────────────────────────
-.env*
 !.env.example
 *.pem
 *.key
@@ -56,7 +55,6 @@ desktop.ini
 
 # ─── IDEs & editors ───────────────────────────────────────────────────────────
 .idea/
-.vscode/
 *.swp
 *.swo
 *~
