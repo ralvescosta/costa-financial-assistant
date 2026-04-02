@@ -64,6 +64,34 @@ As a quality owner, I want route declarations, controllers, and HTTP contracts t
 - Existing authentication, authorization, and project-scoping behavior must remain intact after route registration, controller behavior, and HTTP contracts are separated.
 - A route is declared but has no integration coverage after migration; the refactor must treat the route as not ready for completion.
 
+## Architecture & Memory Diagram Flow Impact *(mandatory)*
+
+- Affected services: bff
+- Requires architecture diagram update (`.specify/memory/architecture-diagram.md`): No. This feature changes BFF transport-layer responsibility boundaries but does not introduce new cross-service communication topology.
+- Required service-flow file updates in `.specify/memory/`:
+	- [x] `.specify/memory/bff-flows.md` (if BFF impacted)
+	- [ ] `.specify/memory/files-service-flows.md` (if Files impacted)
+	- [ ] `.specify/memory/bills-service-flows.md` (if Bills impacted)
+	- [ ] `.specify/memory/identity-service-flows.md` (if Identity impacted)
+	- [ ] `.specify/memory/onboarding-service-flows.md` (if Onboarding impacted)
+	- [ ] Other impacted memory file(s): `.specify/memory/architecture-diagram-maintenance.md` may receive cross-reference clarification only if maintenance guidance drift is discovered.
+- If none are impacted, include explicit no-impact rationale:
+	Service-flow impact is isolated to BFF transport ownership and does not change files, bills, identity, or onboarding flow semantics.
+
+## Instruction Impact *(mandatory for refactor/reorganization)*
+
+- Is this feature a refactor/reorganization?: Yes.
+- If Yes, impacted instruction files under `.github/instructions/`:
+	- [x] `.github/instructions/architecture.instructions.md`
+	- [x] `.github/instructions/project-structure.instructions.md`
+	- [x] `.github/instructions/testing.instructions.md`
+- If Yes, impacted workflow templates under `.specify/templates/`:
+	- [x] `.specify/templates/spec-template.md`
+	- [x] `.specify/templates/tasks-template.md`
+- Pattern-preservation statement: Route modules remain the only location for Huma registration, controllers remain HTTP-only adapters, service layer owns orchestration, and all HTTP contracts stay in `transport/http/views` so future changes follow the same deterministic boundary model.
+- If backend behavior/integration flows are in scope, include explicit reference to canonical integration-test standard:
+	Backend integration tests remain under `backend/tests/integration/<service>/` or `backend/tests/integration/cross_service/`, using behavior-based snake_case filenames and table-driven BDD Given/When/Then + AAA.
+
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
@@ -72,7 +100,7 @@ As a quality owner, I want route declarations, controllers, and HTTP contracts t
 - **FR-002**: BFF controllers MUST handle only HTTP boundary work: receiving the request, validating transport input and request context, invoking the service layer, and formatting the HTTP response.
 - **FR-003**: BFF controllers MUST NOT own business rules, business decision making, or direct downstream client execution flow.
 - **FR-004**: Route modules MUST remain responsible for endpoint declaration and MUST delegate execution to injected controller capabilities.
-- **FR-005**: The refactor MUST preserve the existing externally visible endpoint behavior for paths, methods, authorization expectations, and response semantics unless a deliberate change is explicitly documented.
+- **FR-005**: The refactor MUST preserve the existing externally visible endpoint behavior for paths, methods, authorization expectations, and response semantics unless a deliberate change is explicitly approved and documented in the same feature cycle.
 - **FR-006**: The transport HTTP layer MUST include a dedicated `transport/http/views` layer that owns every struct representing request or response JSON transmitted through the HTTP boundary.
 - **FR-007**: All HTTP request and response contracts for active BFF endpoints MUST be defined in the dedicated views layer rather than inside controllers, services, or route modules.
 - **FR-008**: Every field in an HTTP contract that requires validation MUST declare validator tags so controllers can perform consistent boundary checks before invoking services.
@@ -100,6 +128,7 @@ As a quality owner, I want route declarations, controllers, and HTTP contracts t
 - **SC-005**: 100% of declared active BFF routes have at least one passing integration test.
 - **SC-006**: During review, a maintainer can identify where a new route declaration, controller behavior change, and HTTP contract change belong in under 2 minutes.
 - **SC-007**: No regression is detected in existing route accessibility, authorization behavior, and expected response outcomes across the in-scope BFF integration suite.
+- **SC-008**: Route coverage matrix and integration results provide explicit evidence for every active operation before feature completion.
 
 ## Assumptions
 
