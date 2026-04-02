@@ -17,6 +17,7 @@ GOPATH := $(shell go env GOPATH)
 
 # ─── Services ────────────────────────────────────────────────────────────────
 SERVICES := bff bills files identity onboarding payments
+MIGRATION_SERVICES := onboarding files bills identity payments
 
 # ─── Colours ─────────────────────────────────────────────────────────────────
 CYAN  := \033[0;36m
@@ -27,7 +28,8 @@ RESET := \033[0m
         $(addprefix svc/test/,$(SERVICES)) \
         $(addprefix migrate/up/,$(SERVICES)) \
 	$(addprefix migrate/down/,$(SERVICES)) \
-	migrate/up migrate/down migrate/status migrate/validate
+	migrate/up migrate/down migrate/status migrate/validate \
+	local dev stg prd
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z/_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -94,17 +96,28 @@ DB_URL_payments    ?= postgres://postgres:postgres@localhost:5432/financial_paym
 MIGRATIONS_DB_DSN ?= postgres://postgres:postgres@localhost:5432/financial_assistant?sslmode=disable
 MIGRATIONS_ENV    ?= local
 
+# Supports invocation like: make migrate/up --env local
+CLI_ENV := $(firstword $(filter local dev stg prd,$(MAKECMDGOALS)))
+ifneq ($(CLI_ENV),)
+MIGRATIONS_ENV := $(CLI_ENV)
+endif
+
+local dev stg prd:
+	@:
+
 migrate/up: ## Apply migrations for all services
 	@cd backend && \
 	  MIGRATIONS_SERVICE_NAME=migrations \
 	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
 	  go run . migrations up --env $(MIGRATIONS_ENV)
 
-migrate/down: ## Rollback migrations for one service (set service=<name>)
+migrate/down: ## Rollback one migration for all services
 	@cd backend && \
-	  MIGRATIONS_SERVICE_NAME=migrations \
-	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
-	  go run . migrations down --service $(service)
+	  for svc in $(MIGRATION_SERVICES); do \
+	    MIGRATIONS_SERVICE_NAME=migrations \
+	    MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
+	    go run . migrations down --service $$svc --env $(MIGRATIONS_ENV); \
+	  done
 
 migrate/status: ## Show migration status
 	@cd backend && \
@@ -126,10 +139,10 @@ migrate/down/$(1): ## Rollback one migration for service: $(1)
 	@cd backend && \
 	  MIGRATIONS_SERVICE_NAME=migrations \
 	  MIGRATIONS_DB_DSN=$(MIGRATIONS_DB_DSN) \
-	  go run . migrations down --service $(1)
+	  go run . migrations down --service $(1) --env $(MIGRATIONS_ENV)
 
 endef
-$(foreach svc,onboarding files bills identity payments,$(eval $(call MIGRATE_TARGETS,$(svc))))
+$(foreach svc,$(MIGRATION_SERVICES),$(eval $(call MIGRATE_TARGETS,$(svc))))
 
 # ─── Proto generation ────────────────────────────────────────────────────────
 PROTO_SRC_DIR := backend/protos
