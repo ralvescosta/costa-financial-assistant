@@ -27,8 +27,8 @@ import (
 //   - Marks overdue bills correctly (due_date < today)
 //   - Does NOT return already-paid bills
 func TestUS4_PaymentDashboard(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/bills/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/bills/migrations"))
 
 	const (
 		projectID  = "00000000-0000-0000-0000-000000000010"
@@ -54,9 +54,9 @@ func TestUS4_PaymentDashboard(t *testing.T) {
 	`, projectID, userID)
 	require.NoError(t, err, "seed documents")
 
-	overdueDate := time.Now().AddDate(0, 0, -5).Format("2006-01-02")   // 5 days ago — overdue
-	upcomingDate := time.Now().AddDate(0, 0, 10).Format("2006-01-02")  // 10 days from now — upcoming
-	paidDate := time.Now().AddDate(0, 0, -1).Format("2006-01-02")      // yesterday — paid
+	overdueDate := time.Now().AddDate(0, 0, -5).Format("2006-01-02")  // 5 days ago — overdue
+	upcomingDate := time.Now().AddDate(0, 0, 10).Format("2006-01-02") // 10 days from now — upcoming
+	paidDate := time.Now().AddDate(0, 0, -1).Format("2006-01-02")     // yesterday — paid
 
 	_, err = testDB.ExecContext(ctx, `
 		INSERT INTO bill_records (id, project_id, document_id, due_date, amount_due, payment_status)

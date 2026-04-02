@@ -26,10 +26,14 @@ func (stubDocuments) HandleUpload(_ context.Context, _ *controllers.UploadDocume
 func (stubDocuments) HandleClassify(_ context.Context, _ *controllers.ClassifyDocumentInput) (*struct{ Body controllers.DocumentResponse }, error) {
 	return nil, nil
 }
-func (stubDocuments) HandleList(_ context.Context, _ *controllers.ListDocumentsInput) (*struct{ Body controllers.ListDocumentsResponse }, error) {
+func (stubDocuments) HandleList(_ context.Context, _ *controllers.ListDocumentsInput) (*struct {
+	Body controllers.ListDocumentsResponse
+}, error) {
 	return nil, nil
 }
-func (stubDocuments) HandleGet(_ context.Context, _ *controllers.GetDocumentInput) (*struct{ Body controllers.DocumentDetailResponse }, error) {
+func (stubDocuments) HandleGet(_ context.Context, _ *controllers.GetDocumentInput) (*struct {
+	Body controllers.DocumentDetailResponse
+}, error) {
 	return nil, nil
 }
 
@@ -38,22 +42,32 @@ type stubProjects struct{}
 func (stubProjects) HandleGetCurrent(_ context.Context, _ *struct{}) (*struct{ Body controllers.ProjectResponse }, error) {
 	return nil, nil
 }
-func (stubProjects) HandleListMembers(_ context.Context, _ *controllers.ListMembersInput) (*struct{ Body controllers.ListMembersResponse }, error) {
+func (stubProjects) HandleListMembers(_ context.Context, _ *controllers.ListMembersInput) (*struct {
+	Body controllers.ListMembersResponse
+}, error) {
 	return nil, nil
 }
-func (stubProjects) HandleInvite(_ context.Context, _ *controllers.InviteMemberInput) (*struct{ Body controllers.ProjectMemberResponse }, error) {
+func (stubProjects) HandleInvite(_ context.Context, _ *controllers.InviteMemberInput) (*struct {
+	Body controllers.ProjectMemberResponse
+}, error) {
 	return nil, nil
 }
-func (stubProjects) HandleUpdateRole(_ context.Context, _ *controllers.UpdateMemberRoleInput) (*struct{ Body controllers.ProjectMemberResponse }, error) {
+func (stubProjects) HandleUpdateRole(_ context.Context, _ *controllers.UpdateMemberRoleInput) (*struct {
+	Body controllers.ProjectMemberResponse
+}, error) {
 	return nil, nil
 }
 
 type stubSettings struct{}
 
-func (stubSettings) HandleList(_ context.Context, _ *struct{}) (*struct{ Body controllers.ListBankAccountsResponse }, error) {
+func (stubSettings) HandleList(_ context.Context, _ *struct{}) (*struct {
+	Body controllers.ListBankAccountsResponse
+}, error) {
 	return nil, nil
 }
-func (stubSettings) HandleCreate(_ context.Context, _ *controllers.CreateBankAccountInput) (*struct{ Body controllers.BankAccountResponse }, error) {
+func (stubSettings) HandleCreate(_ context.Context, _ *controllers.CreateBankAccountInput) (*struct {
+	Body controllers.BankAccountResponse
+}, error) {
 	return nil, nil
 }
 func (stubSettings) HandleDelete(_ context.Context, _ *controllers.DeleteBankAccountInput) (*struct{}, error) {
@@ -62,25 +76,37 @@ func (stubSettings) HandleDelete(_ context.Context, _ *controllers.DeleteBankAcc
 
 type stubPayments struct{}
 
-func (stubPayments) HandleGetDashboard(_ context.Context, _ *controllers.GetPaymentDashboardInput) (*struct{ Body controllers.PaymentDashboardResponse }, error) {
+func (stubPayments) HandleGetDashboard(_ context.Context, _ *controllers.GetPaymentDashboardInput) (*struct {
+	Body controllers.PaymentDashboardResponse
+}, error) {
 	return nil, nil
 }
-func (stubPayments) HandleMarkPaid(_ context.Context, _ *controllers.MarkBillPaidInput) (*struct{ Body controllers.MarkBillPaidResponse }, error) {
+func (stubPayments) HandleMarkPaid(_ context.Context, _ *controllers.MarkBillPaidInput) (*struct {
+	Body controllers.MarkBillPaidResponse
+}, error) {
 	return nil, nil
 }
-func (stubPayments) HandleGetPreferredDay(_ context.Context, _ *struct{}) (*struct{ Body controllers.CyclePreferenceResponse }, error) {
+func (stubPayments) HandleGetPreferredDay(_ context.Context, _ *struct{}) (*struct {
+	Body controllers.CyclePreferenceResponse
+}, error) {
 	return nil, nil
 }
-func (stubPayments) HandleSetPreferredDay(_ context.Context, _ *controllers.SetPreferredDayInput) (*struct{ Body controllers.CyclePreferenceResponse }, error) {
+func (stubPayments) HandleSetPreferredDay(_ context.Context, _ *controllers.SetPreferredDayInput) (*struct {
+	Body controllers.CyclePreferenceResponse
+}, error) {
 	return nil, nil
 }
 
 type stubReconciliation struct{}
 
-func (stubReconciliation) HandleGetSummary(_ context.Context, _ *controllers.ReconciliationSummaryInput) (*struct{ Body controllers.ReconciliationSummaryResponse }, error) {
+func (stubReconciliation) HandleGetSummary(_ context.Context, _ *controllers.ReconciliationSummaryInput) (*struct {
+	Body controllers.ReconciliationSummaryResponse
+}, error) {
 	return nil, nil
 }
-func (stubReconciliation) HandleCreateLink(_ context.Context, _ *controllers.CreateReconciliationLinkInput) (*struct{ Body controllers.ReconciliationLinkResponse }, error) {
+func (stubReconciliation) HandleCreateLink(_ context.Context, _ *controllers.CreateReconciliationLinkInput) (*struct {
+	Body controllers.ReconciliationLinkResponse
+}, error) {
 	return nil, nil
 }
 
@@ -89,10 +115,14 @@ type stubHistory struct{}
 func (stubHistory) HandleGetTimeline(_ context.Context, _ *controllers.HistoryQueryInput) (*struct{ Body controllers.TimelineResponse }, error) {
 	return nil, nil
 }
-func (stubHistory) HandleGetCategories(_ context.Context, _ *controllers.HistoryQueryInput) (*struct{ Body controllers.CategoryBreakdownResponse }, error) {
+func (stubHistory) HandleGetCategories(_ context.Context, _ *controllers.HistoryQueryInput) (*struct {
+	Body controllers.CategoryBreakdownResponse
+}, error) {
 	return nil, nil
 }
-func (stubHistory) HandleGetCompliance(_ context.Context, _ *controllers.HistoryQueryInput) (*struct{ Body controllers.ComplianceResponse }, error) {
+func (stubHistory) HandleGetCompliance(_ context.Context, _ *controllers.HistoryQueryInput) (*struct {
+	Body controllers.ComplianceResponse
+}, error) {
 	return nil, nil
 }
 

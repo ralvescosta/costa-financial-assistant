@@ -22,8 +22,8 @@ import (
 //   - Subsequent identical calls return the same bill without side effects
 //   - Mark-paid on a different bill is independent
 func TestUS4_MarkPaidIdempotency(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/bills/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/bills/migrations"))
 
 	const (
 		projectID = "00000000-0000-0000-0000-000000000010"

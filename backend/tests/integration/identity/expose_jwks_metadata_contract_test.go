@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/services"
 )
@@ -21,7 +22,7 @@ func TestIdentityJWKSMetadataContract(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err, "RSA key generation must succeed")
 
-	logger := newTestLogger(t)
+	logger := zaptest.NewLogger(t)
 	svc := services.NewTokenService(key, logger)
 
 	// Act

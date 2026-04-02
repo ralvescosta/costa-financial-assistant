@@ -24,12 +24,13 @@
 ## Decision 4: Approved integration test libraries
 - Decision: Standardize on `testing`, `testify`, and `testcontainers-go`.
 - Rationale: `testing` is native and deterministic, `testify` improves assertions and diagnostics, and `testcontainers-go` enables reproducible ephemeral dependencies.
+- Policy note: New backend integration tests MUST stay within this stack unless a formal architecture/testing approval is recorded in the same change set.
 - Alternatives considered:
   - Stdlib only: rejected because assertion ergonomics and setup utilities become inconsistent across contributors.
   - Fully open tooling: rejected because standardization goals require bounded choices.
 
 ## Decision 5: Ephemeral database lifecycle pattern
-- Decision: Keep suite-level lifecycle in `backend/tests/integration/testmain_test.go`; provision isolated DB, run migrations, execute suite, and tear down deterministically.
+- Decision: Use per-segment suite lifecycle via `TestMain` files in canonical directories (`files/`, `payments/`, `cross_service/`) backed by shared testcontainers-go helpers.
 - Rationale: Aligns with existing project rule for integration tests and prevents test state leakage.
 - Alternatives considered:
   - Shared long-lived test DB: rejected due to flakiness and data contamination risk.

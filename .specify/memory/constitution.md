@@ -341,6 +341,11 @@ hand-written mocks are forbidden.
 Integration tests MUST stimulate the transport layer (gRPC handler or HTTP handler)
 end-to-end and verify that the full request/response cycle works correctly, including
 middleware, validation, persistence, and event publishing.
+Integration tests MUST be placed only in canonical ownership folders under
+`backend/tests/integration/`:
+- `bff/`, `bills/`, `files/`, `identity/`, `onboarding/`, `payments/`, `cross_service/`.
+Integration filenames MUST be behavior-based snake_case and end with `_test.go`.
+Legacy story-prefixed filenames (for example `us1_*`) are forbidden.
 Integration tests that require database access MUST use an **ephemeral test database**:
 1. Provision a dedicated database instance (via Docker Compose test profile or a test
    environment variable pointing to an isolated schema).
@@ -350,6 +355,8 @@ Integration tests that require database access MUST use an **ephemeral test data
 The ephemeral database lifecycle MUST be managed in `TestMain`; individual tests MUST
 NOT assume pre-existing database state — each test MUST set up and clean up its own
 fixtures.
+All integration scenarios MUST be table-driven where applicable and include explicit
+Given/When/Then semantics plus visible Arrange/Act/Assert structure.
 Integration tests MUST cover inter-service gRPC contracts and any RabbitMQ event
 contracts.
 

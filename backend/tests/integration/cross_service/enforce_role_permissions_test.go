@@ -59,11 +59,11 @@ func TestUS7_RoleEnforcement(t *testing.T) {
 	const projectID = "00000000-0000-0000-0000-000000000010"
 
 	tests := []struct {
-		name           string
-		role           string
-		method         string
-		path           string
-		expectStatus   int
+		name         string
+		role         string
+		method       string
+		path         string
+		expectStatus int
 	}{
 		// read_only role
 		{"read_only can read", "read_only", http.MethodGet, "/test/read", http.StatusOK},

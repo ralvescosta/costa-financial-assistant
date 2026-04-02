@@ -19,9 +19,9 @@ import (
 //   - Category breakdown groups bills by bill_type and month
 //   - Compliance metrics correctly compute on-time vs overdue rates
 func TestUS6_HistoryMetrics(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/bills/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/payments/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/bills/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/payments/migrations"))
 
 	const (
 		projectID    = "00000000-0000-0000-0000-000000000010"

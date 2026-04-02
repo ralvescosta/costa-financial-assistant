@@ -129,22 +129,34 @@ applyTo: "**/*_test.go,**/*.test.ts,**/*.spec.ts"
 
 **Description**: Backend integration tests that require a database must provision, migrate, test, and destroy an isolated DB instance within `TestMain`.
 
-**When it applies**: Creating integration test files under `backend/tests/integration/`.
+**When it applies**: Creating integration test files under `backend/tests/integration/**`.
 
 **Copilot MUST**:
-- Implement `TestMain(m *testing.M)` in `backend/tests/integration/testmain_test.go` to manage the full DB lifecycle: provision → `migrate up` → `m.Run()` → teardown.
+- Place integration tests only in canonical directories:
+  - `backend/tests/integration/bff/`
+  - `backend/tests/integration/bills/`
+  - `backend/tests/integration/files/`
+  - `backend/tests/integration/identity/`
+  - `backend/tests/integration/onboarding/`
+  - `backend/tests/integration/payments/`
+  - `backend/tests/integration/cross_service/`
+- Use behavior-based snake_case test filenames matching `^[a-z0-9]+(_[a-z0-9]+)*_test\.go$`.
+- Implement suite-level `TestMain(m *testing.M)` in the owning canonical package when DB lifecycle is required.
 - Use a separate ephemeral database (e.g., Docker-started container or in-process test DB) that is not shared with other test suites.
 - Run all pending migrations against the ephemeral DB before any test function executes.
 - Ensure teardown runs even when tests fail (`defer`).
+- Keep table-driven BDD scenarios with explicit `given`, `when`, and `then` plus readable AAA sections.
 
 **Copilot MUST NOT**:
 - Share a persistent test database across test suite runs.
 - Leave orphaned test containers or database state after the suite completes.
 - Depend on an already-running production or development database.
+- Create new root-level integration tests directly under `backend/tests/integration/`.
+- Use user-story file prefixes like `us1_...` for integration test filenames.
 
 **Example input → expected Copilot output**:
 - Input: "Add BFF integration test for upload classify flow."
-- Expected output: test in `backend/tests/integration/us1_upload_classify_test.go` relies on the ephemeral DB started in `testmain_test.go`; no local DB dependency assumed.
+- Expected output: test in `backend/tests/integration/files/upload_and_classify_document_test.go` with canonical naming and deterministic lifecycle; no local DB dependency assumed.
 
 ---
 
@@ -201,8 +213,8 @@ applyTo: "**/*_test.go,**/*.test.ts,**/*.spec.ts"
 **When it applies**: Adding or modifying any BFF route module in `backend/internals/bff/transport/http/routes/`.
 
 **Copilot MUST**:
-- Create or update a resource-scoped integration test file named `<resource>_routes_integration_test.go` in `backend/tests/integration/` for every route module.
-- Use the `buildBFFTestServer` helper from `backend/tests/integration/bff_route_test_helpers.go` to construct an in-process Huma test server with stub capability implementations.
+- Create or update a resource-scoped integration test file named `<resource>_routes_registration_test.go` in `backend/tests/integration/bff/` for every route module.
+- Use the `buildBFFTestServer` helper from `backend/tests/integration/bff/bff_route_test_helpers.go` to construct an in-process Huma test server with stub capability implementations.
 - Assert that each expected operation ID is registered in `api.OpenAPI().Paths` and that the corresponding HTTP endpoint responds without a 404 or 405.
 - Track the route-to-test mapping in `specs/004-segregate-bff-routing/contracts/route-coverage-matrix.md`.
 
@@ -213,4 +225,4 @@ applyTo: "**/*_test.go,**/*.test.ts,**/*.spec.ts"
 
 **Example input → expected Copilot output**:
 - Input: "Add a new GET /api/v1/reports endpoint."
-- Expected output: add the route to a `reports_routes.go` route module, create/update `reports_routes_integration_test.go` asserting the operation ID is registered and the endpoint is reachable, and update the route coverage matrix.
+- Expected output: add the route to a `reports_routes.go` route module, create/update `backend/tests/integration/bff/reports_routes_registration_test.go` asserting the operation ID is registered and the endpoint is reachable, and update the route coverage matrix.

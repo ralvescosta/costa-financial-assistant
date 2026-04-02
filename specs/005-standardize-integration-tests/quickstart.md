@@ -84,3 +84,28 @@ If your service has a dedicated target, also run project Make targets used by CI
 4. AAA readability in each scenario
 5. Approved stack only
 6. Deterministic setup and teardown
+
+## 8. Compliance review checklist
+Run these checks before requesting review:
+
+1. Structural compliance check:
+
+```bash
+cd backend
+./scripts/validate_integration_test_conventions.sh
+```
+
+2. Integration package validation:
+
+```bash
+cd backend
+go test ./tests/integration/... -tags=integration
+```
+
+3. Traceability update:
+	- update `specs/005-standardize-integration-tests/migration-mapping.md`
+	- update `specs/005-standardize-integration-tests/migration-baseline.md`
+4. Governance sync:
+	- `.specify/memory/constitution.md`
+	- `.github/instructions/testing.instructions.md`
+	- `.github/instructions/ai-behavior.instructions.md`

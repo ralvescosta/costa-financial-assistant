@@ -173,6 +173,9 @@ Examples of foundational tasks (adjust based on your project):
   to preserve implementation patterns
 - [ ] TXXX (Workflow change only) Update impacted `.specify/templates/*.md`
   to keep command outputs consistent with new patterns
+- [ ] TXXX (Backend integration behavior scope) Verify canonical integration-test
+  placement, behavior-based snake_case filenames, and BDD Given/When/Then + AAA
+  compliance against project testing instructions
 
 **Checkpoint**: Feature is not complete until this phase is complete
 

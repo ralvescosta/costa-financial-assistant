@@ -19,7 +19,7 @@ import (
 // TestUS2_AnalysisPipeline validates the full async extraction pipeline:
 // upload → classify → process → analysed with persisted BillRecord.
 func TestUS2_AnalysisPipeline(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
 
 	t.Cleanup(func() {
 		ctx := context.Background()

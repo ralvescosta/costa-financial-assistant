@@ -21,9 +21,9 @@ import (
 //   - The transaction is marked as matched_manual
 //   - Duplicate link attempts return conflict error
 func TestUS5_ManualReconciliation(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/bills/migrations"))
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/payments/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/bills/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/payments/migrations"))
 
 	const (
 		projectID = "00000000-0000-0000-0000-000000000010"

@@ -111,6 +111,10 @@
   - [ ] [exact path]
 - Pattern-preservation statement: [How instructions are updated so future features
   follow the same pattern deterministically]
+- If backend behavior/integration flows are in scope, include explicit reference to
+  canonical integration-test standard:
+  `backend/tests/integration/<service>/` or `backend/tests/integration/cross_service/`,
+  behavior-based snake_case filenames, and table-driven BDD Given/When/Then + AAA.
 
 ## Requirements *(mandatory)*
 

@@ -16,7 +16,7 @@ import (
 // TestUS3_BankAccountCRUDAndAttributionGuard validates the full bank account lifecycle:
 // create, list, attribution guard (cannot delete if in use), and delete.
 func TestUS3_BankAccountCRUDAndAttributionGuard(t *testing.T) {
-	require.NoError(t, runMigrations(testDSN(), "file://../../internals/files/migrations"))
+	require.NoError(t, runMigrations(testDSN(), "file://../../../internals/files/migrations"))
 
 	t.Cleanup(func() {
 		_, _ = testDB.ExecContext(context.Background(), "DELETE FROM bank_accounts WHERE project_id = '00000000-0000-0000-0000-000000000020'")
