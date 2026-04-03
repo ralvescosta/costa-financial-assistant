@@ -45,6 +45,7 @@ Mandatory gates:
 - [ ] If backend integration behavior is in scope, plan includes canonical test-placement
   and naming compliance tasks (`backend/tests/integration/<service>/` or
   `backend/tests/integration/cross_service/`, behavior-based snake_case, BDD + AAA).
+- [ ] If BFF boundaries are modified, plan includes explicit tasks for service-contract ownership (`services/contracts`), mapper-boundary enforcement (`controllers/mappers`), pointer-policy checks, and exception documentation.
 
 ## Project Structure
 

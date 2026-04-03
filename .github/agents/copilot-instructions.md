@@ -19,6 +19,8 @@ Monorepo web application: a multi-tenant financial bill organizer.
 - Git-tracked repository files only (no runtime DB changes) (007-review-bff-spec)
 - Go 1.25.6 + `go.uber.org/zap`, `google.golang.org/grpc`, `github.com/lib/pq`, `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig` (008-standardize-app-errors)
 - PostgreSQL plus object/file storage paths already in backend services; no schema change in this feature (008-standardize-app-errors)
+- Go 1.25.6 + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, generated gRPC clients from `backend/protos/generated`, `go.uber.org/zap` (009-fix-bff-service-boundary)
+- PostgreSQL and existing storage integrations are unchanged by this feature (009-fix-bff-service-boundary)
 
 ### Backend (Go — latest stable)
 - HTTP framework: `github.com/labstack/echo/v4` + `github.com/danielgtaylor/huma/v2` (OpenAPI-first BFF)
@@ -184,6 +186,6 @@ DI wiring in `cmd/bff/container.go`: `validator.New()` → injected into all con
 **Integration test layout**: `backend/tests/integration/bff/` — named `<resource>_routes_registration_test.go`, `bff_route_registration_smoke_test.go`, `validate_openapi_metadata_test.go`. Cross-service tests live in `backend/tests/integration/cross_service/`.
 
 ## Recent Changes
+- 009-fix-bff-service-boundary: Added Go 1.25.6 + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, generated gRPC clients from `backend/protos/generated`, `go.uber.org/zap`
 - 008-standardize-app-errors: Added Go 1.25.6 + `go.uber.org/zap`, `google.golang.org/grpc`, `github.com/lib/pq`, `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`
 - 007-review-bff-spec: Added Markdown documentation artifacts in monorepo workflow (Speckit v0.4.3) + `.specify/templates/spec-template.md`, `.specify/memory/*.md`, Speckit scripts (`setup-plan.sh`, `update-agent-context.sh`)
-- 006-bff-http-separation: Added Go 1.25.6 + Echo v4.15.1, Huma v2.37.3, Dig v1.19.0, Zap v1.27.1, gRPC v1.80.0 generated clients, Testify v1.11.1, go-playground/validator for controller-side HTTP contract validation

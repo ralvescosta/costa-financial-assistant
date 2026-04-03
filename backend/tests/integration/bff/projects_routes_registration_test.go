@@ -66,4 +66,11 @@ func TestProjectsRouteIntegration(t *testing.T) {
 		assert.NotEqual(t, http.StatusNotFound, resp.StatusCode)
 		assert.NotEqual(t, http.StatusMethodNotAllowed, resp.StatusCode)
 	})
+
+	t.Run("get-current-project endpoint enforces auth semantics", func(t *testing.T) {
+		resp, err := srv.Client().Get(srv.URL + "/api/v1/projects/current")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }

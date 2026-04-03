@@ -59,4 +59,11 @@ func TestSettingsRouteIntegration(t *testing.T) {
 		assert.NotEqual(t, http.StatusNotFound, resp.StatusCode)
 		assert.NotEqual(t, http.StatusMethodNotAllowed, resp.StatusCode)
 	})
+
+	t.Run("list-bank-accounts endpoint enforces auth semantics", func(t *testing.T) {
+		resp, err := srv.Client().Get(srv.URL + "/api/v1/bank-accounts")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }

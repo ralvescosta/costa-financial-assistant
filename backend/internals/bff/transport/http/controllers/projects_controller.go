@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
+	controllermappers "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers/mappers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 )
@@ -36,7 +37,7 @@ func (c *ProjectsController) HandleGetCurrent(ctx context.Context, _ *struct{}) 
 		return nil, c.grpcToHumaError(err, "get current project")
 	}
 
-	return &struct{ Body views.ProjectResponse }{Body: *resp}, nil
+	return &struct{ Body views.ProjectResponse }{Body: controllermappers.ToProjectResponse(resp)}, nil
 }
 
 // HandleListMembers returns all members for the caller's project.
@@ -46,17 +47,13 @@ func (c *ProjectsController) HandleListMembers(ctx context.Context, input *views
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	pageSize := input.PageSize
-	if pageSize == 0 {
-		pageSize = 25
-	}
-
-	resp, err := c.svc.ListMembers(ctx, claims.GetProjectId(), claims.GetSubject(), claims.GetRole(), pageSize, input.PageToken)
+	pageSize, pageToken := controllermappers.ToListMembersRequest(input)
+	resp, err := c.svc.ListMembers(ctx, claims.GetProjectId(), claims.GetSubject(), claims.GetRole(), pageSize, pageToken)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "list members")
 	}
 
-	return &struct{ Body views.ListMembersResponse }{Body: *resp}, nil
+	return &struct{ Body views.ListMembersResponse }{Body: controllermappers.ToListMembersResponse(resp)}, nil
 }
 
 // HandleInvite adds a user by email to the project.
@@ -66,12 +63,13 @@ func (c *ProjectsController) HandleInvite(ctx context.Context, input *views.Invi
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	resp, err := c.svc.InviteMember(ctx, claims.GetProjectId(), claims.GetSubject(), claims.GetRole(), input.Body.Email, input.Body.Role)
+	email, role := controllermappers.ToInviteMemberRequest(input)
+	resp, err := c.svc.InviteMember(ctx, claims.GetProjectId(), claims.GetSubject(), claims.GetRole(), email, role)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "invite member")
 	}
 
-	return &struct{ Body views.ProjectMemberResponse }{Body: *resp}, nil
+	return &struct{ Body views.ProjectMemberResponse }{Body: controllermappers.ToProjectMemberResponse(resp)}, nil
 }
 
 // HandleUpdateRole changes the role of an existing member.
@@ -81,10 +79,11 @@ func (c *ProjectsController) HandleUpdateRole(ctx context.Context, input *views.
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	resp, err := c.svc.UpdateMemberRole(ctx, claims.GetProjectId(), claims.GetSubject(), claims.GetRole(), input.MemberID, input.Body.Role)
+	memberID, role := controllermappers.ToUpdateMemberRoleRequest(input)
+	resp, err := c.svc.UpdateMemberRole(ctx, claims.GetProjectId(), claims.GetSubject(), claims.GetRole(), memberID, role)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "update member role")
 	}
 
-	return &struct{ Body views.ProjectMemberResponse }{Body: *resp}, nil
+	return &struct{ Body views.ProjectMemberResponse }{Body: controllermappers.ToProjectMemberResponse(resp)}, nil
 }

@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
-	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
 	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
@@ -36,7 +36,7 @@ func NewPaymentsService(
 }
 
 // GetPaymentDashboard returns outstanding bills for the project's active payment cycle.
-func (s *PaymentsServiceImpl) GetPaymentDashboard(ctx context.Context, projectID, userID, cycleStart, cycleEnd string, pageSize int32, pageToken string) (*views.PaymentDashboardResponse, error) {
+func (s *PaymentsServiceImpl) GetPaymentDashboard(ctx context.Context, projectID, userID, cycleStart, cycleEnd string, pageSize int32, pageToken string) (*bffcontracts.PaymentDashboardResponse, error) {
 	if pageSize == 0 {
 		pageSize = 20
 	}
@@ -56,15 +56,15 @@ func (s *PaymentsServiceImpl) GetPaymentDashboard(ctx context.Context, projectID
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	entries := make([]*views.PaymentDashboardEntryResponse, 0, len(resp.GetEntries()))
+	entries := make([]*bffcontracts.PaymentDashboardEntryResponse, 0, len(resp.GetEntries()))
 	for _, e := range resp.GetEntries() {
-		entry := views.PaymentDashboardEntryResponse{
+		entry := bffcontracts.PaymentDashboardEntryResponse{
 			Bill:         protoBillRecordToView(e.GetBill()),
 			IsOverdue:    e.GetIsOverdue(),
 			DaysUntilDue: e.GetDaysUntilDue(),
 		}
 		if bt := e.GetBillType(); bt != nil {
-			entry.BillType = &views.PaymentBillTypeResponse{
+			entry.BillType = &bffcontracts.PaymentBillTypeResponse{
 				ID:        bt.GetId(),
 				ProjectID: bt.GetProjectId(),
 				Name:      bt.GetName(),
@@ -77,11 +77,11 @@ func (s *PaymentsServiceImpl) GetPaymentDashboard(ctx context.Context, projectID
 	if resp.GetPagination() != nil {
 		nextToken = resp.GetPagination().GetNextPageToken()
 	}
-	return &views.PaymentDashboardResponse{Entries: entries, NextPageToken: nextToken}, nil
+	return &bffcontracts.PaymentDashboardResponse{Entries: entries, NextPageToken: nextToken}, nil
 }
 
 // MarkBillPaid idempotently marks a bill as paid.
-func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billID, paidBy string) (*views.MarkBillPaidResponse, error) {
+func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billID, paidBy string) (*bffcontracts.MarkBillPaidResponse, error) {
 	resp, err := s.billsClient.MarkBillPaid(ctx, &billsv1.MarkBillPaidRequest{
 		Ctx:    &commonv1.ProjectContext{ProjectId: projectID, UserId: paidBy},
 		BillId: billID,
@@ -100,11 +100,11 @@ func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billI
 	s.logger.Info("payments_svc: bill marked paid",
 		zap.String("bill_id", billID),
 		zap.String("project_id", projectID))
-	return &views.MarkBillPaidResponse{Bill: protoBillRecordToView(resp.GetBill())}, nil
+	return &bffcontracts.MarkBillPaidResponse{Bill: protoBillRecordToView(resp.GetBill())}, nil
 }
 
 // GetCyclePreference returns the project's preferred payment day.
-func (s *PaymentsServiceImpl) GetCyclePreference(ctx context.Context, projectID string) (*views.CyclePreferenceResponse, error) {
+func (s *PaymentsServiceImpl) GetCyclePreference(ctx context.Context, projectID string) (*bffcontracts.CyclePreferenceResponse, error) {
 	pref, err := s.cycleService.GetCyclePreference(ctx, projectID)
 	if err != nil {
 		s.logger.Error("payments_svc: get cycle preference failed",
@@ -118,7 +118,7 @@ func (s *PaymentsServiceImpl) GetCyclePreference(ctx context.Context, projectID 
 	if pref == nil {
 		return nil, nil
 	}
-	return &views.CyclePreferenceResponse{
+	return &bffcontracts.CyclePreferenceResponse{
 		ProjectID:           pref.ProjectID,
 		PreferredDayOfMonth: pref.PreferredDayOfMonth,
 		UpdatedAt:           pref.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
@@ -126,7 +126,7 @@ func (s *PaymentsServiceImpl) GetCyclePreference(ctx context.Context, projectID 
 }
 
 // SetCyclePreference creates or updates the project's preferred payment day.
-func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID string, dayOfMonth int, updatedBy string) (*views.CyclePreferenceResponse, error) {
+func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID string, dayOfMonth int, updatedBy string) (*bffcontracts.CyclePreferenceResponse, error) {
 	if dayOfMonth < 1 || dayOfMonth > 28 {
 		return nil, fmt.Errorf("preferredDayOfMonth must be between 1 and 28, got %s", strconv.Itoa(dayOfMonth))
 	}
@@ -144,7 +144,7 @@ func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID 
 	s.logger.Info("payments_svc: preferred day set",
 		zap.String("project_id", projectID),
 		zap.Int("day", dayOfMonth))
-	return &views.CyclePreferenceResponse{
+	return &bffcontracts.CyclePreferenceResponse{
 		ProjectID:           pref.ProjectID,
 		PreferredDayOfMonth: pref.PreferredDayOfMonth,
 		UpdatedAt:           pref.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
@@ -153,11 +153,11 @@ func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID 
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-func protoBillRecordToView(b *billsv1.BillRecord) views.PaymentBillRecordResponse {
+func protoBillRecordToView(b *billsv1.BillRecord) bffcontracts.PaymentBillRecordResponse {
 	if b == nil {
-		return views.PaymentBillRecordResponse{}
+		return bffcontracts.PaymentBillRecordResponse{}
 	}
-	return views.PaymentBillRecordResponse{
+	return bffcontracts.PaymentBillRecordResponse{
 		ID:            b.GetId(),
 		ProjectID:     b.GetProjectId(),
 		DocumentID:    b.GetDocumentId(),

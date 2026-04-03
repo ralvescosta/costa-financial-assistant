@@ -25,6 +25,7 @@ var projectMemberRoleStrings = map[onboardingv1.ProjectMemberRole]string{
 }
 
 // ProjectMembersServiceIface is the narrow interface consumed by the gRPC server.
+// Pointer policy: project and member struct payloads cross boundaries as pointers.
 type ProjectMembersServiceIface interface {
 	CreateProject(ctx context.Context, ownerID, name string, projectType onboardingv1.ProjectType) (*onboardingv1.Project, error)
 	GetProject(ctx context.Context, projectID string) (*onboardingv1.Project, error)

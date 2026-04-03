@@ -67,4 +67,11 @@ func TestPaymentsRouteIntegration(t *testing.T) {
 		assert.NotEqual(t, http.StatusNotFound, resp.StatusCode)
 		assert.NotEqual(t, http.StatusMethodNotAllowed, resp.StatusCode)
 	})
+
+	t.Run("get-payment-dashboard endpoint enforces auth semantics", func(t *testing.T) {
+		resp, err := srv.Client().Get(srv.URL + "/api/v1/bills/payment-dashboard")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
 }

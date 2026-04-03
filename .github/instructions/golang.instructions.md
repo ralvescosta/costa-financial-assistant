@@ -154,3 +154,21 @@ applyTo: "**/*.go"
 - Propagate raw native errors across layer boundaries.
 - Reintroduce `fmt.Errorf("...: %w", err)` in boundary return paths.
 - Convert `AppError` back into dependency-specific error strings in transport code.
+
+---
+
+## Rule: Pointer Threshold Signature Policy
+
+**Description**: Backend boundary signatures should default to pointer semantics for sizable or reference-like structs, with explicit exceptions documented.
+
+**When it applies**: Adding or modifying service, repository, transport, or cross-layer function signatures.
+
+**Copilot MUST**:
+- Prefer pointer parameters/returns for structs that contain reference-like fields (slices, maps, pointers, interfaces) or exceed three machine words.
+- Keep nil-handling explicit at mapper and boundary conversion points.
+- Preserve stable value semantics only when intentional and documented in `specs/*/contracts/pointer-exceptions.md`.
+
+**Copilot MUST NOT**:
+- Introduce large struct pass-by-value signatures across service boundaries by default.
+- Change existing value semantics without recording rationale.
+- Assume nil safety without test coverage for mapper/boundary conversions.

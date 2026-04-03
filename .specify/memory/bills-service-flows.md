@@ -14,6 +14,7 @@ Notes:
 - Tenant isolation is enforced via `project_id` in RPC context and repository queries.
 - Idempotency for mark-paid is DB-backed (not Redis-backed).
 - `AppError` propagation is enforced across repository, service, and transport boundaries with one structured boundary log for native dependency failures.
+- Pointer-threshold policy applies to modified Bills boundaries: pointer signatures are the default for large/reference-like structs, with explicit feature-level documentation for any preserved value semantics.
 
 ## Shared gRPC service pattern (applies to all RPCs)
 

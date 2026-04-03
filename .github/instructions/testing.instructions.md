@@ -264,3 +264,20 @@ applyTo: "**/*_test.go,**/*.test.ts,**/*.spec.ts"
 **Example input → expected Copilot output**:
 - Input: "Add a new GET /api/v1/reports endpoint."
 - Expected output: add the route to a `reports_routes.go` route module, create/update `backend/tests/integration/bff/reports_routes_registration_test.go` asserting the operation ID is registered and the endpoint is reachable, and update the route coverage matrix.
+
+---
+
+## Rule: Boundary Contract and Mapper Nil-Safety Coverage
+
+**Description**: Boundary refactors must include explicit service-contract and mapper nil-safety verification.
+
+**When it applies**: Modifying BFF service contracts, transport mappers, or controller-service boundary signatures.
+
+**Copilot MUST**:
+- Add or update BFF service boundary tests that prevent transport view leakage into service layer contracts.
+- Add or update mapper tests to validate nil and empty boundary conversions.
+- Keep route behavior assertions (status and reachability) aligned with the current registered operation set.
+
+**Copilot MUST NOT**:
+- Merge boundary signature changes without matching boundary or mapper tests.
+- Treat nil mapping behavior as implicit or untested.

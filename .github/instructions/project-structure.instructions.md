@@ -116,6 +116,25 @@ applyTo: "**/*"
 
 ---
 
+## Rule: Backend — BFF Contract and Mapper Placement
+
+**Description**: BFF transport/service boundary files must follow deterministic placement for ownership clarity.
+
+**When it applies**: Adding or modifying BFF service contracts, mappers, and boundary tests.
+
+**Copilot MUST**:
+- Place transport-agnostic BFF service contracts in `backend/internals/bff/services/contracts/`.
+- Place HTTP mapper implementations in `backend/internals/bff/transport/http/controllers/mappers/`.
+- Place BFF service boundary tests in `backend/internals/bff/services/*_test.go`.
+- Place BFF route registration/reachability integration tests in `backend/tests/integration/bff/*_routes_registration_test.go`.
+
+**Copilot MUST NOT**:
+- Place service contracts under `backend/internals/bff/transport/http/views/`.
+- Place mapper files under `backend/internals/bff/services/`.
+- Place BFF route integration tests outside `backend/tests/integration/bff/`.
+
+---
+
 ## Rule: Frontend — Directory Conventions
 
 **Description**: Frontend source follows a fixed directory layout under `frontend/src/`.

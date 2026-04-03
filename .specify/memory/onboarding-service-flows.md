@@ -14,6 +14,7 @@ Notes:
 - RPCs are project-scoped and rely on `ProjectContext` user/project fields.
 - This service is the source of truth for projects and memberships used by BFF guards.
 - Repository and service layers propagate sanitized `AppError` values only; transport maps categories to gRPC status and suppresses native dependency details.
+- Pointer-threshold policy applies on modified service boundaries: use pointers by default for large/reference-like structs and log explicit value-semantics exceptions in feature contracts.
 
 ## Shared gRPC service pattern (applies to all RPCs)
 

@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
+	controllermappers "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers/mappers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 )
@@ -36,7 +37,7 @@ func (c *SettingsController) HandleList(ctx context.Context, _ *struct{}) (*stru
 		return nil, c.grpcToHumaError(err, "list bank accounts failed")
 	}
 
-	return &struct{ Body views.ListBankAccountsResponse }{Body: *resp}, nil
+	return &struct{ Body views.ListBankAccountsResponse }{Body: controllermappers.ToListBankAccountsResponse(resp)}, nil
 }
 
 // HandleCreate registers a new bank account label for the caller's project.
@@ -46,19 +47,21 @@ func (c *SettingsController) HandleCreate(ctx context.Context, input *views.Crea
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	if input.Body.Label == "" {
+	label := controllermappers.ToCreateBankAccountRequest(input)
+	if label == "" {
 		return nil, huma.Error400BadRequest("label is required")
 	}
 
-	resp, err := c.svc.CreateBankAccount(ctx, claims.GetProjectId(), claims.GetSubject(), input.Body.Label)
+	resp, err := c.svc.CreateBankAccount(ctx, claims.GetProjectId(), claims.GetSubject(), label)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "create bank account failed")
 	}
 
+	body := controllermappers.ToBankAccountResponse(resp)
 	c.logger.Info("settings: bank account created",
-		zap.String("bank_account_id", resp.ID),
+		zap.String("bank_account_id", body.ID),
 		zap.String("project_id", claims.GetProjectId()))
-	return &struct{ Body views.BankAccountResponse }{Body: *resp}, nil
+	return &struct{ Body views.BankAccountResponse }{Body: body}, nil
 }
 
 // HandleDelete removes a bank account label from the caller's project.
@@ -68,12 +71,13 @@ func (c *SettingsController) HandleDelete(ctx context.Context, input *views.Dele
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	if err := c.svc.DeleteBankAccount(ctx, claims.GetProjectId(), input.BankAccountID); err != nil {
+	bankAccountID := controllermappers.ToDeleteBankAccountRequest(input)
+	if err := c.svc.DeleteBankAccount(ctx, claims.GetProjectId(), bankAccountID); err != nil {
 		return nil, c.grpcToHumaError(err, "delete bank account failed")
 	}
 
 	c.logger.Info("settings: bank account deleted",
-		zap.String("bank_account_id", input.BankAccountID),
+		zap.String("bank_account_id", bankAccountID),
 		zap.String("project_id", claims.GetProjectId()))
 	return &struct{}{}, nil
 }
