@@ -198,3 +198,10 @@ flowchart LR
 - Architectural policy impact: all backend layer boundaries now enforce `AppError`-first propagation (repository -> service -> transport/async).
 - Observability impact: boundary translation points must log native dependency failures once with structured context before returning sanitized error contracts.
 
+## 009 BFF Boundary Ownership Update
+
+- Topology impact: **no structural service topology changes**.
+- Ownership impact: BFF service contracts are owned by `backend/internals/bff/services/contracts/`; HTTP contracts remain in `backend/internals/bff/transport/http/views/`.
+- Mapping impact: `backend/internals/bff/transport/http/controllers/mappers/` is the exclusive conversion boundary between transport views and service contracts.
+- Policy impact: modified backend boundaries apply pointer-threshold defaults with explicit value-semantics exceptions tracked in feature contracts.
+

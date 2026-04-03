@@ -111,3 +111,20 @@ applyTo: "**/*.go"
 **Example input → expected Copilot output**:
 - Input: "Change one operation behavior."
 - Expected output: targeted edit in that operation file only; no broad style churn in unrelated directories.
+
+---
+
+## Rule: Value-Semantics Exception Traceability
+
+**Description**: Any intentional value-semantic boundary in backend code must be explicitly documented and reviewable.
+
+**When it applies**: Introducing or preserving value-semantic parameters/returns at cross-layer boundaries.
+
+**Copilot MUST**:
+- Add concise rationale comments when preserving value semantics at boundary points.
+- Record approved exceptions in the feature contract log (for example `specs/<feature>/contracts/pointer-exceptions.md`).
+- Keep naming and function signatures aligned with the documented policy decision.
+
+**Copilot MUST NOT**:
+- Keep undocumented value-semantics exceptions in boundary contracts.
+- Mix pointer and value semantics arbitrarily in related boundary methods without rationale.

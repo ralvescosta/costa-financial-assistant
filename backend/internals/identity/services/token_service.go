@@ -21,6 +21,7 @@ const (
 )
 
 // TokenServiceIface is the narrow interface consumed by the gRPC server.
+// Pointer policy: JWT/JWKS struct payloads are exposed through pointer signatures.
 type TokenServiceIface interface {
 	IssueBootstrapToken(ctx context.Context, userID, projectID, role string) (string, int64, error)
 	ValidateToken(ctx context.Context, token string) (bool, *identityv1.JwtClaims, error)

@@ -98,9 +98,7 @@ If ANY of these happen, update the diagram:
 ✅ **Service communication protocol changed** (e.g., HTTP → gRPC)  
 ✅ **Service removed or deprecated**  
 ✅ **Major data flow pattern introduced** (e.g., first event-driven flow)  
-
-ℹ️ **Does NOT require immediate update:**
-- Internal service refactoring (if external API unchanged)
+✅ **Boundary ownership policy changed** (e.g., transport/service contract ownership or mapper-boundary rules)
 - Non-architectural bug fixes
 - Performance optimizations (unless fundamental architectural change)
 

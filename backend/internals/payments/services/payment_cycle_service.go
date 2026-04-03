@@ -20,6 +20,7 @@ var ErrCyclePreferenceNotFound = errors.New("payment cycle preference not found"
 type paymentCycleRepository = interfaces.PaymentCycleRepository
 
 // PaymentCycleService implements interfaces.PaymentCycleService.
+// Pointer policy is enforced on cycle preference struct boundaries.
 type PaymentCycleService struct {
 	repo   paymentCycleRepository
 	db     *sql.DB

@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
-	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
 	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
@@ -31,7 +31,7 @@ func defaultMonths(m int) int {
 }
 
 // GetTimeline returns aggregated bill amounts per calendar month.
-func (s *HistoryServiceImpl) GetTimeline(ctx context.Context, projectID string, months int) (*views.TimelineResponse, error) {
+func (s *HistoryServiceImpl) GetTimeline(ctx context.Context, projectID string, months int) (*bffcontracts.TimelineResponse, error) {
 	months = defaultMonths(months)
 	entries, err := s.historyRepo.GetTimeline(ctx, projectID, months)
 	if err != nil {
@@ -44,19 +44,19 @@ func (s *HistoryServiceImpl) GetTimeline(ctx context.Context, projectID string, 
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	rows := make([]*views.MonthlyTimelineEntryResponse, 0, len(entries))
+	rows := make([]*bffcontracts.MonthlyTimelineEntryResponse, 0, len(entries))
 	for _, e := range entries {
-		rows = append(rows, &views.MonthlyTimelineEntryResponse{
+		rows = append(rows, &bffcontracts.MonthlyTimelineEntryResponse{
 			Month:       e.Month,
 			TotalAmount: e.TotalAmount,
 			BillCount:   e.BillCount,
 		})
 	}
-	return &views.TimelineResponse{ProjectID: projectID, Months: months, Timeline: rows}, nil
+	return &bffcontracts.TimelineResponse{ProjectID: projectID, Months: months, Timeline: rows}, nil
 }
 
 // GetCategoryBreakdown returns bill amounts grouped by bill type and month.
-func (s *HistoryServiceImpl) GetCategoryBreakdown(ctx context.Context, projectID string, months int) (*views.CategoryBreakdownResponse, error) {
+func (s *HistoryServiceImpl) GetCategoryBreakdown(ctx context.Context, projectID string, months int) (*bffcontracts.CategoryBreakdownResponse, error) {
 	months = defaultMonths(months)
 	entries, err := s.historyRepo.GetCategoryBreakdown(ctx, projectID, months)
 	if err != nil {
@@ -69,20 +69,20 @@ func (s *HistoryServiceImpl) GetCategoryBreakdown(ctx context.Context, projectID
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	rows := make([]*views.CategoryBreakdownEntryResponse, 0, len(entries))
+	rows := make([]*bffcontracts.CategoryBreakdownEntryResponse, 0, len(entries))
 	for _, e := range entries {
-		rows = append(rows, &views.CategoryBreakdownEntryResponse{
+		rows = append(rows, &bffcontracts.CategoryBreakdownEntryResponse{
 			Month:        e.Month,
 			BillTypeName: e.BillTypeName,
 			TotalAmount:  e.TotalAmount,
 			BillCount:    e.BillCount,
 		})
 	}
-	return &views.CategoryBreakdownResponse{ProjectID: projectID, Months: months, Categories: rows}, nil
+	return &bffcontracts.CategoryBreakdownResponse{ProjectID: projectID, Months: months, Categories: rows}, nil
 }
 
 // GetComplianceMetrics returns on-time vs overdue bill counts and compliance rate.
-func (s *HistoryServiceImpl) GetComplianceMetrics(ctx context.Context, projectID string, months int) (*views.ComplianceResponse, error) {
+func (s *HistoryServiceImpl) GetComplianceMetrics(ctx context.Context, projectID string, months int) (*bffcontracts.ComplianceResponse, error) {
 	months = defaultMonths(months)
 	entries, err := s.historyRepo.GetComplianceMetrics(ctx, projectID, months)
 	if err != nil {
@@ -95,9 +95,9 @@ func (s *HistoryServiceImpl) GetComplianceMetrics(ctx context.Context, projectID
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	rows := make([]*views.MonthlyComplianceEntryResponse, 0, len(entries))
+	rows := make([]*bffcontracts.MonthlyComplianceEntryResponse, 0, len(entries))
 	for _, e := range entries {
-		rows = append(rows, &views.MonthlyComplianceEntryResponse{
+		rows = append(rows, &bffcontracts.MonthlyComplianceEntryResponse{
 			Month:          e.Month,
 			TotalBills:     e.TotalBills,
 			PaidOnTime:     e.PaidOnTime,
@@ -105,5 +105,5 @@ func (s *HistoryServiceImpl) GetComplianceMetrics(ctx context.Context, projectID
 			ComplianceRate: e.ComplianceRate,
 		})
 	}
-	return &views.ComplianceResponse{ProjectID: projectID, Months: months, Compliance: rows}, nil
+	return &bffcontracts.ComplianceResponse{ProjectID: projectID, Months: months, Compliance: rows}, nil
 }

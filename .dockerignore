@@ -1,0 +1,28 @@
+# VCS and metadata
+.git/
+.gitignore
+
+# Dependencies and caches
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.cache/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Logs and env
+*.log
+*.log*
+.env*
+
+# Local IDE/editor
+.vscode/
+.idea/
+
+# Docker files
+docker-compose.yml
+.dockerignore

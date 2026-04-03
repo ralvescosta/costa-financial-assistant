@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
-	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
@@ -24,7 +24,7 @@ func NewProjectsService(logger *zap.Logger, onboardingClient bffinterfaces.Onboa
 }
 
 // GetCurrentProject returns the project identified by the caller's JWT project_id.
-func (s *ProjectsServiceImpl) GetCurrentProject(ctx context.Context, projectID, userID, role string) (*views.ProjectResponse, error) {
+func (s *ProjectsServiceImpl) GetCurrentProject(ctx context.Context, projectID, userID, role string) (*bffcontracts.ProjectResponse, error) {
 	resp, err := s.onboardingClient.GetProject(ctx, &onboardingv1.GetProjectRequest{
 		Ctx: &commonv1.ProjectContext{
 			ProjectId: projectID,
@@ -42,7 +42,7 @@ func (s *ProjectsServiceImpl) GetCurrentProject(ctx context.Context, projectID, 
 		return nil, apperrors.TranslateError(err, "service")
 	}
 	p := resp.GetProject()
-	return &views.ProjectResponse{
+	return &bffcontracts.ProjectResponse{
 		ID:        p.GetId(),
 		OwnerID:   p.GetOwnerId(),
 		Name:      p.GetName(),
@@ -52,7 +52,7 @@ func (s *ProjectsServiceImpl) GetCurrentProject(ctx context.Context, projectID, 
 }
 
 // ListMembers returns all members for the caller's project.
-func (s *ProjectsServiceImpl) ListMembers(ctx context.Context, projectID, userID, role string, pageSize int32, pageToken string) (*views.ListMembersResponse, error) {
+func (s *ProjectsServiceImpl) ListMembers(ctx context.Context, projectID, userID, role string, pageSize int32, pageToken string) (*bffcontracts.ListMembersResponse, error) {
 	if pageSize == 0 {
 		pageSize = 25
 	}
@@ -74,9 +74,9 @@ func (s *ProjectsServiceImpl) ListMembers(ctx context.Context, projectID, userID
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	items := make([]*views.ProjectMemberResponse, 0, len(resp.GetMembers()))
+	items := make([]*bffcontracts.ProjectMemberResponse, 0, len(resp.GetMembers()))
 	for _, m := range resp.GetMembers() {
-		items = append(items, &views.ProjectMemberResponse{
+		items = append(items, &bffcontracts.ProjectMemberResponse{
 			ID:        m.GetId(),
 			ProjectID: m.GetProjectId(),
 			UserID:    m.GetUserId(),
@@ -90,11 +90,11 @@ func (s *ProjectsServiceImpl) ListMembers(ctx context.Context, projectID, userID
 	if resp.GetPagination() != nil {
 		nextToken = resp.GetPagination().GetNextPageToken()
 	}
-	return &views.ListMembersResponse{Items: items, NextPageToken: nextToken}, nil
+	return &bffcontracts.ListMembersResponse{Items: items, NextPageToken: nextToken}, nil
 }
 
 // InviteMember sends an invitation to the given email with the specified role.
-func (s *ProjectsServiceImpl) InviteMember(ctx context.Context, projectID, inviterID, inviterRole, email, role string) (*views.ProjectMemberResponse, error) {
+func (s *ProjectsServiceImpl) InviteMember(ctx context.Context, projectID, inviterID, inviterRole, email, role string) (*bffcontracts.ProjectMemberResponse, error) {
 	resp, err := s.onboardingClient.InviteProjectMember(ctx, &onboardingv1.InviteProjectMemberRequest{
 		Ctx: &commonv1.ProjectContext{
 			ProjectId: projectID,
@@ -116,7 +116,7 @@ func (s *ProjectsServiceImpl) InviteMember(ctx context.Context, projectID, invit
 		return nil, apperrors.TranslateError(err, "service")
 	}
 	m := resp.GetMember()
-	return &views.ProjectMemberResponse{
+	return &bffcontracts.ProjectMemberResponse{
 		ID:        m.GetId(),
 		ProjectID: m.GetProjectId(),
 		UserID:    m.GetUserId(),
@@ -128,7 +128,7 @@ func (s *ProjectsServiceImpl) InviteMember(ctx context.Context, projectID, invit
 }
 
 // UpdateMemberRole changes the role of an existing project member.
-func (s *ProjectsServiceImpl) UpdateMemberRole(ctx context.Context, projectID, callerID, callerRole, memberID, newRole string) (*views.ProjectMemberResponse, error) {
+func (s *ProjectsServiceImpl) UpdateMemberRole(ctx context.Context, projectID, callerID, callerRole, memberID, newRole string) (*bffcontracts.ProjectMemberResponse, error) {
 	resp, err := s.onboardingClient.UpdateProjectMemberRole(ctx, &onboardingv1.UpdateProjectMemberRoleRequest{
 		Ctx: &commonv1.ProjectContext{
 			ProjectId: projectID,
@@ -150,7 +150,7 @@ func (s *ProjectsServiceImpl) UpdateMemberRole(ctx context.Context, projectID, c
 		return nil, apperrors.TranslateError(err, "service")
 	}
 	m := resp.GetMember()
-	return &views.ProjectMemberResponse{
+	return &bffcontracts.ProjectMemberResponse{
 		ID:        m.GetId(),
 		ProjectID: m.GetProjectId(),
 		UserID:    m.GetUserId(),

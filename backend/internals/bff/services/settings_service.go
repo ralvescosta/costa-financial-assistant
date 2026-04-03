@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
-	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
@@ -23,7 +23,7 @@ func NewSettingsService(logger *zap.Logger, filesClient bffinterfaces.FilesClien
 }
 
 // ListBankAccounts returns all bank accounts for the project.
-func (s *SettingsServiceImpl) ListBankAccounts(ctx context.Context, projectID string) (*views.ListBankAccountsResponse, error) {
+func (s *SettingsServiceImpl) ListBankAccounts(ctx context.Context, projectID string) (*bffcontracts.ListBankAccountsResponse, error) {
 	resp, err := s.filesClient.ListBankAccounts(ctx, &filesv1.ListBankAccountsRequest{
 		Ctx: &commonv1.ProjectContext{ProjectId: projectID},
 	})
@@ -31,16 +31,16 @@ func (s *SettingsServiceImpl) ListBankAccounts(ctx context.Context, projectID st
 		return nil, err
 	}
 
-	items := make([]*views.BankAccountResponse, 0, len(resp.BankAccounts))
+	items := make([]*bffcontracts.BankAccountResponse, 0, len(resp.BankAccounts))
 	for _, a := range resp.BankAccounts {
 		v := bankAccountToView(a)
 		items = append(items, &v)
 	}
-	return &views.ListBankAccountsResponse{Items: items}, nil
+	return &bffcontracts.ListBankAccountsResponse{Items: items}, nil
 }
 
 // CreateBankAccount registers a new bank account label for the project.
-func (s *SettingsServiceImpl) CreateBankAccount(ctx context.Context, projectID, createdBy, label string) (*views.BankAccountResponse, error) {
+func (s *SettingsServiceImpl) CreateBankAccount(ctx context.Context, projectID, createdBy, label string) (*bffcontracts.BankAccountResponse, error) {
 	resp, err := s.filesClient.CreateBankAccount(ctx, &filesv1.CreateBankAccountRequest{
 		Ctx:   &commonv1.ProjectContext{ProjectId: projectID},
 		Label: label,
@@ -73,8 +73,8 @@ func (s *SettingsServiceImpl) DeleteBankAccount(ctx context.Context, projectID, 
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-func bankAccountToView(a *filesv1.BankAccount) views.BankAccountResponse {
-	return views.BankAccountResponse{
+func bankAccountToView(a *filesv1.BankAccount) bffcontracts.BankAccountResponse {
+	return bffcontracts.BankAccountResponse{
 		ID:        a.Id,
 		ProjectID: a.ProjectId,
 		Label:     a.Label,

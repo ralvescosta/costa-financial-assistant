@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
-	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
@@ -30,7 +30,7 @@ func NewDocumentsService(logger *zap.Logger, filesClient bffinterfaces.FilesClie
 }
 
 // UploadDocument registers a document with the downstream files service.
-func (s *DocumentsServiceImpl) UploadDocument(ctx context.Context, projectID, uploadedBy, fileName string, fileBytes []byte) (*views.DocumentResponse, error) {
+func (s *DocumentsServiceImpl) UploadDocument(ctx context.Context, projectID, uploadedBy, fileName string, fileBytes []byte) (*bffcontracts.DocumentResponse, error) {
 	hash := sha256.New()
 	if _, err := io.Copy(hash, byteReader(fileBytes)); err != nil {
 		s.logger.Error("documents_svc: hash computation failed", zap.Error(err))
@@ -64,7 +64,7 @@ func (s *DocumentsServiceImpl) UploadDocument(ctx context.Context, projectID, up
 }
 
 // ClassifyDocument updates a document's kind.
-func (s *DocumentsServiceImpl) ClassifyDocument(ctx context.Context, projectID, documentID, kind string) (*views.DocumentResponse, error) {
+func (s *DocumentsServiceImpl) ClassifyDocument(ctx context.Context, projectID, documentID, kind string) (*bffcontracts.DocumentResponse, error) {
 	resp, err := s.filesClient.ClassifyDocument(ctx, &filesv1.ClassifyDocumentRequest{
 		Ctx:        &commonv1.ProjectContext{ProjectId: projectID},
 		DocumentId: documentID,
@@ -89,7 +89,7 @@ func (s *DocumentsServiceImpl) ClassifyDocument(ctx context.Context, projectID, 
 }
 
 // ListDocuments returns a project-scoped page of documents.
-func (s *DocumentsServiceImpl) ListDocuments(ctx context.Context, projectID string, pageSize int32, pageToken string) (*views.ListDocumentsResponse, error) {
+func (s *DocumentsServiceImpl) ListDocuments(ctx context.Context, projectID string, pageSize int32, pageToken string) (*bffcontracts.ListDocumentsResponse, error) {
 	if pageSize == 0 {
 		pageSize = 25
 	}
@@ -110,12 +110,12 @@ func (s *DocumentsServiceImpl) ListDocuments(ctx context.Context, projectID stri
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	items := make([]*views.DocumentResponse, 0, len(resp.Documents))
+	items := make([]*bffcontracts.DocumentResponse, 0, len(resp.Documents))
 	for _, d := range resp.Documents {
 		v := protoDocToView(d)
 		items = append(items, &v)
 	}
-	result := views.ListDocumentsResponse{Items: items}
+	result := bffcontracts.ListDocumentsResponse{Items: items}
 	if resp.Pagination != nil {
 		result.NextPageToken = resp.Pagination.NextPageToken
 	}
@@ -123,7 +123,7 @@ func (s *DocumentsServiceImpl) ListDocuments(ctx context.Context, projectID stri
 }
 
 // GetDocument returns full document metadata including extraction fields.
-func (s *DocumentsServiceImpl) GetDocument(ctx context.Context, projectID, documentID string) (*views.DocumentDetailResponse, error) {
+func (s *DocumentsServiceImpl) GetDocument(ctx context.Context, projectID, documentID string) (*bffcontracts.DocumentDetailResponse, error) {
 	resp, err := s.filesClient.GetDocument(ctx, &filesv1.GetDocumentRequest{
 		Ctx:        &commonv1.ProjectContext{ProjectId: projectID},
 		DocumentId: documentID,
@@ -139,7 +139,7 @@ func (s *DocumentsServiceImpl) GetDocument(ctx context.Context, projectID, docum
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	result := views.DocumentDetailResponse{DocumentResponse: protoDocToView(resp.Document)}
+	result := bffcontracts.DocumentDetailResponse{DocumentResponse: protoDocToView(resp.Document)}
 	if resp.BillRecord != nil {
 		br := protoBillToView(resp.BillRecord)
 		result.BillRecord = &br
@@ -153,11 +153,11 @@ func (s *DocumentsServiceImpl) GetDocument(ctx context.Context, projectID, docum
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-func protoDocToView(d *filesv1.Document) views.DocumentResponse {
+func protoDocToView(d *filesv1.Document) bffcontracts.DocumentResponse {
 	if d == nil {
-		return views.DocumentResponse{}
+		return bffcontracts.DocumentResponse{}
 	}
-	return views.DocumentResponse{
+	return bffcontracts.DocumentResponse{
 		ID:              d.Id,
 		ProjectID:       d.ProjectId,
 		UploadedBy:      d.UploadedBy,
@@ -170,11 +170,11 @@ func protoDocToView(d *filesv1.Document) views.DocumentResponse {
 	}
 }
 
-func protoBillToView(b *filesv1.BillRecord) views.BillRecordResponse {
+func protoBillToView(b *filesv1.BillRecord) bffcontracts.BillRecordResponse {
 	if b == nil {
-		return views.BillRecordResponse{}
+		return bffcontracts.BillRecordResponse{}
 	}
-	return views.BillRecordResponse{
+	return bffcontracts.BillRecordResponse{
 		ID:            b.Id,
 		DueDate:       b.DueDate,
 		AmountDue:     b.AmountDue,
@@ -186,13 +186,13 @@ func protoBillToView(b *filesv1.BillRecord) views.BillRecordResponse {
 	}
 }
 
-func protoStatementToView(s *filesv1.StatementRecord) views.StatementRecordResponse {
+func protoStatementToView(s *filesv1.StatementRecord) bffcontracts.StatementRecordResponse {
 	if s == nil {
-		return views.StatementRecordResponse{}
+		return bffcontracts.StatementRecordResponse{}
 	}
-	lines := make([]*views.TransactionLineResponse, 0, len(s.Lines))
+	lines := make([]*bffcontracts.TransactionLineResponse, 0, len(s.Lines))
 	for _, l := range s.Lines {
-		lines = append(lines, &views.TransactionLineResponse{
+		lines = append(lines, &bffcontracts.TransactionLineResponse{
 			ID:                   l.Id,
 			TransactionDate:      l.TransactionDate,
 			Description:          l.Description,
@@ -201,7 +201,7 @@ func protoStatementToView(s *filesv1.StatementRecord) views.StatementRecordRespo
 			ReconciliationStatus: l.ReconciliationStatus,
 		})
 	}
-	return views.StatementRecordResponse{
+	return bffcontracts.StatementRecordResponse{
 		ID:            s.Id,
 		BankAccountID: s.BankAccountId,
 		PeriodStart:   s.PeriodStart,

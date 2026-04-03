@@ -3,6 +3,8 @@ package services_test
 import (
 	"context"
 	"errors"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -224,4 +226,44 @@ func TestPaymentsService_SetCyclePreference_Success(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	assert.Equal(t, 15, result.PreferredDayOfMonth)
+}
+
+func TestPaymentsReconciliationServiceBoundaryContracts(t *testing.T) {
+	t.Parallel()
+
+	t.Run("GivenPaymentsServiceWhenBoundaryImportsAreCheckedThenTransportViewsAreNotImported", func(t *testing.T) {
+		// Given
+		servicePath := "payments_service.go"
+
+		// Arrange
+		content, err := os.ReadFile(servicePath)
+		require.NoError(t, err)
+		text := string(content)
+
+		// Act
+		hasViewsImport := strings.Contains(text, "transport/http/views")
+		hasContractsImport := strings.Contains(text, "services/contracts")
+
+		// Then
+		assert.False(t, hasViewsImport)
+		assert.True(t, hasContractsImport)
+	})
+
+	t.Run("GivenReconciliationServiceWhenBoundaryImportsAreCheckedThenTransportViewsAreNotImported", func(t *testing.T) {
+		// Given
+		servicePath := "reconciliation_service.go"
+
+		// Arrange
+		content, err := os.ReadFile(servicePath)
+		require.NoError(t, err)
+		text := string(content)
+
+		// Act
+		hasViewsImport := strings.Contains(text, "transport/http/views")
+		hasContractsImport := strings.Contains(text, "services/contracts")
+
+		// Then
+		assert.False(t, hasViewsImport)
+		assert.True(t, hasContractsImport)
+	})
 }

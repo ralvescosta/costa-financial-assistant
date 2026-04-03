@@ -142,6 +142,27 @@ go func() {
 
 ---
 
+## Rule: BFF Service Contract Ownership and Mapper Boundary
+
+**Description**: BFF service contracts and HTTP mappers must preserve a strict ownership boundary between transport and service layers.
+
+**When it applies**: Adding or modifying BFF controllers, mappers, or service contracts.
+
+**Copilot MUST**:
+- Keep service-owned request/response contracts in `backend/internals/bff/services/contracts/`.
+- Keep HTTP-to-service and service-to-HTTP transformations in `backend/internals/bff/transport/http/controllers/mappers/`.
+- Ensure controllers call mapper helpers before and after service calls, preserving controller thinness.
+- Keep `backend/internals/bff/interfaces/services.go` dependent on `services/contracts` types, not `transport/http/views` types.
+
+**Copilot MUST NOT**:
+- Import `transport/http/views` in BFF service implementation files.
+- Return transport view types directly from BFF service methods.
+- Move mapper logic into route modules or service implementations.
+
+**Reference files**: `backend/internals/bff/services/contracts/`, `backend/internals/bff/transport/http/controllers/mappers/`, `backend/internals/bff/interfaces/services.go`.
+
+---
+
 ## Rule: BFF HTTP Views Layer
 
 **Description**: ALL BFF HTTP request and response contract types MUST be defined in `backend/internals/bff/transport/http/views/`. No HTTP-facing struct may live in a controller file.

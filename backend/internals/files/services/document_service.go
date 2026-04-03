@@ -14,6 +14,7 @@ import (
 )
 
 // DocumentServiceIface is the narrow interface consumed by the gRPC server.
+// Pointer policy: request/response struct boundaries use pointers by default.
 type DocumentServiceIface interface {
 	UploadDocument(ctx context.Context, req *UploadDocumentInput) (*filesv1.Document, error)
 	ClassifyDocument(ctx context.Context, projectID, documentID string, kind filesv1.DocumentKind) (*filesv1.Document, error)

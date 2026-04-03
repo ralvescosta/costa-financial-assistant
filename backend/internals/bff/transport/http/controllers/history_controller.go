@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
+	controllermappers "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers/mappers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 )
@@ -31,7 +32,8 @@ func (c *HistoryController) HandleGetTimeline(ctx context.Context, in *views.His
 		return nil, huma.Error401Unauthorized("missing authentication")
 	}
 
-	resp, err := c.svc.GetTimeline(ctx, claims.GetProjectId(), in.Months)
+	months := controllermappers.ToHistoryMonths(in)
+	resp, err := c.svc.GetTimeline(ctx, claims.GetProjectId(), months)
 	if err != nil {
 		c.logger.Error("history: get timeline failed",
 			zap.String("project_id", claims.GetProjectId()),
@@ -39,7 +41,7 @@ func (c *HistoryController) HandleGetTimeline(ctx context.Context, in *views.His
 		return nil, huma.Error500InternalServerError("failed to load timeline")
 	}
 
-	return &struct{ Body views.TimelineResponse }{Body: *resp}, nil
+	return &struct{ Body views.TimelineResponse }{Body: controllermappers.ToTimelineResponse(resp)}, nil
 }
 
 // HandleGetCategories returns bill amounts grouped by bill type and calendar month.
@@ -49,7 +51,8 @@ func (c *HistoryController) HandleGetCategories(ctx context.Context, in *views.H
 		return nil, huma.Error401Unauthorized("missing authentication")
 	}
 
-	resp, err := c.svc.GetCategoryBreakdown(ctx, claims.GetProjectId(), in.Months)
+	months := controllermappers.ToHistoryMonths(in)
+	resp, err := c.svc.GetCategoryBreakdown(ctx, claims.GetProjectId(), months)
 	if err != nil {
 		c.logger.Error("history: get category breakdown failed",
 			zap.String("project_id", claims.GetProjectId()),
@@ -57,7 +60,7 @@ func (c *HistoryController) HandleGetCategories(ctx context.Context, in *views.H
 		return nil, huma.Error500InternalServerError("failed to load category breakdown")
 	}
 
-	return &struct{ Body views.CategoryBreakdownResponse }{Body: *resp}, nil
+	return &struct{ Body views.CategoryBreakdownResponse }{Body: controllermappers.ToCategoryBreakdownResponse(resp)}, nil
 }
 
 // HandleGetCompliance returns on-time vs overdue bill counts and compliance rate.
@@ -67,7 +70,8 @@ func (c *HistoryController) HandleGetCompliance(ctx context.Context, in *views.H
 		return nil, huma.Error401Unauthorized("missing authentication")
 	}
 
-	resp, err := c.svc.GetComplianceMetrics(ctx, claims.GetProjectId(), in.Months)
+	months := controllermappers.ToHistoryMonths(in)
+	resp, err := c.svc.GetComplianceMetrics(ctx, claims.GetProjectId(), months)
 	if err != nil {
 		c.logger.Error("history: get compliance failed",
 			zap.String("project_id", claims.GetProjectId()),
@@ -75,6 +79,6 @@ func (c *HistoryController) HandleGetCompliance(ctx context.Context, in *views.H
 		return nil, huma.Error500InternalServerError("failed to load compliance metrics")
 	}
 
-	return &struct{ Body views.ComplianceResponse }{Body: *resp}, nil
+	return &struct{ Body views.ComplianceResponse }{Body: controllermappers.ToComplianceResponse(resp)}, nil
 }
 

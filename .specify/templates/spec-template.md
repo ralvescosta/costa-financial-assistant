@@ -115,6 +115,11 @@
   canonical integration-test standard:
   `backend/tests/integration/<service>/` or `backend/tests/integration/cross_service/`,
   behavior-based snake_case filenames, and table-driven BDD Given/When/Then + AAA.
+- If BFF transport/service boundaries are touched, explicitly state:
+  - service-owned contracts path (`backend/internals/bff/services/contracts/`)
+  - transport-owned views path (`backend/internals/bff/transport/http/views/`)
+  - mapper boundary path (`backend/internals/bff/transport/http/controllers/mappers/`)
+  - pointer-policy exception contract tracking path (`specs/<feature>/contracts/pointer-exceptions.md`)
 
 ## Requirements *(mandatory)*
 

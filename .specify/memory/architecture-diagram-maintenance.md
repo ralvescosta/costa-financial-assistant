@@ -59,6 +59,11 @@ cross-service topology), `.specify/memory/architecture-diagram.md` SHOULD remain
 unchanged and the feature MUST record an explicit no-topology-change rationale in
 its spec and plan artifacts.
 
+For boundary-only refactors (for example transport/service contract ownership moves,
+mapper-boundary enforcement, or pointer-policy standardization without new services
+or links), update architecture policy notes/changelog sections but keep topology
+sections unchanged; bump PATCH version only.
+
 ### Refactor/Reorganization Trigger (MUST)
 
 If a feature refactors or reorganizes project or service structure, the same feature

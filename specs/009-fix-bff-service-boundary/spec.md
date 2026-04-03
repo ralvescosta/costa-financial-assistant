@@ -172,7 +172,6 @@ As a team lead, I need repository instructions and memory artifacts updated afte
 - **SC-001**: 100% of BFF service modules for all active BFF routes/services show zero direct dependency on HTTP transport view contracts.
 - **SC-002**: 100% of active BFF HTTP endpoints use explicit, test-validated mapping between transport views and service contracts.
 - **SC-003**: 100% of scoped backend contract signatures for non-trivial structs conform to the defined pointer convention or include an explicit documented exception.
-- **SC-004**: 0 critical behavior regressions are detected in route-level integration tests and scoped service unit tests after refactor completion.
 - **SC-004**: 0 critical behavior regressions are detected in route-level integration tests and scoped service unit tests after refactor completion, including status semantics and response shape assertions.
 - **SC-005**: All identified instruction and memory artifacts listed in this spec are updated and reviewed in the same implementation feature scope.
 - **SC-006**: 100% of mapper/service boundary nil-safety tests added in scope pass with no nil-dereference regressions.

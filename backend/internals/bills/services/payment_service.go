@@ -12,6 +12,7 @@ import (
 )
 
 // BillPaymentService implements interfaces.BillPaymentService.
+// Pointer policy is applied to struct boundaries in public service methods.
 type BillPaymentService struct {
 	repo   interfaces.BillPaymentRepository
 	logger *zap.Logger

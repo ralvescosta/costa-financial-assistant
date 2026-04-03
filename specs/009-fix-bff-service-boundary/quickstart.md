@@ -71,3 +71,12 @@ make test/integration
 - All active BFF routes/services follow explicit transport-to-service mapping.
 - Pointer threshold policy is applied consistently on modified backend boundaries.
 - Instruction and memory sync obligations are completed in the same feature cycle.
+
+## 7. Validation Evidence
+
+- `go test ./...` from `backend/`: PASS
+- `backend/scripts/validate_integration_test_conventions.sh`: PASS
+- Integration smoke convention verification (`backend/tests/integration/bff/bff_route_registration_smoke_test.go`): PASS
+  - Canonical placement: `backend/tests/integration/bff/`
+  - Behavior-based snake_case naming: `bff_route_registration_smoke_test.go`
+  - Given/When/Then + Arrange/Act/Assert sections present

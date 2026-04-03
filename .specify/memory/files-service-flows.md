@@ -14,6 +14,7 @@ Notes:
 - Project isolation is enforced with `project_id` across all repository calls.
 - Async extraction is handled by an RMQ consumer in this service, but these RPCs do not directly publish to RabbitMQ in current implementation.
 - `AppError` is the canonical boundary contract for repository->service->transport propagation and async consumer/producer sanitization. Native dependency errors are logged once and translated before crossing each layer.
+- Pointer policy at service/repository boundaries defaults to pointer signatures for large/reference-like structs; any value-semantics exception must be recorded in the feature pointer-exception contract.
 
 ## Shared gRPC service pattern (applies to all RPCs)
 

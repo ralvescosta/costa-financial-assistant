@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
+	controllermappers "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers/mappers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 )
@@ -31,11 +32,12 @@ func (c *DocumentsController) HandleUpload(ctx context.Context, input *views.Upl
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	if len(input.RawBody) == 0 {
+	fileName, rawBody := controllermappers.ToUploadRequest(input)
+	if len(rawBody) == 0 {
 		return nil, huma.Error400BadRequest("request body must be the PDF file bytes")
 	}
 
-	doc, err := c.svc.UploadDocument(ctx, claims.GetProjectId(), claims.GetSubject(), input.FileName, input.RawBody)
+	doc, err := c.svc.UploadDocument(ctx, claims.GetProjectId(), claims.GetSubject(), fileName, rawBody)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "upload failed")
 	}
@@ -43,7 +45,7 @@ func (c *DocumentsController) HandleUpload(ctx context.Context, input *views.Upl
 	c.logger.Info("upload: document registered",
 		zap.String("document_id", doc.ID),
 		zap.String("project_id", claims.GetProjectId()))
-	return &struct{ Body views.DocumentResponse }{Body: *doc}, nil
+	return &struct{ Body views.DocumentResponse }{Body: controllermappers.ToDocumentResponse(doc)}, nil
 }
 
 // HandleClassify updates a document's kind (bill or statement).
@@ -53,15 +55,16 @@ func (c *DocumentsController) HandleClassify(ctx context.Context, input *views.C
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	doc, err := c.svc.ClassifyDocument(ctx, claims.GetProjectId(), input.DocumentID, input.Body.Kind)
+	documentID, kind := controllermappers.ToClassifyRequest(input)
+	doc, err := c.svc.ClassifyDocument(ctx, claims.GetProjectId(), documentID, kind)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "classify failed")
 	}
 
 	c.logger.Info("classify: document classified",
-		zap.String("document_id", input.DocumentID),
-		zap.String("kind", input.Body.Kind))
-	return &struct{ Body views.DocumentResponse }{Body: *doc}, nil
+		zap.String("document_id", documentID),
+		zap.String("kind", kind))
+	return &struct{ Body views.DocumentResponse }{Body: controllermappers.ToDocumentResponse(doc)}, nil
 }
 
 // HandleList returns project-scoped documents with pagination.
@@ -71,17 +74,13 @@ func (c *DocumentsController) HandleList(ctx context.Context, input *views.ListD
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	pageSize := input.PageSize
-	if pageSize == 0 {
-		pageSize = 25
-	}
-
-	resp, err := c.svc.ListDocuments(ctx, claims.GetProjectId(), pageSize, input.PageToken)
+	pageSize, pageToken := controllermappers.ToListDocumentsRequest(input)
+	resp, err := c.svc.ListDocuments(ctx, claims.GetProjectId(), pageSize, pageToken)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "list documents failed")
 	}
 
-	return &struct{ Body views.ListDocumentsResponse }{Body: *resp}, nil
+	return &struct{ Body views.ListDocumentsResponse }{Body: controllermappers.ToListDocumentsResponse(resp)}, nil
 }
 
 // HandleGet returns full document metadata including extraction fields.
@@ -91,12 +90,13 @@ func (c *DocumentsController) HandleGet(ctx context.Context, input *views.GetDoc
 		return nil, huma.Error403Forbidden("missing project context")
 	}
 
-	detail, err := c.svc.GetDocument(ctx, claims.GetProjectId(), input.DocumentID)
+	documentID := controllermappers.ToGetDocumentRequest(input)
+	detail, err := c.svc.GetDocument(ctx, claims.GetProjectId(), documentID)
 	if err != nil {
 		return nil, c.grpcToHumaError(err, "get document failed")
 	}
 
-	return &struct{ Body views.DocumentDetailResponse }{Body: *detail}, nil
+	return &struct{ Body views.DocumentDetailResponse }{Body: controllermappers.ToDocumentDetailResponse(detail)}, nil
 }
 
 

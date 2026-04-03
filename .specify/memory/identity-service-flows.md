@@ -14,6 +14,7 @@ Notes:
 - BFF auth middleware consumes identity JWKS metadata for key validation cache on the BFF side.
 - Current identity RPC paths are stateless and do not persist domain records in PostgreSQL.
 - gRPC handlers map `AppError` categories to protocol-safe status codes and avoid leaking native errors in response payloads.
+- Boundary signature policy for modified paths follows pointer-threshold defaults; intentional value semantics must be documented as explicit exceptions per feature contract.
 
 ## Shared gRPC service pattern (applies to all RPCs)
 

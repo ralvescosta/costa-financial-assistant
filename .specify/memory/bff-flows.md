@@ -15,6 +15,8 @@ Notes:
 - JWKS cache is in-memory inside BFF (not Redis).
 - For endpoints that call downstream services via gRPC, DB details happen in those services.
 - **006 boundary (enforced)**: controllers are pure HTTP adapters — they validate view contracts and call one BFF service method. All downstream gRPC orchestration lives in `internals/bff/services/`. HTTP contracts (request/response structs) are owned exclusively by `transport/http/views/`. Route modules own all `huma.Register(...)` calls.
+- **009 boundary ownership rule (enforced)**: service contracts are owned by `internals/bff/services/contracts/`; transport mappers in `transport/http/controllers/mappers/` are the only conversion boundary between `views` and service contracts.
+- **009 pointer policy (enforced)**: modified BFF boundary signatures default to pointer semantics for large/reference-like structs, and value-semantics exceptions must be explicitly documented in feature contract artifacts.
 - **AppError boundary rule (008)**: all downstream/native failures are translated to `AppError` before crossing service boundaries; BFF services log native errors once with structured context and propagate only sanitized `AppError` contracts.
 
 ## Shared auth and guard pattern (applies to all endpoints)

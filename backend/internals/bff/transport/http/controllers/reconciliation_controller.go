@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
+	controllermappers "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers/mappers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 )
@@ -31,7 +32,8 @@ func (c *ReconciliationController) HandleGetSummary(ctx context.Context, input *
 		return nil, huma.Error401Unauthorized("missing authentication claims")
 	}
 
-	resp, err := c.svc.GetSummary(ctx, claims.GetProjectId(), input.PeriodStart, input.PeriodEnd)
+	periodStart, periodEnd := controllermappers.ToReconciliationSummaryRequest(input)
+	resp, err := c.svc.GetSummary(ctx, claims.GetProjectId(), periodStart, periodEnd)
 	if err != nil {
 		c.logger.Error("reconciliation_ctrl: get summary failed",
 			zap.String("project_id", claims.GetProjectId()),
@@ -39,7 +41,7 @@ func (c *ReconciliationController) HandleGetSummary(ctx context.Context, input *
 		return nil, huma.Error500InternalServerError("failed to retrieve reconciliation summary")
 	}
 
-	return &struct{ Body views.ReconciliationSummaryResponse }{Body: *resp}, nil
+	return &struct{ Body views.ReconciliationSummaryResponse }{Body: controllermappers.ToReconciliationSummaryResponse(resp)}, nil
 }
 
 // HandleCreateLink manually links a statement transaction to a bill record.
@@ -49,20 +51,21 @@ func (c *ReconciliationController) HandleCreateLink(ctx context.Context, input *
 		return nil, huma.Error401Unauthorized("missing authentication claims")
 	}
 
-	if input.Body.TransactionLineID == "" || input.Body.BillRecordID == "" {
+	transactionLineID, billRecordID := controllermappers.ToCreateReconciliationLinkRequest(input)
+	if transactionLineID == "" || billRecordID == "" {
 		return nil, huma.Error400BadRequest("transactionLineId and billRecordId are required")
 	}
 
-	resp, err := c.svc.CreateManualLink(ctx, claims.GetProjectId(), input.Body.TransactionLineID, input.Body.BillRecordID, claims.GetSubject())
+	resp, err := c.svc.CreateManualLink(ctx, claims.GetProjectId(), transactionLineID, billRecordID, claims.GetSubject())
 	if err != nil {
 		c.logger.Error("reconciliation_ctrl: create manual link failed",
 			zap.String("project_id", claims.GetProjectId()),
-			zap.String("transaction_line_id", input.Body.TransactionLineID),
-			zap.String("bill_record_id", input.Body.BillRecordID),
+			zap.String("transaction_line_id", transactionLineID),
+			zap.String("bill_record_id", billRecordID),
 			zap.Error(err))
 		return nil, huma.Error500InternalServerError("failed to create reconciliation link")
 	}
 
-	return &struct{ Body views.ReconciliationLinkResponse }{Body: *resp}, nil
+	return &struct{ Body views.ReconciliationLinkResponse }{Body: controllermappers.ToReconciliationLinkResponse(resp)}, nil
 }
 

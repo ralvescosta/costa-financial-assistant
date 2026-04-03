@@ -133,6 +133,8 @@ func (stubHistory) HandleGetCompliance(_ context.Context, _ *views.HistoryQueryI
 // buildBFFTestServer helper. This test does NOT exercise handler logic — it only
 // validates that the registration wiring is complete and correct.
 func TestBFFRouteRegistrationSmoke(t *testing.T) {
+	// Given all active BFF route modules are wired into the in-process test server.
+	// Arrange
 	logger := zap.NewNop()
 
 	routeModules := []bfftransportroutes.Route{
@@ -144,6 +146,8 @@ func TestBFFRouteRegistrationSmoke(t *testing.T) {
 		bfftransportroutes.NewHistoryRoute(stubHistory{}, logger),
 	}
 
+	// When the OpenAPI document is produced from registered routes.
+	// Act
 	_, api := buildBFFTestServer(t, routeModules...)
 
 	expectedOperationIDs := []string{
@@ -191,6 +195,8 @@ func TestBFFRouteRegistrationSmoke(t *testing.T) {
 		}
 	}
 
+	// Then every expected operation is registered exactly once.
+	// Assert
 	assert.Len(t, registered, len(expectedOperationIDs),
 		"expected exactly %d registered operations", len(expectedOperationIDs))
 

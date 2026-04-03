@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
-	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
 	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
@@ -23,7 +23,7 @@ func NewReconciliationService(logger *zap.Logger, reconSvc paymentsinterfaces.Re
 }
 
 // GetSummary returns the reconciliation summary for the project and period.
-func (s *ReconciliationServiceImpl) GetSummary(ctx context.Context, projectID, periodStart, periodEnd string) (*views.ReconciliationSummaryResponse, error) {
+func (s *ReconciliationServiceImpl) GetSummary(ctx context.Context, projectID, periodStart, periodEnd string) (*bffcontracts.ReconciliationSummaryResponse, error) {
 	summary, err := s.reconSvc.GetSummary(ctx, projectID, periodStart, periodEnd)
 	if err != nil {
 		s.logger.Error("reconciliation_svc: get summary failed",
@@ -35,9 +35,9 @@ func (s *ReconciliationServiceImpl) GetSummary(ctx context.Context, projectID, p
 		return nil, apperrors.TranslateError(err, "service")
 	}
 
-	entries := make([]*views.ReconciliationEntryResponse, 0, len(summary.Entries))
+	entries := make([]*bffcontracts.ReconciliationEntryResponse, 0, len(summary.Entries))
 	for _, e := range summary.Entries {
-		entry := views.ReconciliationEntryResponse{
+		entry := bffcontracts.ReconciliationEntryResponse{
 			TransactionLineID:    e.TransactionLineID,
 			TransactionDate:      e.TransactionDate,
 			Description:          e.Description,
@@ -54,7 +54,7 @@ func (s *ReconciliationServiceImpl) GetSummary(ctx context.Context, projectID, p
 		}
 		entries = append(entries, &entry)
 	}
-	return &views.ReconciliationSummaryResponse{
+	return &bffcontracts.ReconciliationSummaryResponse{
 		ProjectID:   summary.ProjectID,
 		PeriodStart: summary.PeriodStart,
 		PeriodEnd:   summary.PeriodEnd,
@@ -63,7 +63,7 @@ func (s *ReconciliationServiceImpl) GetSummary(ctx context.Context, projectID, p
 }
 
 // CreateManualLink manually links a statement transaction to a bill record.
-func (s *ReconciliationServiceImpl) CreateManualLink(ctx context.Context, projectID, transactionLineID, billRecordID, linkedBy string) (*views.ReconciliationLinkResponse, error) {
+func (s *ReconciliationServiceImpl) CreateManualLink(ctx context.Context, projectID, transactionLineID, billRecordID, linkedBy string) (*bffcontracts.ReconciliationLinkResponse, error) {
 	link, err := s.reconSvc.CreateManualLink(ctx, projectID, transactionLineID, billRecordID, linkedBy)
 	if err != nil {
 		s.logger.Error("reconciliation_svc: create manual link failed",
@@ -76,7 +76,7 @@ func (s *ReconciliationServiceImpl) CreateManualLink(ctx context.Context, projec
 		}
 		return nil, apperrors.TranslateError(err, "service")
 	}
-	return &views.ReconciliationLinkResponse{
+	return &bffcontracts.ReconciliationLinkResponse{
 		ID:                link.ID,
 		ProjectID:         link.ProjectID,
 		TransactionLineID: link.TransactionLineID,

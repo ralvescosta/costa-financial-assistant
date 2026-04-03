@@ -3,6 +3,8 @@ package services_test
 import (
 	"context"
 	"errors"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -173,4 +175,44 @@ func TestProjectsService_UpdateMemberRole_Success(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	assert.Equal(t, "m1", result.ID)
+}
+
+func TestProjectsSettingsServiceBoundaryContracts(t *testing.T) {
+	t.Parallel()
+
+	t.Run("GivenProjectsServiceWhenBoundaryImportsAreCheckedThenTransportViewsAreNotImported", func(t *testing.T) {
+		// Given
+		servicePath := "projects_service.go"
+
+		// Arrange
+		content, err := os.ReadFile(servicePath)
+		require.NoError(t, err)
+		text := string(content)
+
+		// Act
+		hasViewsImport := strings.Contains(text, "transport/http/views")
+		hasContractsImport := strings.Contains(text, "services/contracts")
+
+		// Then
+		assert.False(t, hasViewsImport)
+		assert.True(t, hasContractsImport)
+	})
+
+	t.Run("GivenSettingsServiceWhenBoundaryImportsAreCheckedThenTransportViewsAreNotImported", func(t *testing.T) {
+		// Given
+		servicePath := "settings_service.go"
+
+		// Arrange
+		content, err := os.ReadFile(servicePath)
+		require.NoError(t, err)
+		text := string(content)
+
+		// Act
+		hasViewsImport := strings.Contains(text, "transport/http/views")
+		hasContractsImport := strings.Contains(text, "services/contracts")
+
+		// Then
+		assert.False(t, hasViewsImport)
+		assert.True(t, hasContractsImport)
+	})
 }

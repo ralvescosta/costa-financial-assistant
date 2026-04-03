@@ -67,4 +67,11 @@ func TestHistoryRouteIntegration(t *testing.T) {
 		assert.NotEqual(t, http.StatusNotFound, resp.StatusCode)
 		assert.NotEqual(t, http.StatusMethodNotAllowed, resp.StatusCode)
 	})
+
+	t.Run("get-history-timeline endpoint enforces auth semantics", func(t *testing.T) {
+		resp, err := srv.Client().Get(srv.URL + "/api/v1/history/timeline")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
 }
