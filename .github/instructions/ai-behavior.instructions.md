@@ -207,6 +207,25 @@ applyTo: "**/*"
 
 ---
 
+## Rule: AppError-First Backend Generation
+
+**Description**: All backend cross-layer error flows must follow AppError-first translation and propagation.
+
+**When it applies**: Generating or modifying backend repository/service/transport/async code.
+
+**Copilot MUST**:
+- Translate native dependency errors to `AppError` at boundary points.
+- Preserve existing `AppError` contracts via `AsAppError` passthrough.
+- Enforce unknown fallback semantics for unmapped translation contexts.
+- Add/update tests that assert non-leakage and deterministic retryability behavior.
+
+**Copilot MUST NOT**:
+- Return raw dependency errors across layers.
+- Use boundary `fmt.Errorf` wrapping patterns where `AppError` translation is required.
+- Skip boundary logging of native dependency failures before translation.
+
+---
+
 ## Rule: Proactive Suggestions
 
 **Description**: Point out rule violations and suggest fixes.

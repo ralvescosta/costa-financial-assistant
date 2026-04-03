@@ -46,11 +46,29 @@ make svc/test/payments
 make test/integration
 ```
 
+## 4.1 Validation Evidence (2026-04-03)
+
+- Repaired and re-ran boundary logging/retryability tests:
+  - `go test ./internals/files/services ./internals/payments/services ./pkgs/errors`
+- Re-ran package-level verification for touched layer boundaries:
+  - `go test ./internals/files/services ./internals/payments/services ./internals/bff/services ./internals/identity/services`
+  - `go test ./internals/files/repositories ./internals/payments/repositories ./internals/bills/repositories ./internals/onboarding/repositories`
+  - `go test ./internals/files/transport/grpc ./internals/bills/transport/grpc ./internals/onboarding/transport/grpc ./internals/identity/transport/grpc ./internals/files/transport/rmq`
+- Re-ran cross-service integration suites:
+  - `go test ./tests/integration/cross_service`
+
+Validation outcome: all above commands completed successfully in this implementation cycle.
+
 ## 5. Verify Non-Leakage and Classification
 
 - Confirm no raw database/grpc/library errors are propagated across layer boundaries.
 - Confirm unknown/unmapped failures resolve to generic fallback `AppError`.
 - Confirm retryability flags are set for all catalog entries.
+
+## 7. CI Enforcement Note
+
+- CI gate coverage for non-leakage and boundary-contract tests is documented in:
+  - `specs/008-standardize-app-errors/contracts/ci-enforcement-config.md`
 
 ## 6. Sync Governance Artifacts
 

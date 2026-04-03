@@ -10,6 +10,7 @@ import (
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/services"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
@@ -17,10 +18,10 @@ import (
 // Server implements filesv1.FilesServiceServer.
 type Server struct {
 	filesv1.UnimplementedFilesServiceServer
-	svc      services.DocumentServiceIface
-	extSvc   services.ExtractionServiceIface
-	bankSvc  services.BankAccountServiceIface
-	logger   *zap.Logger
+	svc     services.DocumentServiceIface
+	extSvc  services.ExtractionServiceIface
+	bankSvc services.BankAccountServiceIface
+	logger  *zap.Logger
 }
 
 // NewServer constructs a files gRPC server.
@@ -48,13 +49,13 @@ func (s *Server) UploadDocument(ctx context.Context, req *filesv1.UploadDocument
 
 	doc, err := s.svc.UploadDocument(ctx, input)
 	if err != nil {
-		if errors.Is(err, repositories.ErrDuplicateDocument) {
-			return nil, status.Error(codes.AlreadyExists, "document already uploaded in this project")
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
 		}
 		s.logger.Error("grpc.UploadDocument failed",
 			zap.String("project_id", input.ProjectID),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "upload failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	return &filesv1.UploadDocumentResponse{Document: doc}, nil
 }
@@ -70,13 +71,13 @@ func (s *Server) ClassifyDocument(ctx context.Context, req *filesv1.ClassifyDocu
 
 	doc, err := s.svc.ClassifyDocument(ctx, req.GetCtx().GetProjectId(), req.GetDocumentId(), req.GetKind())
 	if err != nil {
-		if errors.Is(err, repositories.ErrDocumentNotFound) {
-			return nil, status.Error(codes.NotFound, "document not found")
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
 		}
 		s.logger.Error("grpc.ClassifyDocument failed",
 			zap.String("document_id", req.GetDocumentId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "classify failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	return &filesv1.ClassifyDocumentResponse{Document: doc}, nil
 }
@@ -92,13 +93,13 @@ func (s *Server) GetDocument(ctx context.Context, req *filesv1.GetDocumentReques
 
 	doc, billRecord, stmtRecord, err := s.extSvc.GetDocumentDetail(ctx, req.GetCtx().GetProjectId(), req.GetDocumentId())
 	if err != nil {
-		if errors.Is(err, repositories.ErrDocumentNotFound) {
-			return nil, status.Error(codes.NotFound, "document not found")
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
 		}
 		s.logger.Error("grpc.GetDocument failed",
 			zap.String("document_id", req.GetDocumentId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "get document failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	return &filesv1.GetDocumentResponse{
 		Document:        doc,
@@ -120,10 +121,13 @@ func (s *Server) ListDocuments(ctx context.Context, req *filesv1.ListDocumentsRe
 
 	docs, err := s.svc.ListDocuments(ctx, req.GetCtx().GetProjectId(), pageSize, req.GetPagination().GetPageToken())
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("grpc.ListDocuments failed",
 			zap.String("project_id", req.GetCtx().GetProjectId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "list documents failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 
 	resp := &filesv1.ListDocumentsResponse{Documents: docs}
@@ -135,6 +139,7 @@ func (s *Server) ListDocuments(ctx context.Context, req *filesv1.ListDocumentsRe
 	}
 	return resp, nil
 }
+
 // CreateBankAccount creates a project-scoped bank account label.
 func (s *Server) CreateBankAccount(ctx context.Context, req *filesv1.CreateBankAccountRequest) (*filesv1.CreateBankAccountResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
@@ -196,4 +201,33 @@ func (s *Server) DeleteBankAccount(ctx context.Context, req *filesv1.DeleteBankA
 		return nil, status.Error(codes.Internal, "delete bank account failed")
 	}
 	return &filesv1.DeleteBankAccountResponse{Success: true}, nil
+}
+
+func toGRPCStatusError(appErr *apperrors.AppError) error {
+	if appErr == nil {
+		return status.Error(codes.Internal, "internal service error")
+	}
+
+	message := appErr.Message
+	if message == "" {
+		message = "internal service error"
+	}
+
+	switch appErr.Category {
+	case apperrors.CategoryValidation:
+		return status.Error(codes.InvalidArgument, message)
+	case apperrors.CategoryAuth:
+		return status.Error(codes.PermissionDenied, message)
+	case apperrors.CategoryNotFound:
+		return status.Error(codes.NotFound, message)
+	case apperrors.CategoryConflict:
+		return status.Error(codes.AlreadyExists, message)
+	case apperrors.CategoryDependencyDB, apperrors.CategoryDependencyGRPC, apperrors.CategoryDependencyNet:
+		if appErr.Retryable {
+			return status.Error(codes.Unavailable, message)
+		}
+		return status.Error(codes.FailedPrecondition, message)
+	default:
+		return status.Error(codes.Internal, message)
+	}
 }

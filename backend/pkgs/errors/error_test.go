@@ -1,270 +1,74 @@
 package errors
 
 import (
-	"errors"
+	nativeerrors "errors"
 	"testing"
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}	return len(s) > 0 && len(substr) > 0 && (s == substr || len(s) > len(substr))func contains(s, substr string) bool {}	}		t.Error("Unknown errors should NOT be retryable")	if ErrUnknown.Retryable {	// Unknown should NOT be retryable	}		t.Error("Not found errors should NOT be retryable")	if ErrResourceNotFound.Retryable {	// Not found should NOT be retryable	}		t.Error("Auth errors should NOT be retryable")	if ErrUnauthorized.Retryable {	// Auth errors should NOT be retryable	}		t.Error("Validation errors should NOT be retryable")	if ErrValidationError.Retryable {	// Validation errors should NOT be retryable	}		t.Error("Network errors should be retryable")	if !ErrNetworkError.Retryable {	// Network errors should be retryable	}		t.Error("gRPC errors should be retryable")	if !ErrGRPCError.Retryable {	// gRPC errors should be retryable	}		t.Error("Database errors should be retryable")	if !ErrDatabaseError.Retryable {	// Database errors should be retryablefunc TestCatalogRetryableDefaults(t *testing.T) {}	}		t.Error("AsAppError returned non-nil for native error")	if AsAppError(nativeErr) != nil {	nativeErr := errors.New("native error")	}		t.Error("AsAppError did not return correct AppError")	if retrieved != appErr {	retrieved := AsAppError(appErr)	appErr := New("app error")func TestAsAppError(t *testing.T) {}	}		t.Error("IsAppError returned false for wrapped AppError")	if !IsAppError(wrappedAppErr) {	wrappedAppErr := New("wrapped").WithError(wrappedErr)	}		t.Error("IsAppError returned true for native error")	if IsAppError(wrappedErr) {	wrappedErr := errors.New("native error")	}		t.Error("IsAppError returned false for AppError")	if !IsAppError(appErr) {	appErr := New("app error")func TestIsAppError(t *testing.T) {}	}		t.Errorf("Error() = %q, want \"test message\"", err.Error())	if err.Error() != "test message" {	}		t.Errorf("String() = %q, want \"test message\"", err.String())	if err.String() != "test message" {	err := New("test message")func TestStringAndError(t *testing.T) {}	}		t.Errorf("Details missing retryable=true")	if !contains(details, "true") {	}		t.Errorf("Details missing code")	if !contains(details, "database_timeout") {	}		t.Errorf("Details missing category")	if !contains(details, "dependency_db") {	}		t.Errorf("Details missing message")	if !contains(details, "database operation timeout") {	details := err.Details()	err := NewCatalogError(ErrDatabaseTimeout)func TestErrorDetails(t *testing.T) {}	}		t.Errorf("Retryable mismatch for %q", entry.Name)	if appErr.Retryable != entry.Retryable {	}		t.Errorf("Code mismatch for %q", entry.Name)	if appErr.Code != entry.Code {	}		t.Errorf("Category mismatch for %q", entry.Name)	if appErr.Category != entry.Category {	}		t.Errorf("Message mismatch for %q", entry.Name)	if appErr.Message != entry.Message {	appErr := NewCatalogError(entry)	// Create AppError from catalog and verify field mapping	}		t.Errorf("Catalog entry %q has empty Category", entry.Name)	if entry.Category == "" {	}		t.Errorf("Catalog entry %q has empty Message", entry.Name)	if entry.Message == "" {	}		t.Errorf("Catalog entry %q has empty Code", entry.Name)	if entry.Code == "" {	}		t.Errorf("Catalog entry %q has empty Name", entry.Code)	if entry.Name == "" {func testCatalogEntry(t *testing.T, entry *CatalogEntry) {}	testCatalogEntry(t, ErrInternal)	testCatalogEntry(t, ErrUnknown)	// Unknown errors	testCatalogEntry(t, ErrNetworkTimeout)	testCatalogEntry(t, ErrNetworkError)	// Network errors	testCatalogEntry(t, ErrGRPCUnavailable)	testCatalogEntry(t, ErrGRPCError)	// gRPC errors	testCatalogEntry(t, ErrDatabaseTimeout)	testCatalogEntry(t, ErrDatabaseConnection)	testCatalogEntry(t, ErrDatabaseError)	// Database errors	testCatalogEntry(t, ErrResourceAlreadyExists)	testCatalogEntry(t, ErrConflict)	// Conflict errors	testCatalogEntry(t, ErrProjectNotFound)	testCatalogEntry(t, ErrResourceNotFound)	// Not found errors	testCatalogEntry(t, ErrForbidden)	testCatalogEntry(t, ErrUnauthorized)	// Auth errors	testCatalogEntry(t, ErrInvalidRequest)	testCatalogEntry(t, ErrValidationError)	// Validation errorsfunc TestAddMultipleCatalogErrors(t *testing.T) {}	}		t.Errorf("Code = %q, want %q", appErr.Code, ErrResourceNotFound.Code)	if appErr.Code != ErrResourceNotFound.Code {	}		t.Errorf("Retryable = %v, want %v", appErr.Retryable, ErrResourceNotFound.Retryable)	if appErr.Retryable != ErrResourceNotFound.Retryable {	}		t.Errorf("Category = %s, want %s", appErr.Category, ErrResourceNotFound.Category)	if appErr.Category != ErrResourceNotFound.Category {	}		t.Errorf("Message = %q, want %q", appErr.Message, ErrResourceNotFound.Message)	if appErr.Message != ErrResourceNotFound.Message {	appErr := NewCatalogError(ErrResourceNotFound)func TestCatalogEntryConversion(t *testing.T) {}	}		t.Error("errors.Is should find wrapped error")	if !errors.Is(appErr, nativeErr) {	appErr := New("app error").WithError(nativeErr)	nativeErr := errors.New("native error")func TestUnwrap(t *testing.T) {}	}		t.Errorf("Error() = %q, want \"test error\"", errInterface.Error())	if errInterface.Error() != "test error" {	errInterface := error(err)	err := New("test error")func TestErrorInterface(t *testing.T) {}	}		t.Errorf("errors.Is failed for wrapped error")	if !errors.Is(appErr, nativeErr) {	}		t.Errorf("Err mismatch")	if appErr.Err != nativeErr {	appErr := New("database operation failed").WithError(nativeErr)	nativeErr := errors.New("native database error")func TestWithError(t *testing.T) {}	}		t.Errorf("Code = %q, want %q", err.Code, string(CategoryValidation))	if err.Code != string(CategoryValidation) {	}		t.Errorf("Retryable = true, want false")	if err.Retryable {	}		t.Errorf("Category = %s, want %s", err.Category, CategoryValidation)	if err.Category != CategoryValidation {	err := NewWithCategory("validation failed", CategoryValidation)func TestNewWithCategory(t *testing.T) {}	}		t.Errorf("Category = %s, want %s", err.Category, CategoryDependencyDB)	if err.Category != CategoryDependencyDB {	}		t.Errorf("Retryable = %v, want true", err.Retryable)	if !err.Retryable {	err := NewRetryable("database timeout")func TestNewRetryableAppError(t *testing.T) {}	}		})			}				t.Errorf("Category = %s, want %s", err.Category, tt.expectedCat)			if err.Category != tt.expectedCat {			}				t.Errorf("Retryable = %v, want %v", err.Retryable, tt.expectedRetry)			if err.Retryable != tt.expectedRetry {			}				t.Errorf("Message = %q, want %q", err.Message, tt.message)			if err.Message != tt.message {			err := New(tt.message)		t.Run(tt.name, func(t *testing.T) {	for _, tt := range tests {	}		},			expectedCode:   "generic_error",			expectedCat:    CategoryUnknown,			expectedRetry:  false,			message:        "test error",			name:           "generic error",		{	}{		expectedCode   string		expectedCat    ErrorCategory		expectedRetry  bool		message        string		name           string	tests := []struct {func TestNewAppError(t *testing.T) {)	"testing"
+func TestNew(t *testing.T) {
+	err := New("test error")
+	if err.Message != "test error" {
+		t.Fatalf("unexpected message: %s", err.Message)
+	}
+	if err.Category != CategoryUnknown {
+		t.Fatalf("unexpected category: %s", err.Category)
+	}
+	if err.Retryable {
+		t.Fatalf("expected non-retryable")
+	}
+}
+
+func TestNewWithCategory(t *testing.T) {
+	err := NewWithCategory("validation", CategoryValidation)
+	if err.Code != string(CategoryValidation) {
+		t.Fatalf("unexpected code: %s", err.Code)
+	}
+	if err.Category != CategoryValidation {
+		t.Fatalf("unexpected category: %s", err.Category)
+	}
+}
+
+func TestNewRetryable(t *testing.T) {
+	err := NewRetryable("db timeout")
+	if !err.Retryable {
+		t.Fatalf("expected retryable=true")
+	}
+	if err.Category != CategoryDependencyDB {
+		t.Fatalf("unexpected category: %s", err.Category)
+	}
+}
+
+func TestWithErrorAndUnwrap(t *testing.T) {
+	native := nativeerrors.New("native")
+	appErr := New("wrapped").WithError(native)
+
+	if !nativeerrors.Is(appErr, native) {
+		t.Fatalf("errors.Is should match wrapped native error")
+	}
+}
+
+func TestNewCatalogError(t *testing.T) {
+	appErr := NewCatalogError(ErrDatabaseTimeout)
+	if appErr.Code != ErrDatabaseTimeout.Code {
+		t.Fatalf("unexpected code: %s", appErr.Code)
+	}
+	if appErr.Category != ErrDatabaseTimeout.Category {
+		t.Fatalf("unexpected category: %s", appErr.Category)
+	}
+	if appErr.Retryable != ErrDatabaseTimeout.Retryable {
+		t.Fatalf("unexpected retryable")
+	}
+}
+
+func TestIsAppErrorAndAsAppError(t *testing.T) {
+	appErr := New("app error")
+	if !IsAppError(appErr) {
+		t.Fatalf("expected IsAppError=true")
+	}
+	if AsAppError(appErr) == nil {
+		t.Fatalf("expected AsAppError to return value")
+	}
+	if IsAppError(nativeerrors.New("native")) {
+		t.Fatalf("native error must not be AppError")
+	}
+}

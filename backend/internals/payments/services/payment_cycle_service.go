@@ -5,11 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // ErrCyclePreferenceNotFound is returned when no payment cycle preference has been
@@ -39,7 +39,10 @@ func (s *PaymentCycleService) GetCyclePreference(ctx context.Context, projectID 
 		s.logger.Error("cycle_service: get preference failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("payment cycle service: get: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return pref, nil
 }
@@ -48,7 +51,7 @@ func (s *PaymentCycleService) GetCyclePreference(ctx context.Context, projectID 
 // dayOfMonth must be between 1 and 28 inclusive.
 func (s *PaymentCycleService) UpsertCyclePreference(ctx context.Context, projectID string, dayOfMonth int, updatedBy string) (*interfaces.CyclePreference, error) {
 	if dayOfMonth < 1 || dayOfMonth > 28 {
-		return nil, fmt.Errorf("payment cycle service: upsert: day_of_month %d out of range [1..28]", dayOfMonth)
+		return nil, apperrors.NewCatalogError(apperrors.ErrValidationError)
 	}
 
 	pref, err := s.repo.Upsert(ctx, projectID, dayOfMonth, updatedBy)
@@ -57,7 +60,10 @@ func (s *PaymentCycleService) UpsertCyclePreference(ctx context.Context, project
 			zap.String("project_id", projectID),
 			zap.Int("day_of_month", dayOfMonth),
 			zap.Error(err))
-		return nil, fmt.Errorf("payment cycle service: upsert: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	s.logger.Info("cycle_service: preference upserted",

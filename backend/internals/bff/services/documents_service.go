@@ -13,6 +13,7 @@ import (
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
@@ -33,7 +34,7 @@ func (s *DocumentsServiceImpl) UploadDocument(ctx context.Context, projectID, up
 	hash := sha256.New()
 	if _, err := io.Copy(hash, byteReader(fileBytes)); err != nil {
 		s.logger.Error("documents_svc: hash computation failed", zap.Error(err))
-		return nil, fmt.Errorf("upload failed: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	fileHash := hex.EncodeToString(hash.Sum(nil))
 	storageKey := fmt.Sprintf("local/%s", fileHash)
@@ -47,7 +48,13 @@ func (s *DocumentsServiceImpl) UploadDocument(ctx context.Context, projectID, up
 		Audit:           &commonv1.AuditMetadata{PerformedBy: uploadedBy},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("documents_svc: upload downstream call failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	s.logger.Info("documents_svc: document uploaded",
 		zap.String("document_id", resp.Document.Id),
@@ -65,7 +72,14 @@ func (s *DocumentsServiceImpl) ClassifyDocument(ctx context.Context, projectID, 
 		Audit:      &commonv1.AuditMetadata{PerformedBy: projectID},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("documents_svc: classify downstream call failed",
+			zap.String("project_id", projectID),
+			zap.String("document_id", documentID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	s.logger.Info("documents_svc: document classified",
 		zap.String("document_id", documentID),
@@ -87,7 +101,13 @@ func (s *DocumentsServiceImpl) ListDocuments(ctx context.Context, projectID stri
 		},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("documents_svc: list downstream call failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	items := make([]*views.DocumentResponse, 0, len(resp.Documents))
@@ -109,7 +129,14 @@ func (s *DocumentsServiceImpl) GetDocument(ctx context.Context, projectID, docum
 		DocumentId: documentID,
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("documents_svc: get downstream call failed",
+			zap.String("project_id", projectID),
+			zap.String("document_id", documentID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	result := views.DocumentDetailResponse{DocumentResponse: protoDocToView(resp.Document)}

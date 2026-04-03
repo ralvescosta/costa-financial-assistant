@@ -3,9 +3,9 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // PostgresUnitOfWork implements UnitOfWork using a *sql.DB connection pool.
@@ -22,7 +22,7 @@ func NewUnitOfWork(db *sql.DB) interfaces.UnitOfWork {
 func (u *PostgresUnitOfWork) Begin(ctx context.Context) (*sql.Tx, error) {
 	tx, err := u.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, fmt.Errorf("unit of work: begin: %w", err)
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 	return tx, nil
 }
@@ -30,7 +30,7 @@ func (u *PostgresUnitOfWork) Begin(ctx context.Context) (*sql.Tx, error) {
 // Commit commits the transaction.
 func (u *PostgresUnitOfWork) Commit(tx *sql.Tx) error {
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("unit of work: commit: %w", err)
+		return apperrors.TranslateError(err, "repository")
 	}
 	return nil
 }
@@ -38,7 +38,7 @@ func (u *PostgresUnitOfWork) Commit(tx *sql.Tx) error {
 // Rollback rolls back the transaction. Always call in a defer after Begin.
 func (u *PostgresUnitOfWork) Rollback(tx *sql.Tx) error {
 	if err := tx.Rollback(); err != nil && err != sql.ErrTxDone {
-		return fmt.Errorf("unit of work: rollback: %w", err)
+		return apperrors.TranslateError(err, "repository")
 	}
 	return nil
 }

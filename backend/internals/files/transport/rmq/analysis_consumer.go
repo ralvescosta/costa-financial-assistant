@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/services"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -97,8 +98,11 @@ func (c *AnalysisConsumer) processDelivery(ctx context.Context, delivery Message
 
 	var msg AnalysisJobMessage
 	if err := json.Unmarshal(delivery.Body(), &msg); err != nil {
+		appErr := apperrors.TranslateError(err, "async_consumer")
 		c.logger.Error("analysis consumer: unmarshal failed",
-			zap.Error(err))
+			zap.Error(err),
+			zap.String("error_code", appErr.Code),
+			zap.String("error_category", string(appErr.Category)))
 		span.RecordError(err)
 		// Dead-letter malformed messages — do not requeue.
 		_ = delivery.Nack(false)
@@ -124,13 +128,20 @@ func (c *AnalysisConsumer) processDelivery(ctx context.Context, delivery Message
 	defer cancel()
 
 	if err := c.svc.ProcessDocument(processCtx, msg.JobID, msg.ProjectID, msg.DocumentID, kind); err != nil {
+		appErr := apperrors.AsAppError(err)
+		if appErr == nil {
+			appErr = apperrors.TranslateError(err, "async_consumer")
+		}
 		c.logger.Error("analysis consumer: processing failed",
 			zap.String("job_id", msg.JobID),
 			zap.String("document_id", msg.DocumentID),
-			zap.Error(err))
+			zap.Error(err),
+			zap.String("error_code", appErr.Code),
+			zap.String("error_category", string(appErr.Category)),
+			zap.Bool("retryable", appErr.Retryable))
 		span.RecordError(err)
-		// Requeue for retry; the extraction service updates attempt count.
-		_ = delivery.Nack(true)
+		// Requeue only retryable failures to avoid poison-message loops.
+		_ = delivery.Nack(appErr.Retryable)
 		return
 	}
 

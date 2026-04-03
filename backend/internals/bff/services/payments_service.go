@@ -10,6 +10,7 @@ import (
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 )
@@ -46,7 +47,13 @@ func (s *PaymentsServiceImpl) GetPaymentDashboard(ctx context.Context, projectID
 		Pagination: &commonv1.Pagination{PageSize: pageSize, PageToken: pageToken},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("payments_svc: dashboard downstream call failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	entries := make([]*views.PaymentDashboardEntryResponse, 0, len(resp.GetEntries()))
@@ -81,7 +88,14 @@ func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billI
 		Audit:  &commonv1.AuditMetadata{PerformedBy: paidBy},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("payments_svc: mark paid downstream call failed",
+			zap.String("project_id", projectID),
+			zap.String("bill_id", billID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	s.logger.Info("payments_svc: bill marked paid",
 		zap.String("bill_id", billID),
@@ -93,7 +107,13 @@ func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billI
 func (s *PaymentsServiceImpl) GetCyclePreference(ctx context.Context, projectID string) (*views.CyclePreferenceResponse, error) {
 	pref, err := s.cycleService.GetCyclePreference(ctx, projectID)
 	if err != nil {
-		return nil, err
+		s.logger.Error("payments_svc: get cycle preference failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	if pref == nil {
 		return nil, nil
@@ -112,7 +132,14 @@ func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID 
 	}
 	pref, err := s.cycleService.UpsertCyclePreference(ctx, projectID, dayOfMonth, updatedBy)
 	if err != nil {
-		return nil, err
+		s.logger.Error("payments_svc: set cycle preference failed",
+			zap.String("project_id", projectID),
+			zap.Int("day_of_month", dayOfMonth),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	s.logger.Info("payments_svc: preferred day set",
 		zap.String("project_id", projectID),

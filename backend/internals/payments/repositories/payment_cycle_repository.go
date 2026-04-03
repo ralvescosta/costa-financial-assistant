@@ -5,12 +5,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // ErrCyclePreferenceNotFound is returned when no row is found for GetByProjectID.
@@ -48,7 +48,10 @@ func (r *PostgresPaymentCycleRepository) GetByProjectID(ctx context.Context, pro
 		return nil, nil
 	}
 	if err != nil {
-		return nil, fmt.Errorf("payment cycle repo: get by project: %w", err)
+		r.logger.Error("payment cycle repo: get by project failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 
 	pref.UpdatedAt = updatedAt
@@ -77,7 +80,11 @@ func (r *PostgresPaymentCycleRepository) Upsert(ctx context.Context, projectID s
 		&updatedAt,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("payment cycle repo: upsert: %w", err)
+		r.logger.Error("payment cycle repo: upsert failed",
+			zap.String("project_id", projectID),
+			zap.Int("day_of_month", dayOfMonth),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 
 	pref.UpdatedAt = updatedAt

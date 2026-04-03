@@ -7,6 +7,7 @@ import (
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
@@ -32,7 +33,13 @@ func (s *ProjectsServiceImpl) GetCurrentProject(ctx context.Context, projectID, 
 		},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("projects_svc: get project downstream call failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	p := resp.GetProject()
 	return &views.ProjectResponse{
@@ -58,7 +65,13 @@ func (s *ProjectsServiceImpl) ListMembers(ctx context.Context, projectID, userID
 		Pagination: &commonv1.Pagination{PageSize: pageSize, PageToken: pageToken},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("projects_svc: list members downstream call failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	items := make([]*views.ProjectMemberResponse, 0, len(resp.GetMembers()))
@@ -93,7 +106,14 @@ func (s *ProjectsServiceImpl) InviteMember(ctx context.Context, projectID, invit
 		Audit:        &commonv1.AuditMetadata{PerformedBy: inviterID},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("projects_svc: invite member downstream call failed",
+			zap.String("project_id", projectID),
+			zap.String("invitee_email", email),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	m := resp.GetMember()
 	return &views.ProjectMemberResponse{
@@ -120,7 +140,14 @@ func (s *ProjectsServiceImpl) UpdateMemberRole(ctx context.Context, projectID, c
 		Audit:    &commonv1.AuditMetadata{PerformedBy: callerID},
 	})
 	if err != nil {
-		return nil, err
+		s.logger.Error("projects_svc: update member role downstream call failed",
+			zap.String("project_id", projectID),
+			zap.String("member_id", memberID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	m := resp.GetMember()
 	return &views.ProjectMemberResponse{

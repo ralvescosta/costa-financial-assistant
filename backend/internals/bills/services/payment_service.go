@@ -3,11 +3,11 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bills/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 )
 
@@ -36,7 +36,10 @@ func (s *BillPaymentService) GetPaymentDashboard(
 			zap.String("cycle_start", cycleStart),
 			zap.String("cycle_end", cycleEnd),
 			zap.Error(err))
-		return nil, "", fmt.Errorf("bill payment service: get dashboard: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, "", appErr
+		}
+		return nil, "", apperrors.TranslateError(err, "service")
 	}
 	return entries, nextToken, nil
 }
@@ -52,7 +55,10 @@ func (s *BillPaymentService) MarkBillPaid(ctx context.Context, projectID, billID
 			zap.String("project_id", projectID),
 			zap.String("bill_id", billID),
 			zap.Error(err))
-		return nil, fmt.Errorf("bill payment service: mark paid: idempotency check: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	if payload != "" {
 		s.logger.Info("bill_payment_service: mark-paid idempotent hit",
@@ -67,7 +73,10 @@ func (s *BillPaymentService) MarkBillPaid(ctx context.Context, projectID, billID
 			zap.String("project_id", projectID),
 			zap.String("bill_id", billID),
 			zap.Error(err))
-		return nil, fmt.Errorf("bill payment service: mark paid: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	if storeErr := s.repo.StoreIdempotencyKey(ctx, idempotencyKey, "bills", bill.GetId()); storeErr != nil {
@@ -93,7 +102,10 @@ func (s *BillPaymentService) GetBill(ctx context.Context, projectID, billID stri
 			zap.String("project_id", projectID),
 			zap.String("bill_id", billID),
 			zap.Error(err))
-		return nil, fmt.Errorf("bill payment service: get bill: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return bill, nil
 }
@@ -111,7 +123,10 @@ func (s *BillPaymentService) ListBills(
 		s.logger.Error("bill_payment_service: list bills failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, "", fmt.Errorf("bill payment service: list bills: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, "", appErr
+		}
+		return nil, "", apperrors.TranslateError(err, "service")
 	}
 	return bills, nextToken, nil
 }

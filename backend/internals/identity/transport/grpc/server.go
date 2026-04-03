@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/services"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 )
 
@@ -31,8 +32,11 @@ func (s *Server) IssueBootstrapToken(ctx context.Context, req *identityv1.IssueB
 
 	token, expiresAt, err := s.svc.IssueBootstrapToken(ctx, req.UserId, req.ProjectId, req.Role)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("IssueBootstrapToken failed", zap.Error(err))
-		return nil, status.Errorf(codes.Internal, "token issuance failed: %v", err)
+		return nil, status.Error(codes.Internal, "token issuance failed")
 	}
 
 	s.logger.Info("bootstrap token issued",
@@ -61,8 +65,40 @@ func (s *Server) ValidateToken(ctx context.Context, req *identityv1.ValidateToke
 func (s *Server) GetJwksMetadata(ctx context.Context, _ *identityv1.GetJwksMetadataRequest) (*identityv1.GetJwksMetadataResponse, error) {
 	jwks, err := s.svc.GetJwksMetadata(ctx)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("GetJwksMetadata failed", zap.Error(err))
-		return nil, status.Errorf(codes.Internal, "jwks fetch failed: %v", err)
+		return nil, status.Error(codes.Internal, "jwks fetch failed")
 	}
 	return &identityv1.GetJwksMetadataResponse{Jwks: jwks}, nil
+}
+
+func toGRPCStatusError(appErr *apperrors.AppError) error {
+	if appErr == nil {
+		return status.Error(codes.Internal, "internal service error")
+	}
+
+	message := appErr.Message
+	if message == "" {
+		message = "internal service error"
+	}
+
+	switch appErr.Category {
+	case apperrors.CategoryValidation:
+		return status.Error(codes.InvalidArgument, message)
+	case apperrors.CategoryAuth:
+		return status.Error(codes.PermissionDenied, message)
+	case apperrors.CategoryNotFound:
+		return status.Error(codes.NotFound, message)
+	case apperrors.CategoryConflict:
+		return status.Error(codes.AlreadyExists, message)
+	case apperrors.CategoryDependencyDB, apperrors.CategoryDependencyGRPC, apperrors.CategoryDependencyNet:
+		if appErr.Retryable {
+			return status.Error(codes.Unavailable, message)
+		}
+		return status.Error(codes.FailedPrecondition, message)
+	default:
+		return status.Error(codes.Internal, message)
+	}
 }

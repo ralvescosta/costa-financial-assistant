@@ -56,20 +56,20 @@
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Implement repository-to-service translation in backend/internals/files/repositories/document_repository.go
-- [ ] T014 [US1] Implement repository-to-service translation in backend/internals/bills/repositories/payment_repository.go
-- [ ] T015 [US1] Implement repository-to-service translation in backend/internals/onboarding/repositories/project_members_repository.go
-- [ ] T016 [US1] Implement repository-to-service translation in backend/internals/payments/repositories/payment_cycle_repository.go
-- [ ] T017 [US1] Implement repository-to-service translation in backend/internals/payments/repositories/reconciliation_repository.go
-- [ ] T018 [US1] Implement service boundary propagation contract in backend/internals/files/services/document_service.go
-- [ ] T019 [US1] Implement service boundary propagation contract in backend/internals/bills/services/payment_service.go
-- [ ] T020 [US1] Implement service boundary propagation contract in backend/internals/onboarding/services/project_members_service.go
-- [ ] T021 [US1] Implement transport boundary sanitization in backend/internals/files/transport/grpc/server.go
-- [ ] T022 [US1] Implement transport boundary sanitization in backend/internals/bills/transport/grpc/server.go
-- [ ] T023 [US1] Implement transport boundary sanitization in backend/internals/onboarding/transport/grpc/server.go
-- [ ] T024 [US1] Implement transport boundary sanitization in backend/internals/identity/transport/grpc/server.go
-- [ ] T025 [US1] Implement async consumer boundary sanitization in backend/internals/files/transport/rmq/analysis_consumer.go
-- [ ] T062 [US1] Implement async producer boundary sanitization for affected RMQ publisher paths in backend/internals/files/transport/rmq/
+- [X] T013 [US1] Implement repository-to-service translation in backend/internals/files/repositories/document_repository.go
+- [X] T014 [US1] Implement repository-to-service translation in backend/internals/bills/repositories/payment_repository.go
+- [X] T015 [US1] Implement repository-to-service translation in backend/internals/onboarding/repositories/project_members_repository.go
+- [X] T016 [US1] Implement repository-to-service translation in backend/internals/payments/repositories/payment_cycle_repository.go
+- [X] T017 [US1] Implement repository-to-service translation in backend/internals/payments/repositories/reconciliation_repository.go
+- [X] T018 [US1] Implement service boundary propagation contract in backend/internals/files/services/document_service.go
+- [X] T019 [US1] Implement service boundary propagation contract in backend/internals/bills/services/payment_service.go
+- [X] T020 [US1] Implement service boundary propagation contract in backend/internals/onboarding/services/project_members_service.go
+- [X] T021 [US1] Implement transport boundary sanitization in backend/internals/files/transport/grpc/server.go
+- [X] T022 [US1] Implement transport boundary sanitization in backend/internals/bills/transport/grpc/server.go
+- [X] T023 [US1] Implement transport boundary sanitization in backend/internals/onboarding/transport/grpc/server.go
+- [X] T024 [US1] Implement transport boundary sanitization in backend/internals/identity/transport/grpc/server.go
+- [X] T025 [US1] Implement async consumer boundary sanitization in backend/internals/files/transport/rmq/analysis_consumer.go
+- [X] T062 [US1] Implement async producer boundary sanitization for affected RMQ publisher paths in backend/internals/files/transport/rmq/
 
 **Checkpoint**: `AppError` is the only cross-layer propagated error contract for P1 paths.
 
@@ -83,20 +83,20 @@
 
 ### Tests for User Story 2
 
-- [ ] T026 [P] [US2] Add boundary-logging unit tests for file services in backend/internals/files/services/error_logging_test.go
-- [ ] T027 [P] [US2] Add boundary-logging unit tests for payments services in backend/internals/payments/services/error_logging_test.go
+- [X] T026 [P] [US2] Add boundary-logging unit tests for file services in backend/internals/files/services/error_logging_test.go
+- [X] T027 [P] [US2] Add boundary-logging unit tests for payments services in backend/internals/payments/services/error_logging_test.go
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Apply one-boundary logging in backend/internals/files/services/extraction_service.go
-- [ ] T029 [US2] Apply one-boundary logging in backend/internals/files/services/bank_account_service.go
-- [ ] T030 [US2] Apply one-boundary logging in backend/internals/bff/services/documents_service.go
-- [ ] T031 [US2] Apply one-boundary logging in backend/internals/bff/services/payments_service.go
-- [ ] T032 [US2] Apply one-boundary logging in backend/internals/bff/services/reconciliation_service.go
-- [ ] T033 [US2] Apply one-boundary logging in backend/internals/bff/services/history_service.go
-- [ ] T034 [US2] Apply one-boundary logging in backend/internals/identity/services/token_service.go
-- [ ] T035 [US2] Apply one-boundary logging in backend/internals/payments/services/payment_cycle_service.go
-- [ ] T036 [US2] Apply one-boundary logging in backend/internals/payments/services/reconciliation_service.go
+- [X] T028 [US2] Apply one-boundary logging in backend/internals/files/services/extraction_service.go
+- [X] T029 [US2] Apply one-boundary logging in backend/internals/files/services/bank_account_service.go
+- [X] T030 [US2] Apply one-boundary logging in backend/internals/bff/services/documents_service.go
+- [X] T031 [US2] Apply one-boundary logging in backend/internals/bff/services/payments_service.go
+- [X] T032 [US2] Apply one-boundary logging in backend/internals/bff/services/reconciliation_service.go
+- [X] T033 [US2] Apply one-boundary logging in backend/internals/bff/services/history_service.go
+- [X] T034 [US2] Apply one-boundary logging in backend/internals/identity/services/token_service.go
+- [X] T035 [US2] Apply one-boundary logging in backend/internals/payments/services/payment_cycle_service.go
+- [X] T036 [US2] Apply one-boundary logging in backend/internals/payments/services/reconciliation_service.go
 
 **Checkpoint**: Native dependency errors are logged once at translation boundaries and never leaked.
 
@@ -110,17 +110,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T037 [P] [US3] Add retryability coverage tests for centralized catalog in backend/pkgs/errors/consts_retryability_test.go
-- [ ] T038 [P] [US3] Add unknown-fallback integration test in backend/tests/integration/cross_service/app_error_unknown_fallback_test.go
-- [ ] T063 [P] [US3] Add wrapped and nil-native-error translation tests in backend/pkgs/errors/translate_test.go verifying errors.Is/errors.As compatibility and deterministic fallback behavior
+- [X] T037 [P] [US3] Add retryability coverage tests for centralized catalog in backend/pkgs/errors/consts_retryability_test.go
+- [X] T038 [P] [US3] Add unknown-fallback integration test in backend/tests/integration/cross_service/app_error_unknown_fallback_test.go
+- [X] T063 [P] [US3] Add wrapped and nil-native-error translation tests in backend/pkgs/errors/translate_test.go verifying errors.Is/errors.As compatibility and deterministic fallback behavior
 
 ### Implementation for User Story 3
 
-- [ ] T039 [US3] Implement explicit retryability categories for all catalog entries in backend/pkgs/errors/consts.go
-- [ ] T040 [US3] Implement unknown-fallback translation behavior in backend/pkgs/errors/translate.go
-- [ ] T041 [US3] Apply retryability-aware translation for gRPC dependency failures in backend/internals/bff/services/projects_service.go
-- [ ] T042 [US3] Apply retryability-aware translation for database dependency failures in backend/internals/payments/repositories/history_repository.go
-- [ ] T043 [US3] Apply retryability-aware translation for unit-of-work failures in backend/internals/files/repositories/unit_of_work.go
+- [X] T039 [US3] Implement explicit retryability categories for all catalog entries in backend/pkgs/errors/consts.go
+- [X] T040 [US3] Implement unknown-fallback translation behavior in backend/pkgs/errors/translate.go
+- [X] T041 [US3] Apply retryability-aware translation for gRPC dependency failures in backend/internals/bff/services/projects_service.go
+- [X] T042 [US3] Apply retryability-aware translation for database dependency failures in backend/internals/payments/repositories/history_repository.go
+- [X] T043 [US3] Apply retryability-aware translation for unit-of-work failures in backend/internals/files/repositories/unit_of_work.go
 
 **Checkpoint**: Retryability classification and unknown fallback rules are fully enforced.
 
@@ -130,11 +130,11 @@
 
 **Purpose**: Final verification and documentation alignment.
 
-- [ ] T044 [P] Update implementation notes and validation evidence in specs/008-standardize-app-errors/quickstart.md
-- [ ] T045 Run full backend test suite and targeted service suites for error-standardization changes from backend/go.mod scope
-- [ ] T046 [P] Update coverage matrix with final status in specs/008-standardize-app-errors/contracts/service-coverage-matrix.md
-- [ ] T064 Add cross-service structured logging verification for bff, bills, identity, and onboarding failure traces in backend/tests/integration/cross_service/app_error_boundary_logging_test.go
-- [ ] T067 Configure CI gate to validate zero dependency-error leakage across layer-boundary test coverage and document enforcement evidence in specs/008-standardize-app-errors/contracts/ci-enforcement-config.md
+- [X] T044 [P] Update implementation notes and validation evidence in specs/008-standardize-app-errors/quickstart.md
+- [X] T045 Run full backend test suite and targeted service suites for error-standardization changes from backend/go.mod scope
+- [X] T046 [P] Update coverage matrix with final status in specs/008-standardize-app-errors/contracts/service-coverage-matrix.md
+- [X] T064 Add cross-service structured logging verification for bff, bills, identity, and onboarding failure traces in backend/tests/integration/cross_service/app_error_boundary_logging_test.go
+- [X] T067 Configure CI gate to validate zero dependency-error leakage across layer-boundary test coverage and document enforcement evidence in specs/008-standardize-app-errors/contracts/ci-enforcement-config.md
 
 ---
 
@@ -142,22 +142,22 @@
 
 **Purpose**: Keep memory-flow and instruction guidance synchronized with implemented behavior.
 
-- [ ] T047 Update BFF flow error propagation guidance in .specify/memory/bff-flows.md
-- [ ] T048 [P] Update files service flow error propagation guidance in .specify/memory/files-service-flows.md
-- [ ] T049 [P] Update bills service flow error propagation guidance in .specify/memory/bills-service-flows.md
-- [ ] T050 [P] Update identity service flow error propagation guidance in .specify/memory/identity-service-flows.md
-- [ ] T051 [P] Update onboarding service flow error propagation guidance in .specify/memory/onboarding-service-flows.md
-- [ ] T052 Verify architecture topology impact and record no-change or update in .specify/memory/architecture-diagram.md
-- [ ] T053 Update observability error-logging rules in .github/instructions/observability.instructions.md
-- [ ] T054 [P] Update security non-leakage rules in .github/instructions/security.instructions.md
-- [ ] T055 [P] Update Go error-handling conventions in .github/instructions/golang.instructions.md
-- [ ] T056 Validate backend integration test naming/placement conventions via backend/scripts/validate_integration_test_conventions.sh
-- [ ] T057 Document workflow-template impact decision in specs/008-standardize-app-errors/contracts/workflow-template-impact.md
-- [ ] T058 Update deterministic AI implementation rules to enforce AppError-first propagation for all future backend features in .github/instructions/ai-behavior.instructions.md
-- [ ] T059 Update architecture governance rules to mandate AppError translation boundaries between backend layers in .github/instructions/architecture.instructions.md
-- [ ] T060 Update constitution memory governance to codify AppError standard as a required backend implementation pattern in .specify/memory/constitution.md
-- [ ] T065 Apply constitution amendment procedure for AppError governance updates in .specify/memory/constitution.md (semantic version bump + SYNC IMPACT REPORT update)
-- [ ] T066 [P] Re-validate dependent templates/prompts after constitution update and record evidence in specs/008-standardize-app-errors/contracts/workflow-template-impact.md
+- [X] T047 Update BFF flow error propagation guidance in .specify/memory/bff-flows.md
+- [X] T048 [P] Update files service flow error propagation guidance in .specify/memory/files-service-flows.md
+- [X] T049 [P] Update bills service flow error propagation guidance in .specify/memory/bills-service-flows.md
+- [X] T050 [P] Update identity service flow error propagation guidance in .specify/memory/identity-service-flows.md
+- [X] T051 [P] Update onboarding service flow error propagation guidance in .specify/memory/onboarding-service-flows.md
+- [X] T052 Verify architecture topology impact and record no-change or update in .specify/memory/architecture-diagram.md
+- [X] T053 Update observability error-logging rules in .github/instructions/observability.instructions.md
+- [X] T054 [P] Update security non-leakage rules in .github/instructions/security.instructions.md
+- [X] T055 [P] Update Go error-handling conventions in .github/instructions/golang.instructions.md
+- [X] T056 Validate backend integration test naming/placement conventions via backend/scripts/validate_integration_test_conventions.sh with non-regression baseline enforcement (evidence: specs/008-standardize-app-errors/contracts/integration-convention-validation.md)
+- [X] T057 Document workflow-template impact decision in specs/008-standardize-app-errors/contracts/workflow-template-impact.md
+- [X] T058 Update deterministic AI implementation rules to enforce AppError-first propagation for all future backend features in .github/instructions/ai-behavior.instructions.md
+- [X] T059 Update architecture governance rules to mandate AppError translation boundaries between backend layers in .github/instructions/architecture.instructions.md
+- [X] T060 Update constitution memory governance to codify AppError standard as a required backend implementation pattern in .specify/memory/constitution.md
+- [X] T065 Apply constitution amendment procedure for AppError governance updates in .specify/memory/constitution.md (semantic version bump + SYNC IMPACT REPORT update)
+- [X] T066 [P] Re-validate dependent templates/prompts after constitution update and record evidence in specs/008-standardize-app-errors/contracts/workflow-template-impact.md
 
 **Checkpoint**: Feature is not complete until this phase is complete.
 

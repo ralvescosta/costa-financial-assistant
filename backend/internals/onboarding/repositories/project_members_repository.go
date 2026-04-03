@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
 
@@ -59,7 +59,10 @@ func (r *PostgresProjectMembersRepository) CreateProject(ctx context.Context, ow
 		updatedAt string
 	)
 	if err := row.Scan(&p.Id, &p.OwnerId, &p.Name, &createdAt, &updatedAt); err != nil {
-		return nil, fmt.Errorf("project_members_repository: create project: %w", err)
+		r.logger.Error("project_members_repository.create_project: scan failed",
+			zap.String("owner_id", ownerID),
+			zap.Error(err))
+		return nil, translateProjectMembersRepositoryError(err)
 	}
 	p.CreatedAt = createdAt
 	p.UpdatedAt = updatedAt
@@ -84,9 +87,12 @@ func (r *PostgresProjectMembersRepository) GetProject(ctx context.Context, proje
 	)
 	if err := row.Scan(&p.Id, &p.OwnerId, &p.Name, &createdAt, &updatedAt); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrProjectNotFound
+			return nil, apperrors.NewCatalogError(apperrors.ErrProjectNotFound).WithError(ErrProjectNotFound)
 		}
-		return nil, fmt.Errorf("project_members_repository: get project: %w", err)
+		r.logger.Error("project_members_repository.get_project: query failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, translateProjectMembersRepositoryError(err)
 	}
 	p.CreatedAt = createdAt
 	p.UpdatedAt = updatedAt
@@ -104,9 +110,12 @@ func (r *PostgresProjectMembersRepository) FindUserByEmail(ctx context.Context, 
 	var userID string
 	if err := row.Scan(&userID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", ErrUserNotFound
+			return "", apperrors.NewCatalogError(apperrors.ErrResourceNotFound).WithError(ErrUserNotFound)
 		}
-		return "", fmt.Errorf("project_members_repository: find user by email: %w", err)
+		r.logger.Error("project_members_repository.find_user_by_email: query failed",
+			zap.String("email", email),
+			zap.Error(err))
+		return "", translateProjectMembersRepositoryError(err)
 	}
 	return userID, nil
 }
@@ -130,9 +139,13 @@ func (r *PostgresProjectMembersRepository) CreateMember(ctx context.Context, pro
 	m, err := scanMember(row)
 	if err != nil {
 		if isDuplicateMemberError(err) {
-			return nil, ErrMemberAlreadyExists
+			return nil, apperrors.NewCatalogError(apperrors.ErrResourceAlreadyExists).WithError(ErrMemberAlreadyExists)
 		}
-		return nil, fmt.Errorf("project_members_repository: create member: %w", err)
+		r.logger.Error("project_members_repository.create_member: insert failed",
+			zap.String("project_id", projectID),
+			zap.String("user_id", userID),
+			zap.Error(err))
+		return nil, translateProjectMembersRepositoryError(err)
 	}
 	return m, nil
 }
@@ -151,9 +164,13 @@ func (r *PostgresProjectMembersRepository) FindMemberByID(ctx context.Context, p
 	m, err := scanMember(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrMemberNotFound
+			return nil, apperrors.NewCatalogError(apperrors.ErrResourceNotFound).WithError(ErrMemberNotFound)
 		}
-		return nil, fmt.Errorf("project_members_repository: find member by id: %w", err)
+		r.logger.Error("project_members_repository.find_member_by_id: query failed",
+			zap.String("project_id", projectID),
+			zap.String("member_id", memberID),
+			zap.Error(err))
+		return nil, translateProjectMembersRepositoryError(err)
 	}
 	return m, nil
 }
@@ -173,9 +190,13 @@ func (r *PostgresProjectMembersRepository) UpdateMemberRole(ctx context.Context,
 	m, err := scanMember(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrMemberNotFound
+			return nil, apperrors.NewCatalogError(apperrors.ErrResourceNotFound).WithError(ErrMemberNotFound)
 		}
-		return nil, fmt.Errorf("project_members_repository: update member role: %w", err)
+		r.logger.Error("project_members_repository.update_member_role: update failed",
+			zap.String("project_id", projectID),
+			zap.String("member_id", memberID),
+			zap.Error(err))
+		return nil, translateProjectMembersRepositoryError(err)
 	}
 	return m, nil
 }
@@ -198,7 +219,10 @@ func (r *PostgresProjectMembersRepository) ListMembers(ctx context.Context, proj
 
 	rows, err := r.db.QueryContext(ctx, q, projectID, pageSize)
 	if err != nil {
-		return nil, "", fmt.Errorf("project_members_repository: list members: %w", err)
+		r.logger.Error("project_members_repository.list_members: query failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, "", translateProjectMembersRepositoryError(err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -212,7 +236,10 @@ func (r *PostgresProjectMembersRepository) ListMembers(ctx context.Context, proj
 			updatedAt string
 		)
 		if err := rows.Scan(&m.Id, &m.ProjectId, &m.UserId, &roleStr, &invitedBy, &createdAt, &updatedAt); err != nil {
-			return nil, "", fmt.Errorf("project_members_repository: scan member: %w", err)
+			r.logger.Error("project_members_repository.list_members: scan failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, "", translateProjectMembersRepositoryError(err)
 		}
 		m.InvitedBy = invitedBy
 		m.CreatedAt = createdAt
@@ -220,7 +247,10 @@ func (r *PostgresProjectMembersRepository) ListMembers(ctx context.Context, proj
 		members = append(members, &m)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, "", fmt.Errorf("project_members_repository: list members rows: %w", err)
+		r.logger.Error("project_members_repository.list_members: rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, "", translateProjectMembersRepositoryError(err)
 	}
 
 	nextToken := ""
@@ -252,4 +282,11 @@ func scanMember(row *sql.Row) (*onboardingv1.ProjectMember, error) {
 // isDuplicateMemberError detects PostgreSQL unique constraint violations for project_members.
 func isDuplicateMemberError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "uq_project_members_project_user")
+}
+
+func translateProjectMembersRepositoryError(err error) error {
+	if err == nil {
+		return nil
+	}
+	return apperrors.TranslateError(err, "repository")
 }

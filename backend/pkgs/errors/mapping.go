@@ -218,17 +218,29 @@ func TranslateError(nativeErr error, layer string) *AppError {
 		return nil
 	}
 
+	translateWithUnknownFallback := func(appErr *AppError) *AppError {
+		if appErr == nil {
+			return NewCatalogError(ErrUnknown).WithError(nativeErr)
+		}
+		if appErr.Code == "" || appErr.Category == "" || appErr.Message == "" {
+			return NewCatalogError(ErrUnknown).WithError(nativeErr)
+		}
+		return appErr
+	}
+
 	switch layer {
 	case "repository":
-		return DefaultTranslationPolicy.TranslateRepositoryError(nativeErr)
+		return translateWithUnknownFallback(DefaultTranslationPolicy.TranslateRepositoryError(nativeErr))
 	case "service":
-		return DefaultTranslationPolicy.TranslateServiceError(nativeErr, layer)
+		return translateWithUnknownFallback(DefaultTranslationPolicy.TranslateServiceError(nativeErr, layer))
 	case "transport":
-		return DefaultTranslationPolicy.TranslateTransportError(nativeErr)
+		return translateWithUnknownFallback(DefaultTranslationPolicy.TranslateTransportError(nativeErr))
 	case "async_consumer":
-		return DefaultTranslationPolicy.TranslateAsyncConsumerError(nativeErr)
+		return translateWithUnknownFallback(DefaultTranslationPolicy.TranslateAsyncConsumerError(nativeErr))
+	case "async_producer":
+		return translateWithUnknownFallback(DefaultTranslationPolicy.TranslateAsyncConsumerError(nativeErr))
 	default:
-		// Unknown layer, use service layer rules
-		return DefaultTranslationPolicy.TranslateServiceError(nativeErr, layer)
+		// Unknown layer always falls back deterministically to ErrUnknown.
+		return NewCatalogError(ErrUnknown).WithError(nativeErr)
 	}
 }

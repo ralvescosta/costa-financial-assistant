@@ -192,3 +192,9 @@ flowchart LR
 - **Services Count**: 7 (bff, files, bills, payments, identity, onboarding, migrations)
 - **Services Status**: All designed, partial implementation
 
+## 008 AppError Update
+
+- Topology impact: **no structural service topology changes**.
+- Architectural policy impact: all backend layer boundaries now enforce `AppError`-first propagation (repository -> service -> transport/async).
+- Observability impact: boundary translation points must log native dependency failures once with structured context before returning sanitized error contracts.
+

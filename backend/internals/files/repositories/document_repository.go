@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -13,6 +12,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -60,12 +60,12 @@ func (r *PostgresDocumentRepository) Create(ctx context.Context, tx *sql.Tx, doc
 	if err != nil {
 		span.RecordError(err)
 		if isDuplicateConstraint(err) {
-			return nil, ErrDuplicateDocument
+			return nil, apperrors.NewCatalogError(apperrors.ErrResourceAlreadyExists).WithError(err)
 		}
 		r.logger.Error("document.create: insert failed",
 			zap.String("project_id", doc.ProjectId),
 			zap.Error(err))
-		return nil, fmt.Errorf("document repository: create: %w", err)
+		return nil, translateRepositoryError(err)
 	}
 
 	doc.Id = id
@@ -90,13 +90,13 @@ func (r *PostgresDocumentRepository) FindByProjectAndHash(ctx context.Context, p
 	doc, err := scanDocument(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrDocumentNotFound
+			return nil, translateRepositoryError(err)
 		}
 		span.RecordError(err)
 		r.logger.Error("document.findByProjectAndHash: query failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("document repository: findByProjectAndHash: %w", err)
+		return nil, translateRepositoryError(err)
 	}
 	return doc, nil
 }
@@ -120,14 +120,14 @@ func (r *PostgresDocumentRepository) FindByProjectAndID(ctx context.Context, pro
 	doc, err := scanDocument(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrDocumentNotFound
+			return nil, translateRepositoryError(err)
 		}
 		span.RecordError(err)
 		r.logger.Error("document.findByProjectAndID: query failed",
 			zap.String("project_id", projectID),
 			zap.String("document_id", id),
 			zap.Error(err))
-		return nil, fmt.Errorf("document repository: findByProjectAndID: %w", err)
+		return nil, translateRepositoryError(err)
 	}
 	return doc, nil
 }
@@ -153,14 +153,14 @@ func (r *PostgresDocumentRepository) UpdateKind(ctx context.Context, tx *sql.Tx,
 	doc, err := scanDocument(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrDocumentNotFound
+			return nil, translateRepositoryError(err)
 		}
 		span.RecordError(err)
 		r.logger.Error("document.updateKind: update failed",
 			zap.String("project_id", projectID),
 			zap.String("document_id", id),
 			zap.Error(err))
-		return nil, fmt.Errorf("document repository: updateKind: %w", err)
+		return nil, translateRepositoryError(err)
 	}
 	return doc, nil
 }
@@ -205,7 +205,7 @@ func (r *PostgresDocumentRepository) ListByProject(ctx context.Context, projectI
 		r.logger.Error("document.listByProject: query failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("document repository: listByProject: %w", err)
+		return nil, translateRepositoryError(err)
 	}
 	defer rows.Close() //nolint:errcheck
 
@@ -224,7 +224,10 @@ func (r *PostgresDocumentRepository) ListByProject(ctx context.Context, projectI
 			&uploadedAt, &updatedAt,
 		); err != nil {
 			span.RecordError(err)
-			return nil, fmt.Errorf("document repository: listByProject scan: %w", err)
+			r.logger.Error("document.listByProject: scan failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, translateRepositoryError(err)
 		}
 		docs = append(docs, &filesv1.Document{
 			Id:              id,
@@ -242,7 +245,10 @@ func (r *PostgresDocumentRepository) ListByProject(ctx context.Context, projectI
 		})
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("document repository: listByProject rows: %w", err)
+		r.logger.Error("document.listByProject: rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, translateRepositoryError(err)
 	}
 	return docs, nil
 }

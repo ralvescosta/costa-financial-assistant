@@ -14,6 +14,7 @@ import (
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/services"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -374,7 +375,9 @@ func TestExtractionService_ProcessDocument(t *testing.T) {
 
 		// Assert
 		require.Error(t, err)
-		assert.ErrorContains(t, err, "begin tx")
+		appErr := apperrors.AsAppError(err)
+		require.NotNil(t, appErr)
+		assert.Equal(t, apperrors.ErrDatabaseError.Code, appErr.Code)
 		jobRepo.AssertNotCalled(t, "UpdateDocumentAnalysisStatus", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	})
 }

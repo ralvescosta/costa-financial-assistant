@@ -8,6 +8,7 @@ import (
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // ReconciliationServiceImpl implements bffinterfaces.ReconciliationService.
@@ -28,7 +29,10 @@ func (s *ReconciliationServiceImpl) GetSummary(ctx context.Context, projectID, p
 		s.logger.Error("reconciliation_svc: get summary failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, err
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	entries := make([]*views.ReconciliationEntryResponse, 0, len(summary.Entries))
@@ -67,7 +71,10 @@ func (s *ReconciliationServiceImpl) CreateManualLink(ctx context.Context, projec
 			zap.String("transaction_line_id", transactionLineID),
 			zap.String("bill_record_id", billRecordID),
 			zap.Error(err))
-		return nil, err
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return &views.ReconciliationLinkResponse{
 		ID:                link.ID,

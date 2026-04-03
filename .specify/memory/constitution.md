@@ -1,10 +1,10 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.10.0 → 1.11.0
-Bump rationale: MINOR — Material governance expansion that makes end-of-execution
-  memory-flow updates mandatory in every spec/plan workflow and requires instruction
-  updates for refactor/reorganization work to preserve implementation patterns.
+Version change: 1.11.0 → 1.12.0
+Bump rationale: MINOR — Adds mandatory AppError-first boundary governance across
+  backend layers and requires explicit non-leakage verification in implementation
+  workflows and post-implementation governance sync.
 Modified principles:
   - (Development Workflow): Added PR-blocking checks that reject specs/plans/tasks
     missing mandatory memory-flow synchronization and instruction updates for
@@ -13,6 +13,9 @@ Modified principles:
     diagram sync and instruction sync.
   - (Memory References): Added explicit service-flow mapping and required end-of-
     execution update workflow for BFF, files, bills, and migration-related changes.
+  - (Error Contract Governance): Added AppError-first propagation requirement for
+    repository/service/transport/async boundaries with mandatory fallback and
+    non-leakage verification.
 Added sections:
   - Governance → "Spec & Plan Completion Enforcement"
   - Memory References → "Mandatory Service-Flow Mapping"
@@ -27,6 +30,15 @@ Templates requiring updates:
     equivalent command prompts in .github/prompts/*.prompt.md were reviewed)
 Deferred TODOs: None.
 -->
+
+## AppError Governance Addendum (v1.12.0)
+
+- Backend features MUST enforce `AppError` as the only cross-layer error contract.
+- Translation boundary order is mandatory: repository -> service -> transport/async.
+- Native dependency errors MUST be logged once at translation boundaries and MUST NOT
+  be exposed in outward-facing response contracts.
+- Unmapped translation contexts MUST deterministically fall back to unknown catalog
+  entry semantics.
 
 
 # Costa Financial Assistant Constitution

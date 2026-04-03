@@ -4,12 +4,12 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // ErrReconciliationConflict is returned when a (transaction, bill) pair is already linked.
@@ -39,7 +39,10 @@ func (s *ReconciliationService) AutoReconcile(ctx context.Context, projectID, st
 			zap.String("project_id", projectID),
 			zap.String("statement_id", statementID),
 			zap.Error(err))
-		return nil, fmt.Errorf("reconciliation service: auto reconcile: get lines: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	bills, err := s.repo.GetBillsForPeriod(ctx, projectID, "", "")
@@ -47,7 +50,10 @@ func (s *ReconciliationService) AutoReconcile(ctx context.Context, projectID, st
 		s.logger.Error("reconciliation_service: get bills for period failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("reconciliation service: auto reconcile: get bills: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	// Build an amount → bills index for O(1) lookup.
@@ -96,7 +102,13 @@ func (s *ReconciliationService) AutoReconcile(ctx context.Context, projectID, st
 
 	summary, err := s.repo.GetSummary(ctx, projectID, "", "")
 	if err != nil {
-		return nil, fmt.Errorf("reconciliation service: auto reconcile: get summary: %w", err)
+		s.logger.Error("reconciliation_service: get summary after auto reconcile failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return summary, nil
 }
@@ -108,7 +120,10 @@ func (s *ReconciliationService) GetSummary(ctx context.Context, projectID, perio
 		s.logger.Error("reconciliation_service: get summary failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("reconciliation service: get summary: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return summary, nil
 }
@@ -124,14 +139,17 @@ func (s *ReconciliationService) CreateManualLink(ctx context.Context, projectID,
 	})
 	if err != nil {
 		if errors.Is(err, ErrReconciliationConflict) {
-			return nil, ErrReconciliationConflict
+			return nil, apperrors.NewCatalogError(apperrors.ErrConflict).WithError(err)
+		}
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("reconciliation_service: create manual link failed",
 			zap.String("project_id", projectID),
 			zap.String("transaction_line_id", transactionLineID),
 			zap.String("bill_record_id", billRecordID),
 			zap.Error(err))
-		return nil, fmt.Errorf("reconciliation service: create link: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	if updateErr := s.repo.UpdateTransactionStatus(ctx, projectID, transactionLineID, interfaces.TransactionMatchedManual); updateErr != nil {

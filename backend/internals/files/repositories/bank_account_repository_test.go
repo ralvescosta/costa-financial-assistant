@@ -13,6 +13,7 @@ import (
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/mocks"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/services"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -61,7 +62,9 @@ func TestBankAccountService_Create_EmptyLabel(t *testing.T) {
 	// Repository should NOT be called when label validation fails.
 	_, err := svc.CreateBankAccount(context.Background(), testProjectID, "", testCreatedBy)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "label is required")
+	appErr := apperrors.AsAppError(err)
+	require.NotNil(t, appErr)
+	assert.Equal(t, apperrors.ErrValidationError.Code, appErr.Code)
 }
 
 func TestBankAccountService_Create_DuplicateLabel(t *testing.T) {
@@ -148,7 +151,9 @@ func TestBankAccountService_Delete_EmptyID(t *testing.T) {
 	// Repository should NOT be called when ID validation fails.
 	err := svc.DeleteBankAccount(context.Background(), testProjectID, "")
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "bank_account_id is required")
+	appErr := apperrors.AsAppError(err)
+	require.NotNil(t, appErr)
+	assert.Equal(t, apperrors.ErrValidationError.Code, appErr.Code)
 }
 
 func TestBankAccountService_Delete_AttributionGuard(t *testing.T) {

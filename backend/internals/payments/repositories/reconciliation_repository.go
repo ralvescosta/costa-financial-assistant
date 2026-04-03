@@ -14,6 +14,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // PostgresReconciliationRepository implements interfaces.ReconciliationRepository.
@@ -42,7 +43,11 @@ func (r *PostgresReconciliationRepository) GetUnmatchedTransactionLines(
 
 	rows, err := r.db.QueryContext(ctx, q, projectID, statementID)
 	if err != nil {
-		return nil, fmt.Errorf("reconciliation repo: get unmatched lines: %w", err)
+		r.logger.Error("reconciliation repo: get unmatched lines query failed",
+			zap.String("project_id", projectID),
+			zap.String("statement_id", statementID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -51,12 +56,22 @@ func (r *PostgresReconciliationRepository) GetUnmatchedTransactionLines(
 		var e interfaces.ReconciliationSummaryEntry
 		var status string
 		if err := rows.Scan(&e.TransactionLineID, &e.TransactionDate, &e.Description, &e.Amount, &e.Direction, &status); err != nil {
-			return nil, fmt.Errorf("reconciliation repo: scan unmatched line: %w", err)
+			r.logger.Error("reconciliation repo: scan unmatched line failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, apperrors.TranslateError(err, "repository")
 		}
 		e.ReconciliationStatus = interfaces.TransactionReconciliationStatus(status)
 		result = append(result, e)
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		r.logger.Error("reconciliation repo: unmatched lines rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
+	}
+
+	return result, nil
 }
 
 // GetBillsForPeriod returns unpaid bill records within the optional date range.
@@ -84,7 +99,10 @@ func (r *PostgresReconciliationRepository) GetBillsForPeriod(
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
-		return nil, fmt.Errorf("reconciliation repo: get bills for period: %w", err)
+		r.logger.Error("reconciliation repo: get bills for period query failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -93,11 +111,21 @@ func (r *PostgresReconciliationRepository) GetBillsForPeriod(
 		var e interfaces.ReconciliationSummaryEntry
 		// TransactionLineID is reused as the bill_record.id for the matching index.
 		if err := rows.Scan(&e.TransactionLineID, &e.TransactionDate, &e.Amount); err != nil {
-			return nil, fmt.Errorf("reconciliation repo: scan bill row: %w", err)
+			r.logger.Error("reconciliation repo: scan bill row failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, apperrors.TranslateError(err, "repository")
 		}
 		result = append(result, e)
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		r.logger.Error("reconciliation repo: bills rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
+	}
+
+	return result, nil
 }
 
 // CreateLink inserts a reconciliation link and updates the transaction line status.
@@ -127,9 +155,14 @@ func (r *PostgresReconciliationRepository) CreateLink(
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && string(pqErr.Code) == "23505" {
-			return nil, fmt.Errorf("%w", ErrReconciliationConflict)
+			return nil, apperrors.NewCatalogError(apperrors.ErrConflict).WithError(ErrReconciliationConflict)
 		}
-		return nil, fmt.Errorf("reconciliation repo: create link: %w", err)
+		r.logger.Error("reconciliation repo: create link failed",
+			zap.String("project_id", link.ProjectID),
+			zap.String("transaction_line_id", link.TransactionLineID),
+			zap.String("bill_record_id", link.BillRecordID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 
 	link.CreatedAt = createdAt
@@ -161,7 +194,11 @@ func (r *PostgresReconciliationRepository) UpdateTransactionStatus(
 		WHERE project_id = $2 AND id = $3`
 
 	if _, err := r.db.ExecContext(ctx, q, string(status), projectID, transactionLineID); err != nil {
-		return fmt.Errorf("reconciliation repo: update transaction status: %w", err)
+		r.logger.Error("reconciliation repo: update transaction status failed",
+			zap.String("project_id", projectID),
+			zap.String("transaction_line_id", transactionLineID),
+			zap.Error(err))
+		return apperrors.TranslateError(err, "repository")
 	}
 	return nil
 }
@@ -205,7 +242,10 @@ func (r *PostgresReconciliationRepository) GetSummary(
 
 	rows, err := r.db.QueryContext(ctx, q, args...)
 	if err != nil {
-		return nil, fmt.Errorf("reconciliation repo: get summary: %w", err)
+		r.logger.Error("reconciliation repo: get summary query failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -232,7 +272,10 @@ func (r *PostgresReconciliationRepository) GetSummary(
 			&billAmount,
 			&linkType,
 		); err != nil {
-			return nil, fmt.Errorf("reconciliation repo: scan summary row: %w", err)
+			r.logger.Error("reconciliation repo: scan summary row failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, apperrors.TranslateError(err, "repository")
 		}
 
 		e.ReconciliationStatus = interfaces.TransactionReconciliationStatus(status)
@@ -254,7 +297,14 @@ func (r *PostgresReconciliationRepository) GetSummary(
 		summary.Entries = append(summary.Entries, e)
 	}
 
-	return summary, rows.Err()
+	if err := rows.Err(); err != nil {
+		r.logger.Error("reconciliation repo: summary rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
+	}
+
+	return summary, nil
 }
 
 // ErrReconciliationConflict is returned when a (transaction, bill) link already exists.

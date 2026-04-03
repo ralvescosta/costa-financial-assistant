@@ -9,6 +9,7 @@ import (
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -47,22 +48,36 @@ func NewDocumentService(repo interfaces.DocumentRepository, uow interfaces.UnitO
 func (s *DocumentService) UploadDocument(ctx context.Context, req *UploadDocumentInput) (*filesv1.Document, error) {
 	// Project-scoped duplicate detection — same hash already uploaded.
 	existing, err := s.repo.FindByProjectAndHash(ctx, req.ProjectID, req.FileHash)
-	if err != nil && !errors.Is(err, repositories.ErrDocumentNotFound) {
-		s.logger.Error("upload: duplicate check failed",
-			zap.String("project_id", req.ProjectID),
-			zap.Error(err))
-		return nil, fmt.Errorf("document service: upload: %w", err)
+	if err != nil {
+		if errors.Is(err, repositories.ErrDocumentNotFound) {
+			err = nil
+		}
+		if appErr := apperrors.AsAppError(err); appErr != nil && appErr.Category != apperrors.CategoryNotFound {
+			s.logger.Error("upload: duplicate check failed",
+				zap.String("project_id", req.ProjectID),
+				zap.Error(err))
+			return nil, appErr
+		}
+		if err != nil {
+			s.logger.Error("upload: duplicate check failed",
+				zap.String("project_id", req.ProjectID),
+				zap.Error(err))
+			return nil, fmt.Errorf("document service: upload: %w", err)
+		}
 	}
 	if existing != nil {
 		s.logger.Info("upload: duplicate document detected",
 			zap.String("project_id", req.ProjectID),
 			zap.String("file_hash", req.FileHash))
-		return nil, repositories.ErrDuplicateDocument
+		return nil, apperrors.NewCatalogError(apperrors.ErrResourceAlreadyExists).WithError(repositories.ErrDuplicateDocument)
 	}
 
 	tx, err := s.uow.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("document service: upload: begin tx: %w", err)
+		s.logger.Error("upload: begin tx failed",
+			zap.String("project_id", req.ProjectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	defer s.uow.Rollback(tx) //nolint:errcheck
 
@@ -79,17 +94,20 @@ func (s *DocumentService) UploadDocument(ctx context.Context, req *UploadDocumen
 
 	created, err := s.repo.Create(ctx, tx, doc)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
 		s.logger.Error("upload: create document failed",
 			zap.String("project_id", req.ProjectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("document service: upload: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	if err := s.uow.Commit(tx); err != nil {
 		s.logger.Error("upload: commit failed",
 			zap.String("document_id", created.Id),
 			zap.Error(err))
-		return nil, fmt.Errorf("document service: upload: commit: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	s.logger.Info("upload: document created",
@@ -102,27 +120,31 @@ func (s *DocumentService) UploadDocument(ctx context.Context, req *UploadDocumen
 func (s *DocumentService) ClassifyDocument(ctx context.Context, projectID, documentID string, kind filesv1.DocumentKind) (*filesv1.Document, error) {
 	tx, err := s.uow.Begin(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("document service: classify: begin tx: %w", err)
+		s.logger.Error("classify: begin tx failed",
+			zap.String("project_id", projectID),
+			zap.String("document_id", documentID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	defer s.uow.Rollback(tx) //nolint:errcheck
 
 	updated, err := s.repo.UpdateKind(ctx, tx, projectID, documentID, kind)
 	if err != nil {
-		if errors.Is(err, repositories.ErrDocumentNotFound) {
-			return nil, repositories.ErrDocumentNotFound
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("classify: update kind failed",
 			zap.String("project_id", projectID),
 			zap.String("document_id", documentID),
 			zap.Error(err))
-		return nil, fmt.Errorf("document service: classify: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	if err := s.uow.Commit(tx); err != nil {
 		s.logger.Error("classify: commit failed",
 			zap.String("document_id", documentID),
 			zap.Error(err))
-		return nil, fmt.Errorf("document service: classify: commit: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	s.logger.Info("classify: document classified",
@@ -135,14 +157,14 @@ func (s *DocumentService) ClassifyDocument(ctx context.Context, projectID, docum
 func (s *DocumentService) GetDocument(ctx context.Context, projectID, documentID string) (*filesv1.Document, error) {
 	doc, err := s.repo.FindByProjectAndID(ctx, projectID, documentID)
 	if err != nil {
-		if errors.Is(err, repositories.ErrDocumentNotFound) {
-			return nil, repositories.ErrDocumentNotFound
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("get: find document failed",
 			zap.String("project_id", projectID),
 			zap.String("document_id", documentID),
 			zap.Error(err))
-		return nil, fmt.Errorf("document service: get: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return doc, nil
 }
@@ -151,10 +173,13 @@ func (s *DocumentService) GetDocument(ctx context.Context, projectID, documentID
 func (s *DocumentService) ListDocuments(ctx context.Context, projectID string, pageSize int32, pageToken string) ([]*filesv1.Document, error) {
 	docs, err := s.repo.ListByProject(ctx, projectID, pageSize, pageToken)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
 		s.logger.Error("list: query failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("document service: list: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return docs, nil
 }

@@ -3,12 +3,12 @@ package services
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/files/repositories"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
 )
 
@@ -33,7 +33,7 @@ func NewBankAccountService(repo interfaces.BankAccountRepository, logger *zap.Lo
 // CreateBankAccount creates a project-scoped bank account label.
 func (s *BankAccountService) CreateBankAccount(ctx context.Context, projectID, label, createdBy string) (*filesv1.BankAccount, error) {
 	if label == "" {
-		return nil, fmt.Errorf("bank account service: label is required")
+		return nil, apperrors.NewCatalogError(apperrors.ErrValidationError)
 	}
 
 	account := &filesv1.BankAccount{
@@ -45,12 +45,15 @@ func (s *BankAccountService) CreateBankAccount(ctx context.Context, projectID, l
 	result, err := s.repo.Create(ctx, account)
 	if err != nil {
 		if errors.Is(err, repositories.ErrDuplicateBankAccount) {
-			return nil, repositories.ErrDuplicateBankAccount
+			return nil, apperrors.NewCatalogError(apperrors.ErrResourceAlreadyExists).WithError(err)
+		}
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("bank_account.create: failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("bank account service: create: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return result, nil
 }
@@ -59,10 +62,13 @@ func (s *BankAccountService) CreateBankAccount(ctx context.Context, projectID, l
 func (s *BankAccountService) ListBankAccounts(ctx context.Context, projectID string) ([]*filesv1.BankAccount, error) {
 	accounts, err := s.repo.ListByProject(ctx, projectID)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
 		s.logger.Error("bank_account.list: failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("bank account service: list: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return accounts, nil
 }
@@ -70,21 +76,24 @@ func (s *BankAccountService) ListBankAccounts(ctx context.Context, projectID str
 // DeleteBankAccount removes a bank account label. Returns ErrBankAccountInUse if referenced.
 func (s *BankAccountService) DeleteBankAccount(ctx context.Context, projectID, bankAccountID string) error {
 	if bankAccountID == "" {
-		return fmt.Errorf("bank account service: bank_account_id is required")
+		return apperrors.NewCatalogError(apperrors.ErrValidationError)
 	}
 
 	if err := s.repo.Delete(ctx, projectID, bankAccountID); err != nil {
 		if errors.Is(err, repositories.ErrBankAccountNotFound) {
-			return repositories.ErrBankAccountNotFound
+			return apperrors.NewCatalogError(apperrors.ErrResourceNotFound).WithError(err)
 		}
 		if errors.Is(err, repositories.ErrBankAccountInUse) {
-			return repositories.ErrBankAccountInUse
+			return apperrors.NewCatalogError(apperrors.ErrConflict).WithError(err)
+		}
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return appErr
 		}
 		s.logger.Error("bank_account.delete: failed",
 			zap.String("project_id", projectID),
 			zap.String("bank_account_id", bankAccountID),
 			zap.Error(err))
-		return fmt.Errorf("bank account service: delete: %w", err)
+		return apperrors.TranslateError(err, "service")
 	}
 	return nil
 }
