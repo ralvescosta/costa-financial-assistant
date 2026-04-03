@@ -1,6 +1,7 @@
 # VCS and metadata
 .git/
 .gitignore
+.github/
 
 # Dependencies and caches
 node_modules/
@@ -26,3 +27,7 @@ coverage/
 # Docker files
 docker-compose.yml
 .dockerignore
+
+.scripts/
+.specify/
+specs/
