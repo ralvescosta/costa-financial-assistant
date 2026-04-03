@@ -50,9 +50,9 @@
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Add files-repository translation tests in backend/internals/files/repositories/error_translation_test.go
-- [ ] T012 [P] [US1] Add cross-service propagation integration test in backend/tests/integration/cross_service/app_error_propagation_test.go
-- [ ] T061 [P] [US1] Add async publisher propagation integration test in backend/tests/integration/cross_service/app_error_async_publisher_propagation_test.go
+- [X] T011 [P] [US1] Add files-repository translation tests in backend/internals/files/repositories/error_translation_test.go
+- [X] T012 [P] [US1] Add cross-service propagation integration test in backend/tests/integration/cross_service/app_error_propagation_test.go
+- [X] T061 [P] [US1] Add async publisher propagation integration test in backend/tests/integration/cross_service/app_error_async_publisher_propagation_test.go
 
 ### Implementation for User Story 1
 
