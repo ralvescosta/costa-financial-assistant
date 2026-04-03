@@ -13,6 +13,7 @@ Notes:
 - Bills exposes gRPC APIs consumed by BFF and other internal callers.
 - Tenant isolation is enforced via `project_id` in RPC context and repository queries.
 - Idempotency for mark-paid is DB-backed (not Redis-backed).
+- `AppError` propagation is enforced across repository, service, and transport boundaries with one structured boundary log for native dependency failures.
 
 ## Shared gRPC service pattern (applies to all RPCs)
 

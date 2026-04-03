@@ -13,6 +13,7 @@ Notes:
 - Identity is the token authority service for JWT issuance and validation.
 - BFF auth middleware consumes identity JWKS metadata for key validation cache on the BFF side.
 - Current identity RPC paths are stateless and do not persist domain records in PostgreSQL.
+- gRPC handlers map `AppError` categories to protocol-safe status codes and avoid leaking native errors in response payloads.
 
 ## Shared gRPC service pattern (applies to all RPCs)
 

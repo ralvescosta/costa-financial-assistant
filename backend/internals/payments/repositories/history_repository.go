@@ -4,11 +4,11 @@ package repositories
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // HistoryTimelineEntry is a value type returned by GetTimeline for use in integration tests.
@@ -45,7 +45,11 @@ func (r *PostgresHistoryRepository) GetTimeline(
 
 	rows, err := r.db.QueryContext(ctx, baseQuery, projectID, months)
 	if err != nil {
-		return nil, fmt.Errorf("history repo: get timeline: %w", err)
+		r.logger.Error("history repo: get timeline query failed",
+			zap.String("project_id", projectID),
+			zap.Int("months", months),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -53,11 +57,20 @@ func (r *PostgresHistoryRepository) GetTimeline(
 	for rows.Next() {
 		var e interfaces.MonthlyTimelineEntry
 		if err := rows.Scan(&e.Month, &e.TotalAmount, &e.BillCount); err != nil {
-			return nil, fmt.Errorf("history repo: scan timeline: %w", err)
+			r.logger.Error("history repo: scan timeline failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, apperrors.TranslateError(err, "repository")
 		}
 		result = append(result, e)
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		r.logger.Error("history repo: timeline rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
+	}
+	return result, nil
 }
 
 // GetCategoryBreakdown returns per-bill-type totals grouped by month.
@@ -82,7 +95,11 @@ func (r *PostgresHistoryRepository) GetCategoryBreakdown(
 
 	rows, err := r.db.QueryContext(ctx, query, projectID, months)
 	if err != nil {
-		return nil, fmt.Errorf("history repo: get category breakdown: %w", err)
+		r.logger.Error("history repo: get category breakdown query failed",
+			zap.String("project_id", projectID),
+			zap.Int("months", months),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -90,11 +107,20 @@ func (r *PostgresHistoryRepository) GetCategoryBreakdown(
 	for rows.Next() {
 		var e interfaces.CategoryBreakdownEntry
 		if err := rows.Scan(&e.Month, &e.BillTypeName, &e.TotalAmount, &e.BillCount); err != nil {
-			return nil, fmt.Errorf("history repo: scan category breakdown: %w", err)
+			r.logger.Error("history repo: scan category breakdown failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, apperrors.TranslateError(err, "repository")
 		}
 		result = append(result, e)
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		r.logger.Error("history repo: category breakdown rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
+	}
+	return result, nil
 }
 
 // GetComplianceMetrics returns on-time vs overdue payment counts per calendar month.
@@ -125,7 +151,11 @@ func (r *PostgresHistoryRepository) GetComplianceMetrics(
 
 	rows, err := r.db.QueryContext(ctx, query, projectID, months)
 	if err != nil {
-		return nil, fmt.Errorf("history repo: get compliance: %w", err)
+		r.logger.Error("history repo: get compliance query failed",
+			zap.String("project_id", projectID),
+			zap.Int("months", months),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -134,7 +164,10 @@ func (r *PostgresHistoryRepository) GetComplianceMetrics(
 		var e interfaces.MonthlyComplianceEntry
 		var complianceRate sql.NullString
 		if err := rows.Scan(&e.Month, &e.TotalBills, &e.PaidOnTime, &e.Overdue, &complianceRate); err != nil {
-			return nil, fmt.Errorf("history repo: scan compliance: %w", err)
+			r.logger.Error("history repo: scan compliance failed",
+				zap.String("project_id", projectID),
+				zap.Error(err))
+			return nil, apperrors.TranslateError(err, "repository")
 		}
 		if complianceRate.Valid {
 			e.ComplianceRate = complianceRate.String
@@ -143,5 +176,11 @@ func (r *PostgresHistoryRepository) GetComplianceMetrics(
 		}
 		result = append(result, e)
 	}
-	return result, rows.Err()
+	if err := rows.Err(); err != nil {
+		r.logger.Error("history repo: compliance rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, apperrors.TranslateError(err, "repository")
+	}
+	return result, nil
 }

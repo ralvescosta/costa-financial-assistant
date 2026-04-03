@@ -5,13 +5,13 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
-	"fmt"
 	"math/big"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.uber.org/zap"
 
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 )
 
@@ -56,7 +56,7 @@ func (s *TokenService) IssueBootstrapToken(_ context.Context, userID, projectID,
 	signed, err := t.SignedString(s.key)
 	if err != nil {
 		s.logger.Error("token signing failed", zap.String("user_id", userID), zap.Error(err))
-		return "", 0, fmt.Errorf("token service: sign: %w", err)
+		return "", 0, apperrors.TranslateError(err, "service")
 	}
 
 	s.logger.Info("bootstrap token issued",
@@ -71,11 +71,15 @@ func (s *TokenService) IssueBootstrapToken(_ context.Context, userID, projectID,
 func (s *TokenService) ValidateToken(_ context.Context, tokenStr string) (bool, *identityv1.JwtClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			s.logger.Debug("token validation rejected unexpected signing method", zap.Any("alg", t.Header["alg"]))
+			return nil, apperrors.NewCatalogError(apperrors.ErrUnauthorized)
 		}
 		return &s.key.PublicKey, nil
 	})
 	if err != nil || !token.Valid {
+		if err != nil {
+			s.logger.Debug("token validation failed", zap.Error(err))
+		}
 		return false, nil, nil //nolint:nilerr // invalid token is not a processing error
 	}
 

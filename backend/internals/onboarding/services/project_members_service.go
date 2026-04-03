@@ -2,12 +2,11 @@ package services
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/onboarding/repositories"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
 
@@ -48,7 +47,7 @@ func NewProjectMembersService(repo *repositories.PostgresProjectMembersRepositor
 // CreateProject creates a new project tenant owned by the given user.
 func (s *ProjectMembersService) CreateProject(ctx context.Context, ownerID, name string, projectType onboardingv1.ProjectType) (*onboardingv1.Project, error) {
 	if name == "" {
-		return nil, fmt.Errorf("project_members_service: project name is required")
+		return nil, apperrors.NewCatalogError(apperrors.ErrValidationError)
 	}
 
 	typeStr, ok := projectTypeStrings[projectType]
@@ -61,7 +60,10 @@ func (s *ProjectMembersService) CreateProject(ctx context.Context, ownerID, name
 		s.logger.Error("project_members_service.create_project: failed",
 			zap.String("owner_id", ownerID),
 			zap.Error(err))
-		return nil, fmt.Errorf("project_members_service: create project: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return project, nil
 }
@@ -70,13 +72,13 @@ func (s *ProjectMembersService) CreateProject(ctx context.Context, ownerID, name
 func (s *ProjectMembersService) GetProject(ctx context.Context, projectID string) (*onboardingv1.Project, error) {
 	project, err := s.repo.GetProject(ctx, projectID)
 	if err != nil {
-		if errors.Is(err, repositories.ErrProjectNotFound) {
-			return nil, repositories.ErrProjectNotFound
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("project_members_service.get_project: failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, fmt.Errorf("project_members_service: get project: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return project, nil
 }
@@ -84,18 +86,18 @@ func (s *ProjectMembersService) GetProject(ctx context.Context, projectID string
 // InviteProjectMember resolves the invitee by email and creates a membership with the given role.
 func (s *ProjectMembersService) InviteProjectMember(ctx context.Context, projectID, inviteeEmail string, role onboardingv1.ProjectMemberRole, invitedBy string) (*onboardingv1.ProjectMember, error) {
 	if inviteeEmail == "" {
-		return nil, fmt.Errorf("project_members_service: invitee email is required")
+		return nil, apperrors.NewCatalogError(apperrors.ErrValidationError)
 	}
 
 	userID, err := s.repo.FindUserByEmail(ctx, inviteeEmail)
 	if err != nil {
-		if errors.Is(err, repositories.ErrUserNotFound) {
-			return nil, repositories.ErrUserNotFound
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("project_members_service.invite: find user failed",
 			zap.String("email", inviteeEmail),
 			zap.Error(err))
-		return nil, fmt.Errorf("project_members_service: invite member: user lookup: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	roleStr, ok := projectMemberRoleStrings[role]
@@ -105,14 +107,14 @@ func (s *ProjectMembersService) InviteProjectMember(ctx context.Context, project
 
 	member, err := s.repo.CreateMember(ctx, projectID, userID, invitedBy, roleStr)
 	if err != nil {
-		if errors.Is(err, repositories.ErrMemberAlreadyExists) {
-			return nil, repositories.ErrMemberAlreadyExists
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("project_members_service.invite: create member failed",
 			zap.String("project_id", projectID),
 			zap.String("user_id", userID),
 			zap.Error(err))
-		return nil, fmt.Errorf("project_members_service: invite member: create: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return member, nil
 }
@@ -120,7 +122,7 @@ func (s *ProjectMembersService) InviteProjectMember(ctx context.Context, project
 // UpdateProjectMemberRole changes the role of a project member.
 func (s *ProjectMembersService) UpdateProjectMemberRole(ctx context.Context, projectID, memberID string, newRole onboardingv1.ProjectMemberRole) (*onboardingv1.ProjectMember, error) {
 	if memberID == "" {
-		return nil, fmt.Errorf("project_members_service: member_id is required")
+		return nil, apperrors.NewCatalogError(apperrors.ErrValidationError)
 	}
 
 	roleStr, ok := projectMemberRoleStrings[newRole]
@@ -130,14 +132,14 @@ func (s *ProjectMembersService) UpdateProjectMemberRole(ctx context.Context, pro
 
 	member, err := s.repo.UpdateMemberRole(ctx, projectID, memberID, roleStr)
 	if err != nil {
-		if errors.Is(err, repositories.ErrMemberNotFound) {
-			return nil, repositories.ErrMemberNotFound
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
 		}
 		s.logger.Error("project_members_service.update_role: failed",
 			zap.String("project_id", projectID),
 			zap.String("member_id", memberID),
 			zap.Error(err))
-		return nil, fmt.Errorf("project_members_service: update member role: %w", err)
+		return nil, apperrors.TranslateError(err, "service")
 	}
 	return member, nil
 }
@@ -149,7 +151,10 @@ func (s *ProjectMembersService) ListProjectMembers(ctx context.Context, projectI
 		s.logger.Error("project_members_service.list_members: failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, "", fmt.Errorf("project_members_service: list members: %w", err)
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, "", appErr
+		}
+		return nil, "", apperrors.TranslateError(err, "service")
 	}
 	return members, nextToken, nil
 }

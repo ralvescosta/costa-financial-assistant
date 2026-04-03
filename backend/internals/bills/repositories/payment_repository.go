@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bills/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 )
 
@@ -85,7 +86,10 @@ func (r *PostgresBillPaymentRepository) ListBills(
 		rows, err = r.db.QueryContext(ctx, q, projectID, statusStr, pageToken, pageSize+1)
 	}
 	if err != nil {
-		return nil, "", fmt.Errorf("bill payment repo: list bills: %w", err)
+		r.logger.Error("bill payment repo: list bills query failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, "", translateBillRepositoryError(err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -93,12 +97,18 @@ func (r *PostgresBillPaymentRepository) ListBills(
 	for rows.Next() {
 		bill, scanErr := r.scanRowBillRecord(rows)
 		if scanErr != nil {
-			return nil, "", fmt.Errorf("bill payment repo: list bills scan: %w", scanErr)
+			r.logger.Error("bill payment repo: list bills scan failed",
+				zap.String("project_id", projectID),
+				zap.Error(scanErr))
+			return nil, "", translateBillRepositoryError(scanErr)
 		}
 		bills = append(bills, bill)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, "", fmt.Errorf("bill payment repo: list bills rows: %w", err)
+		r.logger.Error("bill payment repo: list bills rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, "", translateBillRepositoryError(err)
 	}
 
 	var nextToken string
@@ -141,7 +151,10 @@ func (r *PostgresBillPaymentRepository) GetDashboardEntries(
 
 	rows, err := r.db.QueryContext(ctx, q, projectID, cycleStart, cycleEnd, pageToken, pageSize+1)
 	if err != nil {
-		return nil, "", fmt.Errorf("bill payment repo: dashboard entries: %w", err)
+		r.logger.Error("bill payment repo: dashboard query failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, "", translateBillRepositoryError(err)
 	}
 	defer func() { _ = rows.Close() }()
 
@@ -177,7 +190,10 @@ func (r *PostgresBillPaymentRepository) GetDashboardEntries(
 			&btID, &btProjectID, &btName, &btCreatedAt,
 			&isOverdue, &daysUntil,
 		); scanErr != nil {
-			return nil, "", fmt.Errorf("bill payment repo: dashboard scan: %w", scanErr)
+			r.logger.Error("bill payment repo: dashboard scan failed",
+				zap.String("project_id", projectID),
+				zap.Error(scanErr))
+			return nil, "", translateBillRepositoryError(scanErr)
 		}
 
 		bill.DueDate = dueDate
@@ -224,7 +240,10 @@ func (r *PostgresBillPaymentRepository) GetDashboardEntries(
 		entries = append(entries, entry)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, "", fmt.Errorf("bill payment repo: dashboard rows: %w", err)
+		r.logger.Error("bill payment repo: dashboard rows iteration failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		return nil, "", translateBillRepositoryError(err)
 	}
 
 	var nextToken string
@@ -268,7 +287,10 @@ func (r *PostgresBillPaymentRepository) FindIdempotencyKey(ctx context.Context, 
 		return "", nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("bill payment repo: find idempotency key: %w", err)
+		r.logger.Error("bill payment repo: find idempotency key failed",
+			zap.String("key", key),
+			zap.Error(err))
+		return "", translateBillRepositoryError(err)
 	}
 	return payload.String, nil
 }
@@ -282,7 +304,11 @@ func (r *PostgresBillPaymentRepository) StoreIdempotencyKey(ctx context.Context,
 
 	_, err := r.db.ExecContext(ctx, q, service, key, payload)
 	if err != nil {
-		return fmt.Errorf("bill payment repo: store idempotency key: %w", err)
+		r.logger.Error("bill payment repo: store idempotency key failed",
+			zap.String("service", service),
+			zap.String("key", key),
+			zap.Error(err))
+		return translateBillRepositoryError(err)
 	}
 	return nil
 }
@@ -311,10 +337,12 @@ func (r *PostgresBillPaymentRepository) scanBillRecord(_ context.Context, row *s
 		&createdAt, &updatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrBillNotFound
+		return nil, apperrors.NewCatalogError(apperrors.ErrResourceNotFound).WithError(ErrBillNotFound)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("bill payment repo: scan: %w", err)
+		r.logger.Error("bill payment repo: scan bill failed",
+			zap.Error(err))
+		return nil, translateBillRepositoryError(err)
 	}
 
 	bill.DueDate = dueDate
@@ -367,7 +395,7 @@ func (r *PostgresBillPaymentRepository) scanRowBillRecord(rows *sql.Rows) (*bill
 		&barcode, &statusStr, &paidAt, &markedBy,
 		&createdAt, &updatedAt,
 	); err != nil {
-		return nil, fmt.Errorf("bill payment repo: scan row: %w", err)
+		return nil, translateBillRepositoryError(err)
 	}
 
 	bill.DueDate = dueDate
@@ -423,4 +451,11 @@ func stringToPaymentStatus(s string) billsv1.PaymentStatus {
 	default:
 		return billsv1.PaymentStatus_PAYMENT_STATUS_UNSPECIFIED
 	}
+}
+
+func translateBillRepositoryError(err error) error {
+	if err == nil {
+		return nil
+	}
+	return apperrors.TranslateError(err, "repository")
 }

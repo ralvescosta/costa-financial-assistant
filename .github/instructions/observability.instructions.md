@@ -91,3 +91,21 @@ applyTo: "**/*.go"
 **Example input → expected Copilot output**:
 - Input: "Add debug log for inbound analysis job message."
 - Expected output: log safe identifiers (document_id, job_id, project_id) and routing metadata only — never log raw PDF binary, Pix QR payloads, or extracted financial amounts.
+
+---
+
+## Rule: One-Boundary Dependency Error Logging
+
+**Description**: Native dependency failures must be logged exactly once at the translation boundary before propagating sanitized `AppError` contracts.
+
+**When it applies**: Repository/service/transport/async boundary handling.
+
+**Copilot MUST**:
+- Log native errors with `zap.Error(err)` and stable identifiers exactly once at the boundary where translation occurs.
+- Propagate `AppError` to outer layers after logging and translation.
+- Avoid duplicate error logs for the same failure path in immediate caller/callee boundaries.
+
+**Copilot MUST NOT**:
+- Return raw dependency error strings across service boundaries.
+- Emit repeated error logs for a single boundary failure.
+- Log translated/sanitized errors instead of the native error at the boundary.

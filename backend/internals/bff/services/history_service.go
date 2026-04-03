@@ -8,6 +8,7 @@ import (
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // HistoryServiceImpl implements bffinterfaces.HistoryService.
@@ -37,7 +38,10 @@ func (s *HistoryServiceImpl) GetTimeline(ctx context.Context, projectID string, 
 		s.logger.Error("history_svc: get timeline failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, err
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	rows := make([]*views.MonthlyTimelineEntryResponse, 0, len(entries))
@@ -59,7 +63,10 @@ func (s *HistoryServiceImpl) GetCategoryBreakdown(ctx context.Context, projectID
 		s.logger.Error("history_svc: get category breakdown failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, err
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	rows := make([]*views.CategoryBreakdownEntryResponse, 0, len(entries))
@@ -82,7 +89,10 @@ func (s *HistoryServiceImpl) GetComplianceMetrics(ctx context.Context, projectID
 		s.logger.Error("history_svc: get compliance metrics failed",
 			zap.String("project_id", projectID),
 			zap.Error(err))
-		return nil, err
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
 	}
 
 	rows := make([]*views.MonthlyComplianceEntryResponse, 0, len(entries))

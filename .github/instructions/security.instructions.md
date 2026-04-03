@@ -195,3 +195,21 @@ applyTo: "**/*.go,go.mod,go.sum,Dockerfile"
 **Example input → expected Copilot output**:
 - Input: "Return DB error directly in HTTP response."
 - Expected output: log full DB error internally, return generic service error to caller.
+
+---
+
+## Rule: AppError Non-Leakage Contract
+
+**Description**: Backend boundaries must expose only sanitized `AppError` contracts to prevent dependency implementation leakage.
+
+**When it applies**: Any repository->service->transport/async propagation path.
+
+**Copilot MUST**:
+- Translate native dependency errors to `backend/pkgs/errors.AppError` at the nearest boundary.
+- Keep fallback behavior deterministic (`ErrUnknown`) for unmapped contexts.
+- Ensure outward-facing payloads/statuses use sanitized message/code/category semantics.
+
+**Copilot MUST NOT**:
+- Return raw database/grpc/network error text in transport responses.
+- Bypass translation by wrapping native errors with `fmt.Errorf` across layers.
+- Depend on caller-side sanitization when the boundary layer can sanitize directly.

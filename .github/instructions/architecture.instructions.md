@@ -164,6 +164,25 @@ go func() {
 
 ---
 
+## Rule: AppError Translation Boundaries (Backend)
+
+**Description**: Backend layer transitions MUST enforce `AppError` as the only cross-layer error contract.
+
+**When it applies**: Repository, service, transport, and async boundary implementations.
+
+**Copilot MUST**:
+- Translate native dependency errors at repository/service/transport/async boundaries using `backend/pkgs/errors`.
+- Propagate existing `AppError` values unchanged through intermediate layers.
+- Map `AppError` category/retryability to transport-safe protocol status/messages.
+- Ensure unknown/unmapped translation contexts deterministically fall back to the unknown catalog entry.
+
+**Copilot MUST NOT**:
+- Return raw dependency errors across boundaries.
+- Delay translation until outer layers when boundary-local translation is available.
+- Leak native dependency details in gRPC/HTTP response messages.
+
+---
+
 **Description**: Inter-service communication MUST use gRPC with proto-first contracts versioned under `backend/protos/`.
 
 **When it applies**: Adding or modifying inter-service contracts.

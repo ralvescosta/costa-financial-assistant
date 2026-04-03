@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	billsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bills/interfaces"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 )
@@ -50,10 +51,13 @@ func (s *Server) GetPaymentDashboard(ctx context.Context, req *billsv1.GetPaymen
 		pageToken,
 	)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("grpc.GetPaymentDashboard failed",
 			zap.String("project_id", pc.GetProjectId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "get payment dashboard failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 
 	var pagination *commonv1.PaginationResult
@@ -84,10 +88,13 @@ func (s *Server) MarkBillPaid(ctx context.Context, req *billsv1.MarkBillPaidRequ
 
 	bill, err := s.svc.MarkBillPaid(ctx, pc.GetProjectId(), req.GetBillId(), markedBy)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("grpc.MarkBillPaid failed",
 			zap.String("bill_id", req.GetBillId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "mark bill paid failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 
 	return &billsv1.MarkBillPaidResponse{Bill: bill}, nil
@@ -105,10 +112,13 @@ func (s *Server) GetBill(ctx context.Context, req *billsv1.GetBillRequest) (*bil
 
 	bill, err := s.svc.GetBill(ctx, pc.GetProjectId(), req.GetBillId())
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("grpc.GetBill failed",
 			zap.String("bill_id", req.GetBillId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "get bill failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	if bill == nil {
 		return nil, status.Error(codes.NotFound, "bill not found")
@@ -135,10 +145,13 @@ func (s *Server) ListBills(ctx context.Context, req *billsv1.ListBillsRequest) (
 
 	bills, nextToken, err := s.svc.ListBills(ctx, pc.GetProjectId(), req.GetStatusFilter(), pageSize, pageToken)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("grpc.ListBills failed",
 			zap.String("project_id", pc.GetProjectId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "list bills failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 
 	var pagination *commonv1.PaginationResult
@@ -150,4 +163,33 @@ func (s *Server) ListBills(ctx context.Context, req *billsv1.ListBillsRequest) (
 		Bills:      bills,
 		Pagination: pagination,
 	}, nil
+}
+
+func toGRPCStatusError(appErr *apperrors.AppError) error {
+	if appErr == nil {
+		return status.Error(codes.Internal, "internal service error")
+	}
+
+	message := appErr.Message
+	if message == "" {
+		message = "internal service error"
+	}
+
+	switch appErr.Category {
+	case apperrors.CategoryValidation:
+		return status.Error(codes.InvalidArgument, message)
+	case apperrors.CategoryAuth:
+		return status.Error(codes.PermissionDenied, message)
+	case apperrors.CategoryNotFound:
+		return status.Error(codes.NotFound, message)
+	case apperrors.CategoryConflict:
+		return status.Error(codes.AlreadyExists, message)
+	case apperrors.CategoryDependencyDB, apperrors.CategoryDependencyGRPC, apperrors.CategoryDependencyNet:
+		if appErr.Retryable {
+			return status.Error(codes.Unavailable, message)
+		}
+		return status.Error(codes.FailedPrecondition, message)
+	default:
+		return status.Error(codes.Internal, message)
+	}
 }

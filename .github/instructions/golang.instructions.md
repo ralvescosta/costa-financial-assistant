@@ -136,3 +136,21 @@ applyTo: "**/*.go"
 - Access environment variables directly in business logic — always read through `viper`/config.
 - Inline raw SQL schema DDL outside migration files.
 - Use `fmt.Printf` or the standard `log` package for operational logging.
+
+---
+
+## Rule: AppError-First Boundary Propagation
+
+**Description**: Use `AppError` as the only cross-layer error contract in backend request and async paths.
+
+**When it applies**: Returning errors from repositories, services, transports, and async consumers/producers.
+
+**Copilot MUST**:
+- Use `backend/pkgs/errors.TranslateError(...)` at dependency translation boundaries.
+- Preserve existing `AppError` values using `AsAppError` instead of re-wrapping.
+- Apply deterministic unknown fallback semantics for unmapped translation contexts.
+
+**Copilot MUST NOT**:
+- Propagate raw native errors across layer boundaries.
+- Reintroduce `fmt.Errorf("...: %w", err)` in boundary return paths.
+- Convert `AppError` back into dependency-specific error strings in transport code.

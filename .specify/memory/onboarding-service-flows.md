@@ -13,6 +13,7 @@ Notes:
 - Onboarding manages tenant/project lifecycle and collaboration membership.
 - RPCs are project-scoped and rely on `ProjectContext` user/project fields.
 - This service is the source of truth for projects and memberships used by BFF guards.
+- Repository and service layers propagate sanitized `AppError` values only; transport maps categories to gRPC status and suppresses native dependency details.
 
 ## Shared gRPC service pattern (applies to all RPCs)
 

@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"errors"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
@@ -10,8 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/ralvescosta/costa-financial-assistant/backend/internals/onboarding/repositories"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/onboarding/services"
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
@@ -44,10 +43,13 @@ func (s *Server) CreateProject(ctx context.Context, req *onboardingv1.CreateProj
 
 	project, err := s.svc.CreateProject(ctx, req.GetCtx().GetUserId(), req.GetName(), req.GetType())
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("grpc.CreateProject failed",
 			zap.String("owner_id", req.GetCtx().GetUserId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "create project failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	return &onboardingv1.CreateProjectResponse{Project: project}, nil
 }
@@ -60,13 +62,13 @@ func (s *Server) GetProject(ctx context.Context, req *onboardingv1.GetProjectReq
 
 	project, err := s.svc.GetProject(ctx, req.GetCtx().GetProjectId())
 	if err != nil {
-		if errors.Is(err, repositories.ErrProjectNotFound) {
-			return nil, status.Error(codes.NotFound, "project not found")
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
 		}
 		s.logger.Error("grpc.GetProject failed",
 			zap.String("project_id", req.GetCtx().GetProjectId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "get project failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	return &onboardingv1.GetProjectResponse{Project: project}, nil
 }
@@ -87,17 +89,14 @@ func (s *Server) InviteProjectMember(ctx context.Context, req *onboardingv1.Invi
 
 	member, err := s.svc.InviteProjectMember(ctx, req.GetCtx().GetProjectId(), req.GetInviteeEmail(), req.GetRole(), invitedBy)
 	if err != nil {
-		if errors.Is(err, repositories.ErrUserNotFound) {
-			return nil, status.Error(codes.NotFound, "user not found by email")
-		}
-		if errors.Is(err, repositories.ErrMemberAlreadyExists) {
-			return nil, status.Error(codes.AlreadyExists, "user is already a member of this project")
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
 		}
 		s.logger.Error("grpc.InviteProjectMember failed",
 			zap.String("project_id", req.GetCtx().GetProjectId()),
 			zap.String("invitee_email", req.GetInviteeEmail()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "invite member failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	return &onboardingv1.InviteProjectMemberResponse{Member: member}, nil
 }
@@ -113,14 +112,14 @@ func (s *Server) UpdateProjectMemberRole(ctx context.Context, req *onboardingv1.
 
 	member, err := s.svc.UpdateProjectMemberRole(ctx, req.GetCtx().GetProjectId(), req.GetMemberId(), req.GetNewRole())
 	if err != nil {
-		if errors.Is(err, repositories.ErrMemberNotFound) {
-			return nil, status.Error(codes.NotFound, "project member not found")
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
 		}
 		s.logger.Error("grpc.UpdateProjectMemberRole failed",
 			zap.String("project_id", req.GetCtx().GetProjectId()),
 			zap.String("member_id", req.GetMemberId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "update member role failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 	return &onboardingv1.UpdateProjectMemberRoleResponse{Member: member}, nil
 }
@@ -142,10 +141,13 @@ func (s *Server) ListProjectMembers(ctx context.Context, req *onboardingv1.ListP
 
 	members, nextToken, err := s.svc.ListProjectMembers(ctx, req.GetCtx().GetProjectId(), pageSize, pageToken)
 	if err != nil {
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, toGRPCStatusError(appErr)
+		}
 		s.logger.Error("grpc.ListProjectMembers failed",
 			zap.String("project_id", req.GetCtx().GetProjectId()),
 			zap.Error(err))
-		return nil, status.Error(codes.Internal, "list members failed")
+		return nil, status.Error(codes.Internal, "internal service error")
 	}
 
 	return &onboardingv1.ListProjectMembersResponse{
@@ -154,4 +156,33 @@ func (s *Server) ListProjectMembers(ctx context.Context, req *onboardingv1.ListP
 			NextPageToken: nextToken,
 		},
 	}, nil
+}
+
+func toGRPCStatusError(appErr *apperrors.AppError) error {
+	if appErr == nil {
+		return status.Error(codes.Internal, "internal service error")
+	}
+
+	message := appErr.Message
+	if message == "" {
+		message = "internal service error"
+	}
+
+	switch appErr.Category {
+	case apperrors.CategoryValidation:
+		return status.Error(codes.InvalidArgument, message)
+	case apperrors.CategoryAuth:
+		return status.Error(codes.PermissionDenied, message)
+	case apperrors.CategoryNotFound:
+		return status.Error(codes.NotFound, message)
+	case apperrors.CategoryConflict:
+		return status.Error(codes.AlreadyExists, message)
+	case apperrors.CategoryDependencyDB, apperrors.CategoryDependencyGRPC, apperrors.CategoryDependencyNet:
+		if appErr.Retryable {
+			return status.Error(codes.Unavailable, message)
+		}
+		return status.Error(codes.FailedPrecondition, message)
+	default:
+		return status.Error(codes.Internal, message)
+	}
 }
