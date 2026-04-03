@@ -128,80 +128,104 @@ func (stubHistory) HandleGetCompliance(_ context.Context, _ *views.HistoryQueryI
 
 // ── Smoke test ────────────────────────────────────────────────────────────────
 
+type scenario struct {
+	Name   string
+	Given  string
+	When   string
+	Then   string
+	Assert func(t *testing.T)
+}
+
 // TestBFFRouteRegistrationSmoke verifies that every expected OpenAPI operation ID
 // is registered when all six route modules are wired together using the
 // buildBFFTestServer helper. This test does NOT exercise handler logic — it only
 // validates that the registration wiring is complete and correct.
 func TestBFFRouteRegistrationSmoke(t *testing.T) {
-	// Given all active BFF route modules are wired into the in-process test server.
-	// Arrange
-	logger := zap.NewNop()
+	scenarios := []scenario{
+		{
+			Name:  "GivenActiveBFFRoutesWhenOpenAPIGeneratedThenAllOperationsRegistered",
+			Given: "all active BFF route modules are wired into the in-process test server",
+			When:  "the OpenAPI document is produced from registered routes",
+			Then:  "every expected operation is registered exactly once",
+			Assert: func(t *testing.T) {
+				// Arrange
+				logger := zap.NewNop()
 
-	routeModules := []bfftransportroutes.Route{
-		bfftransportroutes.NewDocumentsRoute(stubDocuments{}, logger),
-		bfftransportroutes.NewProjectsRoute(stubProjects{}, logger),
-		bfftransportroutes.NewSettingsRoute(stubSettings{}, logger),
-		bfftransportroutes.NewPaymentsRoute(stubPayments{}, logger),
-		bfftransportroutes.NewReconciliationRoute(stubReconciliation{}, logger),
-		bfftransportroutes.NewHistoryRoute(stubHistory{}, logger),
+				routeModules := []bfftransportroutes.Route{
+					bfftransportroutes.NewDocumentsRoute(stubDocuments{}, logger),
+					bfftransportroutes.NewProjectsRoute(stubProjects{}, logger),
+					bfftransportroutes.NewSettingsRoute(stubSettings{}, logger),
+					bfftransportroutes.NewPaymentsRoute(stubPayments{}, logger),
+					bfftransportroutes.NewReconciliationRoute(stubReconciliation{}, logger),
+					bfftransportroutes.NewHistoryRoute(stubHistory{}, logger),
+				}
+
+				expectedOperationIDs := []string{
+					// Documents (4)
+					"upload-document",
+					"classify-document",
+					"list-documents",
+					"get-document",
+					// Projects (4)
+					"get-current-project",
+					"list-project-members",
+					"invite-project-member",
+					"update-project-member-role",
+					// Settings (3)
+					"list-bank-accounts",
+					"create-bank-account",
+					"delete-bank-account",
+					// Payments (4)
+					"get-payment-dashboard",
+					"mark-bill-paid",
+					"get-preferred-payment-day",
+					"set-preferred-payment-day",
+					// Reconciliation (2)
+					"get-reconciliation-summary",
+					"create-reconciliation-link",
+					// History (3)
+					"get-history-timeline",
+					"get-history-categories",
+					"get-history-compliance",
+				}
+
+				// Act
+				_, api := buildBFFTestServer(t, routeModules...)
+
+				// Collect all registered operation IDs from the OpenAPI spec.
+				registered := map[string]bool{}
+				for _, pathItem := range api.OpenAPI().Paths {
+					for _, op := range []*huma.Operation{
+						pathItem.Get,
+						pathItem.Post,
+						pathItem.Put,
+						pathItem.Patch,
+						pathItem.Delete,
+					} {
+						if op != nil && op.OperationID != "" {
+							registered[op.OperationID] = true
+						}
+					}
+				}
+
+				// Assert
+				assert.Len(t, registered, len(expectedOperationIDs),
+					"expected exactly %d registered operations", len(expectedOperationIDs))
+
+				for _, id := range expectedOperationIDs {
+					assert.True(t, registered[id], "operation %q not registered", id)
+				}
+			},
+		},
 	}
 
-	// When the OpenAPI document is produced from registered routes.
-	// Act
-	_, api := buildBFFTestServer(t, routeModules...)
-
-	expectedOperationIDs := []string{
-		// Documents (4)
-		"upload-document",
-		"classify-document",
-		"list-documents",
-		"get-document",
-		// Projects (4)
-		"get-current-project",
-		"list-project-members",
-		"invite-project-member",
-		"update-project-member-role",
-		// Settings (3)
-		"list-bank-accounts",
-		"create-bank-account",
-		"delete-bank-account",
-		// Payments (4)
-		"get-payment-dashboard",
-		"mark-bill-paid",
-		"get-preferred-payment-day",
-		"set-preferred-payment-day",
-		// Reconciliation (2)
-		"get-reconciliation-summary",
-		"create-reconciliation-link",
-		// History (3)
-		"get-history-timeline",
-		"get-history-categories",
-		"get-history-compliance",
-	}
-
-	// Collect all registered operation IDs from the OpenAPI spec.
-	registered := map[string]bool{}
-	for _, pathItem := range api.OpenAPI().Paths {
-		for _, op := range []*huma.Operation{
-			pathItem.Get,
-			pathItem.Post,
-			pathItem.Put,
-			pathItem.Patch,
-			pathItem.Delete,
-		} {
-			if op != nil && op.OperationID != "" {
-				registered[op.OperationID] = true
-			}
-		}
-	}
-
-	// Then every expected operation is registered exactly once.
-	// Assert
-	assert.Len(t, registered, len(expectedOperationIDs),
-		"expected exactly %d registered operations", len(expectedOperationIDs))
-
-	for _, id := range expectedOperationIDs {
-		assert.True(t, registered[id], "operation %q not registered", id)
+	for _, s := range scenarios {
+		t.Run(s.Name, func(t *testing.T) {
+			t.Logf("Given: %s", s.Given)
+			t.Logf("When: %s", s.When)
+			t.Logf("Then: %s", s.Then)
+			s.Assert(t)
+		})
 	}
 }
 

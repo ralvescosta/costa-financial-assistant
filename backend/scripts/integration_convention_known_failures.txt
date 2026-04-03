@@ -5,9 +5,6 @@
 [FAIL] missing table-driven scenario structure: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/bff_route_contract_wiring_test.go
 [FAIL] missing explicit Given/When/Then structure: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/bff_route_contract_wiring_test.go
 [FAIL] missing AAA sections: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/bff_route_contract_wiring_test.go
-[FAIL] missing table-driven scenario structure: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/bff_route_registration_smoke_test.go
-[FAIL] missing explicit Given/When/Then structure: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/bff_route_registration_smoke_test.go
-[FAIL] missing AAA sections: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/bff_route_registration_smoke_test.go
 [FAIL] missing table-driven scenario structure: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/documents_routes_registration_test.go
 [FAIL] missing explicit Given/When/Then structure: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/documents_routes_registration_test.go
 [FAIL] missing AAA sections: /home/ralvescosta/Desktop/Insync/Rafael/costa-financial-assistant/backend/tests/integration/bff/documents_routes_registration_test.go
