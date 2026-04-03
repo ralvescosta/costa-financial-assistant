@@ -16,11 +16,13 @@
 
 **Purpose**: Establish shared backend error primitives and baseline implementation scaffolding.
 
-- [ ] T001 Audit current backend error-leak points and record baseline in specs/008-standardize-app-errors/contracts/current-error-leaks.md
-- [ ] T002 Expand shared error contract behavior in backend/pkgs/errors/error.go
-- [ ] T003 [P] Create translation helper primitives in backend/pkgs/errors/translate.go
-- [ ] T004 [P] Expand centralized error catalog entries in backend/pkgs/errors/consts.go
-- [ ] T005 [P] Add package-level unit tests for shared error primitives in backend/pkgs/errors/error_test.go
+- [X] T001 Audit current backend error-leak points and record baseline in specs/008-standardize-app-errors/contracts/current-error-leaks.md
+- [X] T002 Expand shared error contract behavior in backend/pkgs/errors/error.go
+- [X] T003 [P] Create translation helper primitives in backend/pkgs/errors/translate.go
+- [X] T004 [P] Expand centralized error catalog entries in backend/pkgs/errors/consts.go
+- [X] T005 [P] Add package-level unit tests for shared error primitives in backend/pkgs/errors/error_test.go
+
+**Checkpoint**: Shared error package infrastructure complete. ✅ **PHASE 1 COMPLETE** (04-03-2026)
 
 ---
 
@@ -30,13 +32,13 @@
 
 **⚠️ CRITICAL**: No user story work starts before this phase is complete.
 
-- [ ] T006 Define deterministic translation policy and category mapping in backend/pkgs/errors/mapping.go
-- [ ] T007 [P] Add shared SQL and gRPC native-error classification helpers in backend/pkgs/errors/native_classifiers.go
-- [ ] T008 [P] Add reusable AppError test assertions for integration suites in backend/tests/integration/helpers/assert_app_error.go
-- [ ] T009 [P] Define service adoption checklist in specs/008-standardize-app-errors/contracts/service-adoption-checklist.md
-- [ ] T010 Create implementation progress matrix for all backend services in specs/008-standardize-app-errors/contracts/service-coverage-matrix.md
+- [X] T006 Define deterministic translation policy and category mapping in backend/pkgs/errors/mapping.go
+- [X] T007 [P] Add shared SQL and gRPC native-error classification helpers in backend/pkgs/errors/native_classifiers.go
+- [X] T008 [P] Add reusable AppError test assertions for integration suites in backend/tests/integration/helpers/assert_app_error.go
+- [X] T009 [P] Define service adoption checklist in specs/008-standardize-app-errors/contracts/service-adoption-checklist.md
+- [X] T010 Create implementation progress matrix for all backend services in specs/008-standardize-app-errors/contracts/service-coverage-matrix.md
 
-**Checkpoint**: Shared policy and mapping foundation complete.
+**Checkpoint**: Shared policy and mapping foundation complete. ✅ **PHASE 2 COMPLETE** (04-03-2026)
 
 ---
 
