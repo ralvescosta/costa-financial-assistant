@@ -15,7 +15,7 @@ services:
       POSTGRES_USER: financial
       POSTGRES_PASSWORD: financial
       POSTGRES_MULTIPLE_DATABASES: |
-        financial_onboarding,financial_files,financial_bills,financial_payments
+        financial_assistant,financial_onboarding,financial_files,financial_bills,financial_payments
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/docker/create-multiple-db.sh:/docker-entrypoint-initdb.d/create-multiple-db.sh:ro

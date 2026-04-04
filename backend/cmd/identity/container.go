@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net"
+	"net/url"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -46,14 +47,28 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── Database ────────────────────────────────────────────────────────────
-	if err := c.Provide(func(cfg *configs.Config) (*sql.DB, error) {
-		db, err := sql.Open("postgres", cfg.DB.DSN)
+	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (*sql.DB, error) {
+		if cfg.DB.DSN == "" {
+			return nil, fmt.Errorf("identity: DB_DSN is required")
+		}
+
+		dsn := normalizeIdentityDBDSN(cfg.DB.DSN)
+		db, err := sql.Open("postgres", dsn)
 		if err != nil {
 			return nil, fmt.Errorf("identity: open database: %w", err)
 		}
 		db.SetMaxOpenConns(cfg.DB.MaxOpenConns)
 		db.SetMaxIdleConns(cfg.DB.MaxIdleConns)
 		db.SetConnMaxLifetime(time.Duration(cfg.DB.ConnMaxLifetime) * time.Second)
+
+		pingCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := db.PingContext(pingCtx); err != nil {
+			_ = db.Close()
+			return nil, fmt.Errorf("identity: ping database: %w", err)
+		}
+
+		logger.Info("identity DB configured")
 		return db, nil
 	}); err != nil {
 		return fmt.Errorf("identity: provide db: %w", err)
@@ -111,4 +126,24 @@ func run(ctx context.Context) error {
 
 		return srv.Serve(lis)
 	})
+}
+
+const identitySearchPath = "identity,onboarding,public"
+
+func normalizeIdentityDBDSN(raw string) string {
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme == "" {
+		return raw
+	}
+
+	query := parsed.Query()
+	if query.Get("sslmode") == "" {
+		query.Set("sslmode", "disable")
+	}
+	if query.Get("search_path") == "" {
+		query.Set("search_path", identitySearchPath)
+	}
+	parsed.RawQuery = query.Encode()
+
+	return parsed.String()
 }
