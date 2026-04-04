@@ -67,7 +67,7 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── Repositories ────────────────────────────────────────────────────────
-	if err := c.Provide(identityrepo.NewBootstrapAuthRepository); err != nil {
+	if err := c.Provide(identityrepo.NewBootstrapAuthRepository, dig.As(new(services.BootstrapAuthLookup))); err != nil {
 		return fmt.Errorf("identity: provide bootstrap auth repository: %w", err)
 	}
 

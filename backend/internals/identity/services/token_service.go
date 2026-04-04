@@ -40,14 +40,14 @@ type TokenServiceIface interface {
 	GetJwksMetadata(ctx context.Context) (*identityv1.JwksMetadata, error)
 }
 
-// bootstrapAuthLookup resolves the seeded owner account used by the login flow.
-type bootstrapAuthLookup interface {
+// BootstrapAuthLookup resolves the seeded owner account used by the login flow.
+type BootstrapAuthLookup interface {
 	FindBootstrapUser(ctx context.Context, username string) (*identityrepo.BootstrapAuthRecord, error)
 }
 
 // TokenService handles JWT signing and JWKS exposition for the identity service.
 type TokenService struct {
-	authRepo bootstrapAuthLookup
+	authRepo BootstrapAuthLookup
 	key      *rsa.PrivateKey
 	logger   *zap.Logger
 }
@@ -58,7 +58,7 @@ func NewTokenService(key *rsa.PrivateKey, logger *zap.Logger) TokenServiceIface 
 }
 
 // NewTokenServiceWithRepository constructs a TokenService backed by the identity database.
-func NewTokenServiceWithRepository(repo bootstrapAuthLookup, key *rsa.PrivateKey, logger *zap.Logger) TokenServiceIface {
+func NewTokenServiceWithRepository(repo BootstrapAuthLookup, key *rsa.PrivateKey, logger *zap.Logger) TokenServiceIface {
 	if repo == nil {
 		repo = fallbackBootstrapRepo{}
 	}
