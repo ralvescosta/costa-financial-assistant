@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Env         string `mapstructure:"ENV"`
 	ServiceName string `mapstructure:"SERVICE_NAME"`
+	LogLevel    string `mapstructure:"LOG_LEVEL"`
 
 	HTTP     HTTPConfig
 	GRPC     GRPCConfig
@@ -22,11 +23,11 @@ type Config struct {
 
 // ServicesConfig holds upstream gRPC service addresses consumed by the BFF and other services.
 type ServicesConfig struct {
-	IdentityGRPCAddr    string `mapstructure:"IDENTITY_GRPC_ADDR"`
-	FilesGRPCAddr       string `mapstructure:"FILES_GRPC_ADDR"`
-	BillsGRPCAddr       string `mapstructure:"BILLS_GRPC_ADDR"`
-	OnboardingGRPCAddr  string `mapstructure:"ONBOARDING_GRPC_ADDR"`
-	PaymentsGRPCAddr    string `mapstructure:"PAYMENTS_GRPC_ADDR"`
+	IdentityGRPCAddr   string `mapstructure:"IDENTITY_GRPC_ADDR"`
+	FilesGRPCAddr      string `mapstructure:"FILES_GRPC_ADDR"`
+	BillsGRPCAddr      string `mapstructure:"BILLS_GRPC_ADDR"`
+	OnboardingGRPCAddr string `mapstructure:"ONBOARDING_GRPC_ADDR"`
+	PaymentsGRPCAddr   string `mapstructure:"PAYMENTS_GRPC_ADDR"`
 }
 
 // HTTPConfig holds HTTP server binding settings.
@@ -65,6 +66,7 @@ func Load(prefix string) (*Config, error) {
 
 	// Defaults
 	v.SetDefault("ENV", "development")
+	v.SetDefault("LOG_LEVEL", "trace")
 	v.SetDefault("HTTP_PORT", 8080)
 	v.SetDefault("HTTP_HOST", "0.0.0.0")
 	v.SetDefault("GRPC_PORT", 9090)
@@ -83,6 +85,7 @@ func Load(prefix string) (*Config, error) {
 	cfg := &Config{
 		Env:         v.GetString("ENV"),
 		ServiceName: v.GetString("SERVICE_NAME"),
+		LogLevel:    v.GetString("LOG_LEVEL"),
 		HTTP: HTTPConfig{
 			Port: v.GetInt("HTTP_PORT"),
 			Host: v.GetString("HTTP_HOST"),
