@@ -7,6 +7,12 @@ export default {
       colors: {
         primary: 'var(--color-primary)',
         'primary-hover': 'var(--color-primary-hover)',
+        'primary-action-bg': 'var(--color-primary-action-bg)',
+        'primary-action-fg': 'var(--color-primary-action-fg)',
+        'primary-action-hover': 'var(--color-primary-action-hover)',
+        'primary-action-focus': 'var(--color-primary-action-focus)',
+        'primary-action-disabled-bg': 'var(--color-primary-action-disabled-bg)',
+        'primary-action-disabled-fg': 'var(--color-primary-action-disabled-fg)',
         surface: 'var(--color-surface)',
         'surface-raised': 'var(--color-surface-raised)',
         border: 'var(--color-border)',

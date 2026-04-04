@@ -47,7 +47,6 @@ export function useTokenRefreshInterceptor(): void {
     return () => {
       window.fetch = nativeFetch
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshAccessToken, logout])
 }
 

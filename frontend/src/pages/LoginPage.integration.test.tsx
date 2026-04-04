@@ -18,7 +18,11 @@ import { LoginPage } from '@/pages/LoginPage'
 const server = setupServer()
 
 beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  localStorage.clear()
+  document.documentElement.classList.remove('dark')
+})
 afterAll(() => server.close())
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -68,5 +72,39 @@ describe('LoginPage integration', () => {
     await waitFor(() => {
       expect(screen.getByText('Dashboard')).toBeInTheDocument()
     }, { timeout: 5000 })
+  })
+
+  it('preserves the dark-mode action contract on first paint after a refresh', () => {
+    document.documentElement.classList.add('dark')
+
+    const { unmount } = render(
+      <Wrapper>
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+          </Routes>
+        </MemoryRouter>
+      </Wrapper>,
+    )
+
+    let button = screen.getByRole('button', { name: /sign in/i })
+    expect(button.className).toContain('bg-[color:var(--color-primary-action-bg)]')
+    expect(button.className).toContain('text-[color:var(--color-primary-action-fg)]')
+
+    unmount()
+
+    render(
+      <Wrapper>
+        <MemoryRouter initialEntries={['/login']}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+          </Routes>
+        </MemoryRouter>
+      </Wrapper>,
+    )
+
+    button = screen.getByRole('button', { name: /sign in/i })
+    expect(button.className).toContain('bg-[color:var(--color-primary-action-bg)]')
+    expect(button.className).toContain('text-[color:var(--color-primary-action-fg)]')
   })
 })

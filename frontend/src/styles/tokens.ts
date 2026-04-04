@@ -38,6 +38,12 @@ export const palette = {
 type SemanticTokens = {
   colorPrimary: string
   colorPrimaryHover: string
+  colorPrimaryActionBg: string
+  colorPrimaryActionFg: string
+  colorPrimaryActionHover: string
+  colorPrimaryActionFocus: string
+  colorPrimaryActionDisabledBg: string
+  colorPrimaryActionDisabledFg: string
   colorSurface: string
   colorSurfaceRaised: string
   colorBorder: string
@@ -68,6 +74,12 @@ type SemanticTokens = {
 export const lightTokens: SemanticTokens = {
   colorPrimary: palette.indigo600,
   colorPrimaryHover: palette.indigo700,
+  colorPrimaryActionBg: palette.indigo600,
+  colorPrimaryActionFg: palette.white,
+  colorPrimaryActionHover: palette.indigo700,
+  colorPrimaryActionFocus: palette.indigo600,
+  colorPrimaryActionDisabledBg: palette.gray200,
+  colorPrimaryActionDisabledFg: palette.gray600,
   colorSurface: palette.white,
   colorSurfaceRaised: palette.gray50,
   colorBorder: palette.gray200,
@@ -98,6 +110,12 @@ export const lightTokens: SemanticTokens = {
 export const darkTokens: SemanticTokens = {
   colorPrimary: palette.indigo50,
   colorPrimaryHover: palette.indigo600,
+  colorPrimaryActionBg: palette.indigo600,
+  colorPrimaryActionFg: palette.white,
+  colorPrimaryActionHover: palette.indigo700,
+  colorPrimaryActionFocus: palette.indigo50,
+  colorPrimaryActionDisabledBg: '#3a3a5c',
+  colorPrimaryActionDisabledFg: '#a0aec0',
   colorSurface: '#1e1e2e',
   colorSurfaceRaised: '#2a2a3d',
   colorBorder: '#3a3a5c',

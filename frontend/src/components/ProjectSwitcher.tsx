@@ -123,7 +123,7 @@ export function ProjectSwitcher() {
         <button
           type="submit"
           disabled={inviteMutation.isPending}
-          className="w-full rounded bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+          className="w-full rounded bg-[color:var(--color-primary-action-bg)] px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary-action-fg)] transition-colors duration-150 hover:bg-[color:var(--color-primary-action-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary-action-focus)] focus:ring-offset-2 focus:ring-offset-[color:var(--color-surface)] disabled:cursor-not-allowed disabled:bg-[color:var(--color-primary-action-disabled-bg)] disabled:text-[color:var(--color-primary-action-disabled-fg)] disabled:hover:bg-[color:var(--color-primary-action-disabled-bg)] disabled:opacity-100"
         >
           {inviteMutation.isPending ? 'Inviting…' : 'Invite'}
         </button>
