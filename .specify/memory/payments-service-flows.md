@@ -5,7 +5,9 @@
 This document maps Payments service gRPC flows and boundary policy expectations.
 
 Notes:
-- Payments gRPC handlers are consumed by BFF and must preserve tenant/project scope.
+- Payments service is the ownership boundary for cycle preference, history, and reconciliation data and must preserve tenant/project scope.
+- BFF must consume payments capabilities through the Payments gRPC boundary only; it must not inject payments repositories or storage-backed payment services in-process.
+- Interim state: until the Payments gRPC transport for those flows is fully implemented, the BFF must fail safe with a dependency error rather than reintroduce direct storage access.
 - Repository/service/transport boundaries propagate `AppError` contracts only.
 - Pointer-threshold policy applies on modified boundaries: pointer signatures are default for large/reference-like structs.
 - Any intentional value-semantics exception must be documented in the feature-level pointer exception contract artifact.

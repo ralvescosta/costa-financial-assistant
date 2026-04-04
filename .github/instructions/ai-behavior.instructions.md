@@ -122,6 +122,23 @@ applyTo: "**/*"
 
 ---
 
+## Rule: BFF Gateway Ownership Preservation
+
+**Description**: The BFF is a gateway for authentication, authorization, and frontend contract composition. Domain data ownership remains in downstream services reached through gRPC/service contracts.
+
+**When it applies**: Generating or modifying any BFF or backend integration code.
+
+**Copilot MUST**:
+- Preserve the BFF as a thin gateway/orchestration layer for frontend-facing flows.
+- Route business reads and writes through the owning downstream service boundary.
+- Update relevant instruction and memory artifacts when BFF boundary rules are tightened or corrected.
+
+**Copilot MUST NOT**:
+- Generate or accept BFF code that injects repositories, SQL handles, or storage-backed domain services for business data access.
+- Bypass downstream service ownership just to simplify a frontend-facing endpoint.
+
+---
+
 ## Rule: Code Review Before Suggesting
 
 **Description**: Verify code against ALL applicable rules before suggesting.

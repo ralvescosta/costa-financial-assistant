@@ -36,10 +36,12 @@ applyTo: "**/*"
 - Place gRPC server handler implementations in `backend/internals/<service>/transport/grpc/server.go`.
 - Place BFF HTTP controllers in `backend/internals/bff/financial/controllers/`.
 - Place BFF HTTP middleware in `backend/internals/bff/financial/transport/http/middleware/`.
+- Keep `backend/internals/bff/` limited to gateway concerns (authentication, authorization, HTTP adaptation, response composition, downstream orchestration).
 
 **Copilot MUST NOT**:
 - Create service logic files inside `transport/` directories.
 - Create HTTP handlers inside `internals/<non-bff-service>/` directories.
+- Add domain-data repository or SQL adapter packages under `backend/internals/bff/` for payments, bills, files, onboarding, or identity data access.
 - Place reusable cross-service utilities anywhere except `backend/pkgs/`.
 
 ---
@@ -127,10 +129,12 @@ applyTo: "**/*"
 - Place HTTP mapper implementations in `backend/internals/bff/transport/http/controllers/mappers/`.
 - Place BFF service boundary tests in `backend/internals/bff/services/*_test.go`.
 - Place BFF route registration/reachability integration tests in `backend/tests/integration/bff/*_routes_registration_test.go`.
+- Keep BFF service implementations consuming downstream gRPC clients or service-owned contracts only when business data is needed.
 
 **Copilot MUST NOT**:
 - Place service contracts under `backend/internals/bff/transport/http/views/`.
 - Place mapper files under `backend/internals/bff/services/`.
+- Inject or reference domain repository interfaces inside `backend/internals/bff/services/` for business data access.
 - Place BFF route integration tests outside `backend/tests/integration/bff/`.
 
 ---

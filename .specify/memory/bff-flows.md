@@ -5,19 +5,36 @@
 This document maps all current BFF HTTP endpoints and their flow through:
 - Auth and authorization middleware
 - Inter-service calls and protocol (HTTP/gRPC)
-- Data interactions (PostgreSQL)
-- Cache interactions (in-memory JWKS cache)
-- Redis and RabbitMQ interactions (when present)
+- Downstream service ownership of PostgreSQL access (the BFF never queries domain PostgreSQL directly)
+- Cache interactions (in-memory JWKS cache and auth-only support state)
+- Redis and RabbitMQ interactions only through the appropriate service or middleware boundary
 
 Notes:
 - All endpoints are registered via Huma on Echo.
 - Auth middleware uses Bearer JWT + JWKS key lookup.
 - JWKS cache is in-memory inside BFF (not Redis).
-- For endpoints that call downstream services via gRPC, DB details happen in those services.
+- For endpoints that call downstream services via gRPC, all domain DB details happen in those services.
+- **011 gateway rule (enforced)**: BFF handles authentication, authorization, request validation, and frontend response composition only. It MUST NOT access domain repositories or domain databases directly.
 - **006 boundary (enforced)**: controllers are pure HTTP adapters — they validate view contracts and call one BFF service method. All downstream gRPC orchestration lives in `internals/bff/services/`. HTTP contracts (request/response structs) are owned exclusively by `transport/http/views/`. Route modules own all `huma.Register(...)` calls.
 - **009 boundary ownership rule (enforced)**: service contracts are owned by `internals/bff/services/contracts/`; transport mappers in `transport/http/controllers/mappers/` are the only conversion boundary between `views` and service contracts.
 - **009 pointer policy (enforced)**: modified BFF boundary signatures default to pointer semantics for large/reference-like structs, and value-semantics exceptions must be explicitly documented in feature contract artifacts.
 - **AppError boundary rule (008)**: all downstream/native failures are translated to `AppError` before crossing service boundaries; BFF services log native errors once with structured context and propagate only sanitized `AppError` contracts.
+
+## Corrected BFF gateway pattern
+
+```mermaid
+flowchart LR
+    FE[Frontend Client] --> BFF[BFF Route + Controller]
+    BFF --> AUTH[AuthN/AuthZ + Project Guard]
+    AUTH --> SVC[BFF Service Orchestration]
+    SVC -->|gRPC only for business data| DS[Owning Downstream Service]
+    DS --> REPO[Domain Repository]
+    REPO --> DB[(PostgreSQL)]
+    DB --> REPO --> DS --> SVC --> BFF --> FE
+
+    BAD[Forbidden path] -. no direct domain DB access .-> DB
+    BAD -. no repository injection into BFF .-> SVC
+```
 
 ## Shared auth and guard pattern (applies to all endpoints)
 
@@ -86,7 +103,8 @@ flowchart LR
     C[Client] -->|HTTPS POST| BFF[BFF /projects/members/invite]
     BFF --> AUTH[Auth + ProjectGuard write]
     AUTH --> PC[ProjectsController.handleInvite]
-    PC -->|gRPC| ONB[Onboarding Service InviteProjectMember]
+    PC -->|BFF service| SVC[ProjectsService.InviteProjectMember]
+    SVC -->|gRPC| ONB[Onboarding Service InviteProjectMember]
     ONB -->|SQL read| UDB[(PostgreSQL onboarding: users by email)]
     ONB -->|SQL write| MDB[(PostgreSQL onboarding: project_members)]
     UDB --> ONB
@@ -107,7 +125,8 @@ flowchart LR
     C[Client] -->|HTTPS PATCH| BFF[BFF /projects/members/{memberId}/role]
     BFF --> AUTH[Auth + ProjectGuard write]
     AUTH --> PC[ProjectsController.handleUpdateRole]
-    PC -->|gRPC| ONB[Onboarding Service UpdateProjectMemberRole]
+    PC -->|BFF service| SVC[ProjectsService.UpdateProjectMemberRole]
+    SVC -->|gRPC| ONB[Onboarding Service UpdateProjectMemberRole]
     ONB -->|SQL update| MDB[(PostgreSQL onboarding: project_members)]
     MDB --> ONB
     ONB --> PC

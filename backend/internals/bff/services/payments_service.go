@@ -3,35 +3,32 @@ package services
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"go.uber.org/zap"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
-	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 )
 
+const paymentCycleGRPCUnavailableMessage = "payment cycle preferences require a downstream payments gRPC contract before the BFF can serve this flow"
+
 // PaymentsServiceImpl implements bffinterfaces.PaymentsService.
 type PaymentsServiceImpl struct {
-	logger       *zap.Logger
-	billsClient  billsv1.BillsServiceClient
-	cycleService paymentsinterfaces.PaymentCycleService
+	logger      *zap.Logger
+	billsClient billsv1.BillsServiceClient
 }
 
 // NewPaymentsService constructs a PaymentsServiceImpl.
 func NewPaymentsService(
 	logger *zap.Logger,
 	billsClient billsv1.BillsServiceClient,
-	cycleService paymentsinterfaces.PaymentCycleService,
 ) bffinterfaces.PaymentsService {
 	return &PaymentsServiceImpl{
-		logger:       logger,
-		billsClient:  billsClient,
-		cycleService: cycleService,
+		logger:      logger,
+		billsClient: billsClient,
 	}
 }
 
@@ -105,50 +102,31 @@ func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billI
 
 // GetCyclePreference returns the project's preferred payment day.
 func (s *PaymentsServiceImpl) GetCyclePreference(ctx context.Context, projectID string) (*bffcontracts.CyclePreferenceResponse, error) {
-	pref, err := s.cycleService.GetCyclePreference(ctx, projectID)
-	if err != nil {
-		s.logger.Error("payments_svc: get cycle preference failed",
-			zap.String("project_id", projectID),
-			zap.Error(err))
-		if appErr := apperrors.AsAppError(err); appErr != nil {
-			return nil, appErr
-		}
-		return nil, apperrors.TranslateError(err, "service")
-	}
-	if pref == nil {
-		return nil, nil
-	}
-	return &bffcontracts.CyclePreferenceResponse{
-		ProjectID:           pref.ProjectID,
-		PreferredDayOfMonth: pref.PreferredDayOfMonth,
-		UpdatedAt:           pref.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-	}, nil
+	_ = ctx
+	appErr := apperrors.NewWithCategory(paymentCycleGRPCUnavailableMessage, apperrors.CategoryDependencyGRPC)
+	s.logger.Error("payments_svc: get cycle preference failed",
+		zap.String("project_id", projectID),
+		zap.Error(appErr))
+	return nil, appErr
 }
 
 // SetCyclePreference creates or updates the project's preferred payment day.
 func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID string, dayOfMonth int, updatedBy string) (*bffcontracts.CyclePreferenceResponse, error) {
+	_ = ctx
+	_ = updatedBy
 	if dayOfMonth < 1 || dayOfMonth > 28 {
-		return nil, fmt.Errorf("preferredDayOfMonth must be between 1 and 28, got %s", strconv.Itoa(dayOfMonth))
+		return nil, apperrors.NewWithCategory(
+			fmt.Sprintf("preferredDayOfMonth must be between 1 and 28, got %d", dayOfMonth),
+			apperrors.CategoryValidation,
+		)
 	}
-	pref, err := s.cycleService.UpsertCyclePreference(ctx, projectID, dayOfMonth, updatedBy)
-	if err != nil {
-		s.logger.Error("payments_svc: set cycle preference failed",
-			zap.String("project_id", projectID),
-			zap.Int("day_of_month", dayOfMonth),
-			zap.Error(err))
-		if appErr := apperrors.AsAppError(err); appErr != nil {
-			return nil, appErr
-		}
-		return nil, apperrors.TranslateError(err, "service")
-	}
-	s.logger.Info("payments_svc: preferred day set",
+
+	appErr := apperrors.NewWithCategory(paymentCycleGRPCUnavailableMessage, apperrors.CategoryDependencyGRPC)
+	s.logger.Error("payments_svc: set cycle preference failed",
 		zap.String("project_id", projectID),
-		zap.Int("day", dayOfMonth))
-	return &bffcontracts.CyclePreferenceResponse{
-		ProjectID:           pref.ProjectID,
-		PreferredDayOfMonth: pref.PreferredDayOfMonth,
-		UpdatedAt:           pref.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-	}, nil
+		zap.Int("day_of_month", dayOfMonth),
+		zap.Error(appErr))
+	return nil, appErr
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────────────

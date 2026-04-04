@@ -12,7 +12,6 @@ import (
 	billsservices "github.com/ralvescosta/costa-financial-assistant/backend/internals/bills/services"
 	identitygrpc "github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/transport/grpc"
 	onboardinggrpc "github.com/ralvescosta/costa-financial-assistant/backend/internals/onboarding/transport/grpc"
-	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
@@ -20,18 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-type historyRepoBoundaryErrStub struct{}
-
-func (historyRepoBoundaryErrStub) GetTimeline(context.Context, string, int) ([]paymentsinterfaces.MonthlyTimelineEntry, error) {
-	return nil, nativeerrors.New("history query failed")
-}
-func (historyRepoBoundaryErrStub) GetCategoryBreakdown(context.Context, string, int) ([]paymentsinterfaces.CategoryBreakdownEntry, error) {
-	return nil, nil
-}
-func (historyRepoBoundaryErrStub) GetComplianceMetrics(context.Context, string, int) ([]paymentsinterfaces.MonthlyComplianceEntry, error) {
-	return nil, nil
-}
 
 type billsRepoBoundaryErrStub struct{}
 
@@ -95,7 +82,7 @@ func TestBoundaryLogging_TableDriven_T064(t *testing.T) {
 		{
 			name: "Given BFF boundary failure When service call fails Then one structured boundary log is emitted",
 			run: func(ctx context.Context, logger *zap.Logger) error {
-				svc := bffservices.NewHistoryService(logger, historyRepoBoundaryErrStub{})
+				svc := bffservices.NewHistoryService(logger)
 				_, err := svc.GetTimeline(ctx, "project-1", 1)
 				return err
 			},
