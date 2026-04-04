@@ -20,6 +20,7 @@ import (
 	billssvc "github.com/ralvescosta/costa-financial-assistant/backend/internals/bills/services"
 	billsgrpc "github.com/ralvescosta/costa-financial-assistant/backend/internals/bills/transport/grpc"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
+	pkglogger "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/logger"
 	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 )
@@ -40,12 +41,7 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── Logger ──────────────────────────────────────────────────────────────
-	if err := c.Provide(func(cfg *configs.Config) (*zap.Logger, error) {
-		if cfg.Env == "production" {
-			return zap.NewProduction()
-		}
-		return zap.NewDevelopment()
-	}); err != nil {
+	if err := c.Provide(pkglogger.New); err != nil {
 		return fmt.Errorf("bills: provide logger: %w", err)
 	}
 
