@@ -2,10 +2,8 @@ package bff
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -19,13 +17,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	_ "github.com/lib/pq"
-
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/controllers"
 	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	bfftransportroutes "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/routes"
-	paymentsrepo "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/repositories"
-	paymentssvc "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/services"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
 	pkglogger "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/logger"
 	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
@@ -105,44 +99,6 @@ func run(ctx context.Context) error {
 		return billsv1.NewBillsServiceClient(conn), nil
 	}); err != nil {
 		return fmt.Errorf("bff: provide bills client: %w", err)
-	}
-
-	// ─── Payments DB connection ───────────────────────────────────────────────
-	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (*sql.DB, error) {
-		db, err := sql.Open("postgres", cfg.DB.DSN)
-		if err != nil {
-			return nil, fmt.Errorf("bff: open payments db: %w", err)
-		}
-		db.SetMaxOpenConns(cfg.DB.MaxOpenConns)
-		db.SetMaxIdleConns(cfg.DB.MaxIdleConns)
-		db.SetConnMaxLifetime(time.Duration(cfg.DB.ConnMaxLifetime) * time.Second)
-		logger.Info("payments DB configured", zap.String("dsn_set", strconv.FormatBool(cfg.DB.DSN != "")))
-		return db, nil
-	}); err != nil {
-		return fmt.Errorf("bff: provide payments db: %w", err)
-	}
-
-	// ─── Payment cycle repository + service ──────────────────────────────────
-	if err := c.Provide(paymentsrepo.NewPaymentCycleRepository); err != nil {
-		return fmt.Errorf("bff: provide payment cycle repository: %w", err)
-	}
-
-	if err := c.Provide(paymentssvc.NewPaymentCycleService); err != nil {
-		return fmt.Errorf("bff: provide payment cycle service: %w", err)
-	}
-
-	// ─── Reconciliation repository + service ──────────────────────────────────
-	if err := c.Provide(paymentsrepo.NewReconciliationRepository); err != nil {
-		return fmt.Errorf("bff: provide reconciliation repository: %w", err)
-	}
-
-	if err := c.Provide(paymentssvc.NewReconciliationService); err != nil {
-		return fmt.Errorf("bff: provide reconciliation service: %w", err)
-	}
-
-	// ─── History repository ───────────────────────────────────────────────────
-	if err := c.Provide(paymentsrepo.NewHistoryRepository); err != nil {
-		return fmt.Errorf("bff: provide history repository: %w", err)
 	}
 
 	// ─── BFF interface adapters (concrete gRPC → BFF narrow interfaces) ────────
@@ -262,7 +218,10 @@ func run(ctx context.Context) error {
 				return nil
 			},
 		}))
+		e.Use(middleware.Gzip())
 		e.Use(middleware.RequestID())
+		e.Use(middleware.CORS())
+		e.Use(middleware.RequestLogger())
 
 		// Huma OpenAPI registration
 		api := humaecho.New(e, huma.DefaultConfig("Costa Financial Assistant API", "1.0.0"))
