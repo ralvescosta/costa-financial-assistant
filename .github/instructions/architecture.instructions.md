@@ -113,13 +113,15 @@ go func() {
 
 ## Rule: BFF Controller/Service Boundary
 
-**Description**: BFF controllers MUST be pure HTTP adapters. All downstream orchestration (gRPC calls, repository access, multi-step logic) MUST live in `backend/internals/bff/services/`.
+**Description**: BFF controllers MUST be pure HTTP adapters. All downstream orchestration (gRPC calls, response aggregation, and multi-step logic) MUST live in `backend/internals/bff/services/`. The BFF MUST NOT access domain databases or domain repositories directly.
 
 **When it applies**: Adding or modifying any BFF controller or service.
 
 **Copilot MUST**:
 - Keep controllers as thin HTTP adapters: extract context claims, call one BFF service method, map the result to a view type, return.
 - Place all gRPC client calls and cross-service orchestration in `backend/internals/bff/services/<resource>_service.go`.
+- Treat the BFF as a gateway responsible for authentication, authorization, validation, and frontend response composition — not as a domain-data owner.
+- Obtain business reads/writes through the owning downstream service boundary only, using gRPC clients and service-owned contracts.
 - Define BFF service contracts in `backend/internals/bff/interfaces/services.go` as narrow interfaces consumed by controllers.
 - Inject BFF service interfaces (not concrete types) into controller constructors via the Dig container.
 - Wire `*validator.Validate` via `validator.New` in `container.go` and pass it to every controller constructor.
@@ -128,14 +130,16 @@ go func() {
 **Copilot MUST NOT**:
 - Call a gRPC client directly from an HTTP controller handler.
 - Place multi-step orchestration logic (fan-out, aggregation, field mapping from proto types) in a controller.
+- Inject or call domain repositories, SQL clients, or persistence-backed domain services from BFF packages for business data access.
 - Instantiate `*validator.Validate` inside a controller — always inject it via the Dig container.
 
 **Correct layer order**:
 ```
 [HTTP request]
   → controller.HandleXxx (extract claims, validate, call service)
-    → bffinterfaces.XxxService.XxxMethod (orchestrate downstream)
-      → billsv1.BillsServiceClient / filesv1.FilesServiceClient / etc.
+    → bffinterfaces.XxxService.XxxMethod (authenticate/authorize context, orchestrate downstream)
+      → billsv1.BillsServiceClient / filesv1.FilesServiceClient / paymentsv1.PaymentsServiceClient / etc.
+        → downstream service business logic + repositories + database
 ```
 
 **Reference files**: `backend/internals/bff/interfaces/services.go`, `backend/internals/bff/services/`, `backend/internals/bff/transport/http/controllers/base_controller.go`.

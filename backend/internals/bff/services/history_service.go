@@ -7,19 +7,19 @@ import (
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
-	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
+const historyGRPCUnavailableMessage = "history analytics require a downstream payments gRPC contract before the BFF can serve this flow"
+
 // HistoryServiceImpl implements bffinterfaces.HistoryService.
 type HistoryServiceImpl struct {
-	logger      *zap.Logger
-	historyRepo paymentsinterfaces.HistoryRepository
+	logger *zap.Logger
 }
 
 // NewHistoryService constructs a HistoryServiceImpl.
-func NewHistoryService(logger *zap.Logger, historyRepo paymentsinterfaces.HistoryRepository) bffinterfaces.HistoryService {
-	return &HistoryServiceImpl{logger: logger, historyRepo: historyRepo}
+func NewHistoryService(logger *zap.Logger) bffinterfaces.HistoryService {
+	return &HistoryServiceImpl{logger: logger}
 }
 
 // defaultMonths returns 12 when months is negative (0 is "all history").
@@ -30,80 +30,31 @@ func defaultMonths(m int) int {
 	return m
 }
 
+func (s *HistoryServiceImpl) downstreamUnavailable(logMessage, projectID string) error {
+	appErr := apperrors.NewWithCategory(historyGRPCUnavailableMessage, apperrors.CategoryDependencyGRPC)
+	s.logger.Error(logMessage,
+		zap.String("project_id", projectID),
+		zap.Error(appErr))
+	return appErr
+}
+
 // GetTimeline returns aggregated bill amounts per calendar month.
 func (s *HistoryServiceImpl) GetTimeline(ctx context.Context, projectID string, months int) (*bffcontracts.TimelineResponse, error) {
-	months = defaultMonths(months)
-	entries, err := s.historyRepo.GetTimeline(ctx, projectID, months)
-	if err != nil {
-		s.logger.Error("history_svc: get timeline failed",
-			zap.String("project_id", projectID),
-			zap.Error(err))
-		if appErr := apperrors.AsAppError(err); appErr != nil {
-			return nil, appErr
-		}
-		return nil, apperrors.TranslateError(err, "service")
-	}
-
-	rows := make([]*bffcontracts.MonthlyTimelineEntryResponse, 0, len(entries))
-	for _, e := range entries {
-		rows = append(rows, &bffcontracts.MonthlyTimelineEntryResponse{
-			Month:       e.Month,
-			TotalAmount: e.TotalAmount,
-			BillCount:   e.BillCount,
-		})
-	}
-	return &bffcontracts.TimelineResponse{ProjectID: projectID, Months: months, Timeline: rows}, nil
+	_ = ctx
+	_ = defaultMonths(months)
+	return nil, s.downstreamUnavailable("history_svc: get timeline failed", projectID)
 }
 
 // GetCategoryBreakdown returns bill amounts grouped by bill type and month.
 func (s *HistoryServiceImpl) GetCategoryBreakdown(ctx context.Context, projectID string, months int) (*bffcontracts.CategoryBreakdownResponse, error) {
-	months = defaultMonths(months)
-	entries, err := s.historyRepo.GetCategoryBreakdown(ctx, projectID, months)
-	if err != nil {
-		s.logger.Error("history_svc: get category breakdown failed",
-			zap.String("project_id", projectID),
-			zap.Error(err))
-		if appErr := apperrors.AsAppError(err); appErr != nil {
-			return nil, appErr
-		}
-		return nil, apperrors.TranslateError(err, "service")
-	}
-
-	rows := make([]*bffcontracts.CategoryBreakdownEntryResponse, 0, len(entries))
-	for _, e := range entries {
-		rows = append(rows, &bffcontracts.CategoryBreakdownEntryResponse{
-			Month:        e.Month,
-			BillTypeName: e.BillTypeName,
-			TotalAmount:  e.TotalAmount,
-			BillCount:    e.BillCount,
-		})
-	}
-	return &bffcontracts.CategoryBreakdownResponse{ProjectID: projectID, Months: months, Categories: rows}, nil
+	_ = ctx
+	_ = defaultMonths(months)
+	return nil, s.downstreamUnavailable("history_svc: get category breakdown failed", projectID)
 }
 
 // GetComplianceMetrics returns on-time vs overdue bill counts and compliance rate.
 func (s *HistoryServiceImpl) GetComplianceMetrics(ctx context.Context, projectID string, months int) (*bffcontracts.ComplianceResponse, error) {
-	months = defaultMonths(months)
-	entries, err := s.historyRepo.GetComplianceMetrics(ctx, projectID, months)
-	if err != nil {
-		s.logger.Error("history_svc: get compliance metrics failed",
-			zap.String("project_id", projectID),
-			zap.Error(err))
-		if appErr := apperrors.AsAppError(err); appErr != nil {
-			return nil, appErr
-		}
-		return nil, apperrors.TranslateError(err, "service")
-	}
-
-	rows := make([]*bffcontracts.MonthlyComplianceEntryResponse, 0, len(entries))
-	for _, e := range entries {
-		rows = append(rows, &bffcontracts.MonthlyComplianceEntryResponse{
-			Month:          e.Month,
-			TotalBills:     e.TotalBills,
-			PaidOnTime:     e.PaidOnTime,
-			Overdue:        e.Overdue,
-			ComplianceRate: e.ComplianceRate,
-		})
-	}
-	return &bffcontracts.ComplianceResponse{ProjectID: projectID, Months: months, Compliance: rows}, nil
+	_ = ctx
+	_ = defaultMonths(months)
+	return nil, s.downstreamUnavailable("history_svc: get compliance metrics failed", projectID)
 }

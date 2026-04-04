@@ -7,82 +7,45 @@ import (
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
-	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
+const reconciliationGRPCUnavailableMessage = "reconciliation actions require a downstream payments gRPC contract before the BFF can serve this flow"
+
 // ReconciliationServiceImpl implements bffinterfaces.ReconciliationService.
 type ReconciliationServiceImpl struct {
-	logger   *zap.Logger
-	reconSvc paymentsinterfaces.ReconciliationService
+	logger *zap.Logger
 }
 
 // NewReconciliationService constructs a ReconciliationServiceImpl.
-func NewReconciliationService(logger *zap.Logger, reconSvc paymentsinterfaces.ReconciliationService) bffinterfaces.ReconciliationService {
-	return &ReconciliationServiceImpl{logger: logger, reconSvc: reconSvc}
+func NewReconciliationService(logger *zap.Logger) bffinterfaces.ReconciliationService {
+	return &ReconciliationServiceImpl{logger: logger}
+}
+
+func (s *ReconciliationServiceImpl) downstreamUnavailable(logMessage, projectID string, extraFields ...zap.Field) error {
+	appErr := apperrors.NewWithCategory(reconciliationGRPCUnavailableMessage, apperrors.CategoryDependencyGRPC)
+	fields := []zap.Field{zap.String("project_id", projectID), zap.Error(appErr)}
+	fields = append(fields, extraFields...)
+	s.logger.Error(logMessage, fields...)
+	return appErr
 }
 
 // GetSummary returns the reconciliation summary for the project and period.
 func (s *ReconciliationServiceImpl) GetSummary(ctx context.Context, projectID, periodStart, periodEnd string) (*bffcontracts.ReconciliationSummaryResponse, error) {
-	summary, err := s.reconSvc.GetSummary(ctx, projectID, periodStart, periodEnd)
-	if err != nil {
-		s.logger.Error("reconciliation_svc: get summary failed",
-			zap.String("project_id", projectID),
-			zap.Error(err))
-		if appErr := apperrors.AsAppError(err); appErr != nil {
-			return nil, appErr
-		}
-		return nil, apperrors.TranslateError(err, "service")
-	}
-
-	entries := make([]*bffcontracts.ReconciliationEntryResponse, 0, len(summary.Entries))
-	for _, e := range summary.Entries {
-		entry := bffcontracts.ReconciliationEntryResponse{
-			TransactionLineID:    e.TransactionLineID,
-			TransactionDate:      e.TransactionDate,
-			Description:          e.Description,
-			Amount:               e.Amount,
-			Direction:            e.Direction,
-			ReconciliationStatus: string(e.ReconciliationStatus),
-			LinkedBillID:         e.LinkedBillID,
-			LinkedBillDueDate:    e.LinkedBillDueDate,
-			LinkedBillAmount:     e.LinkedBillAmount,
-		}
-		if e.LinkType != nil {
-			lt := string(*e.LinkType)
-			entry.LinkType = &lt
-		}
-		entries = append(entries, &entry)
-	}
-	return &bffcontracts.ReconciliationSummaryResponse{
-		ProjectID:   summary.ProjectID,
-		PeriodStart: summary.PeriodStart,
-		PeriodEnd:   summary.PeriodEnd,
-		Entries:     entries,
-	}, nil
+	_ = ctx
+	_ = periodStart
+	_ = periodEnd
+	return nil, s.downstreamUnavailable("reconciliation_svc: get summary failed", projectID)
 }
 
 // CreateManualLink manually links a statement transaction to a bill record.
 func (s *ReconciliationServiceImpl) CreateManualLink(ctx context.Context, projectID, transactionLineID, billRecordID, linkedBy string) (*bffcontracts.ReconciliationLinkResponse, error) {
-	link, err := s.reconSvc.CreateManualLink(ctx, projectID, transactionLineID, billRecordID, linkedBy)
-	if err != nil {
-		s.logger.Error("reconciliation_svc: create manual link failed",
-			zap.String("project_id", projectID),
-			zap.String("transaction_line_id", transactionLineID),
-			zap.String("bill_record_id", billRecordID),
-			zap.Error(err))
-		if appErr := apperrors.AsAppError(err); appErr != nil {
-			return nil, appErr
-		}
-		return nil, apperrors.TranslateError(err, "service")
-	}
-	return &bffcontracts.ReconciliationLinkResponse{
-		ID:                link.ID,
-		ProjectID:         link.ProjectID,
-		TransactionLineID: link.TransactionLineID,
-		BillRecordID:      link.BillRecordID,
-		LinkType:          string(link.LinkType),
-		LinkedBy:          link.LinkedBy,
-		CreatedAt:         link.CreatedAt.Format("2006-01-02T15:04:05Z"),
-	}, nil
+	_ = ctx
+	_ = linkedBy
+	return nil, s.downstreamUnavailable(
+		"reconciliation_svc: create manual link failed",
+		projectID,
+		zap.String("transaction_line_id", transactionLineID),
+		zap.String("bill_record_id", billRecordID),
+	)
 }

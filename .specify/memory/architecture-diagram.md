@@ -56,7 +56,6 @@ graph TB
     Files -->|gRPC| Identity
 
     %% Database connections
-    BFF --> PG
     Files --> PG
     Bills --> PG
     Payments --> PG
@@ -65,7 +64,6 @@ graph TB
     Migrations --> PG
 
     %% Cache connections
-    BFF --> Redis
     Identity --> Redis
     Bills --> Redis
     Payments --> Redis
@@ -101,7 +99,7 @@ graph TB
 
 | Service | Protocol | Purpose | Dependencies |
 |---------|----------|---------|--------------|
-| **BFF** | Echo HTTP + Huma OpenAPI | API Gateway, user-facing REST endpoints; controllers are pure HTTP adapters; BFF services own all downstream gRPC orchestration; HTTP contracts live in `transport/http/views/` | All gRPC services, Redis, PostgreSQL |
+| **BFF** | Echo HTTP + Huma OpenAPI | API Gateway, user-facing REST endpoints; controllers are pure HTTP adapters; BFF services own authentication/authorization context and downstream gRPC orchestration; HTTP contracts live in `transport/http/views/` | All gRPC services, in-memory JWKS/auth middleware, OpenTelemetry |
 | **Files** | gRPC | PDF document storage, classification (bill vs statement), async processing | PostgreSQL, S3, RabbitMQ, Identity, OpenTelemetry |
 | **Bills** | gRPC | Bill extraction, payment status tracking, overdue analysis | PostgreSQL, Redis, RabbitMQ, Identity, OpenTelemetry |
 | **Payments** | gRPC | Payment tracking, reconciliation, historical dashboards | PostgreSQL, Redis, RabbitMQ, Identity, OpenTelemetry |
@@ -163,9 +161,9 @@ flowchart LR
 | From → To | Method | Purpose |
 |-----------|--------|---------|
 | Frontend → BFF | HTTP REST | User requests, queries, mutations |
-| BFF → All Services | gRPC | Service-to-service orchestration |
-| Any Service → PostgreSQL | SQL | CRUD operations, project-scoped queries |
-| Any Service → Redis | RESP | Cache reads/writes, JWT cache, session data |
+| BFF → All Services | gRPC | Authenticated/authorized service orchestration and frontend response composition |
+| Domain Services / Migrations → PostgreSQL | SQL | Domain-owned CRUD operations, project-scoped queries, schema changes |
+| Domain Services → Redis | RESP | Cache reads/writes, JWT cache, session data |
 | Files → S3 | S3 API | Document storage/retrieval |
 | Services → RabbitMQ | AMQP | Async event publishing/consuming |
 | Services → OTEL | gRPC/HTTP | Trace/metric collection |
@@ -204,4 +202,10 @@ flowchart LR
 - Ownership impact: BFF service contracts are owned by `backend/internals/bff/services/contracts/`; HTTP contracts remain in `backend/internals/bff/transport/http/views/`.
 - Mapping impact: `backend/internals/bff/transport/http/controllers/mappers/` is the exclusive conversion boundary between transport views and service contracts.
 - Policy impact: modified backend boundaries apply pointer-threshold defaults with explicit value-semantics exceptions tracked in feature contracts.
+
+## 011 BFF gRPC Gateway Update
+
+- Gateway impact: BFF authenticates, authorizes, and composes frontend responses, but no longer owns a direct PostgreSQL path for domain data.
+- Ownership impact: all payment, billing, file, onboarding, and identity domain reads/writes must stay behind the owning service boundary.
+- Diagram impact: the invalid `BFF → PostgreSQL` flow has been removed; the canonical path is `Frontend → BFF → gRPC service → repository → PostgreSQL`.
 
