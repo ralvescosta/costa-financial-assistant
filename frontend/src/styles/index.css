@@ -31,6 +31,12 @@
 :root {
   --color-primary:        var(--palette-indigo-600);
   --color-primary-hover:  var(--palette-indigo-700);
+  --color-primary-action-bg: var(--palette-indigo-600);
+  --color-primary-action-fg: var(--palette-white);
+  --color-primary-action-hover: var(--palette-indigo-700);
+  --color-primary-action-focus: var(--palette-indigo-600);
+  --color-primary-action-disabled-bg: var(--palette-gray-200);
+  --color-primary-action-disabled-fg: var(--palette-gray-600);
   --color-surface:        var(--palette-white);
   --color-surface-raised: var(--palette-gray-50);
   --color-border:         var(--palette-gray-200);
@@ -65,6 +71,12 @@
 .dark {
   --color-primary:        var(--palette-indigo-50);
   --color-primary-hover:  var(--palette-indigo-600);
+  --color-primary-action-bg: var(--palette-indigo-600);
+  --color-primary-action-fg: var(--palette-white);
+  --color-primary-action-hover: var(--palette-indigo-700);
+  --color-primary-action-focus: var(--palette-indigo-50);
+  --color-primary-action-disabled-bg: #3a3a5c;
+  --color-primary-action-disabled-fg: #a0aec0;
   --color-surface:        #1e1e2e;
   --color-surface-raised: #2a2a3d;
   --color-border:         #3a3a5c;

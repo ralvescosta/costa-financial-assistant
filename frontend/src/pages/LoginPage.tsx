@@ -117,18 +117,22 @@ export function LoginPage() {
             disabled={isLoading || isLocked}
             className="
               flex w-full items-center justify-center gap-2
-              rounded-md bg-[color:var(--color-primary)] px-4 py-2
-              text-sm font-semibold text-white
-              hover:bg-[color:var(--color-primary-hover)]
-              focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2
-              disabled:cursor-not-allowed disabled:opacity-50
+              rounded-md bg-[color:var(--color-primary-action-bg)] px-4 py-2
+              text-sm font-semibold text-[color:var(--color-primary-action-fg)]
+              hover:bg-[color:var(--color-primary-action-hover)]
+              active:bg-[color:var(--color-primary-action-hover)]
+              focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary-action-focus)] focus:ring-offset-2
+              focus:ring-offset-[color:var(--color-surface-raised)]
+              disabled:cursor-not-allowed disabled:bg-[color:var(--color-primary-action-disabled-bg)]
+              disabled:text-[color:var(--color-primary-action-disabled-fg)]
+              disabled:hover:bg-[color:var(--color-primary-action-disabled-bg)] disabled:opacity-100
               transition-colors duration-150
             "
           >
             {isLoading ? (
               <>
                 <span
-                  className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+                  className="h-4 w-4 animate-spin rounded-full border-2 border-[color:var(--color-primary-action-fg)] border-t-transparent"
                   aria-hidden="true"
                 />
                 Signing in…

@@ -25,6 +25,8 @@ beforeAll(() => server.listen())
 afterEach(() => {
   server.resetHandlers()
   vi.clearAllMocks()
+  localStorage.clear()
+  document.documentElement.classList.remove('dark')
 })
 afterAll(() => server.close())
 
@@ -126,5 +128,52 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument()
     })
+  })
+
+  it('uses the shared primary-action token contract on first dark-mode render', () => {
+    document.documentElement.classList.add('dark')
+
+    render(<LoginPage />, { wrapper: Wrapper })
+
+    const button = screen.getByRole('button', { name: /sign in/i })
+    expect(button.className).toContain('bg-[color:var(--color-primary-action-bg)]')
+    expect(button.className).toContain('text-[color:var(--color-primary-action-fg)]')
+    expect(button.className).toContain('hover:bg-[color:var(--color-primary-action-hover)]')
+  })
+
+  it('keeps the loading sign-in action on the shared disabled token contract', async () => {
+    server.use(
+      http.post('/api/auth/login', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200))
+        return HttpResponse.json({
+          statusCode: 200,
+          data: {
+            expiresIn: 3600,
+            refreshAt: 2700,
+            csrfToken: 'csrf',
+            user: { id: 'u1', username: 'demo' },
+          },
+        })
+      }),
+    )
+
+    const user = userEvent.setup()
+    document.documentElement.classList.add('dark')
+    render(<LoginPage />, { wrapper: Wrapper })
+
+    await user.click(screen.getByRole('button', { name: /sign in/i }))
+
+    const loadingButton = await screen.findByRole('button', { name: /signing in/i })
+    expect(loadingButton).toBeDisabled()
+    expect(loadingButton.className).toContain('disabled:bg-[color:var(--color-primary-action-disabled-bg)]')
+    expect(loadingButton.className).toContain('disabled:text-[color:var(--color-primary-action-disabled-fg)]')
+  })
+
+  it('reuses the shared primary-action token contract in light mode', () => {
+    render(<LoginPage />, { wrapper: Wrapper })
+
+    const button = screen.getByRole('button', { name: /sign in/i })
+    expect(button.className).toContain('bg-[color:var(--color-primary-action-bg)]')
+    expect(button.className).toContain('text-[color:var(--color-primary-action-fg)]')
   })
 })

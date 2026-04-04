@@ -26,7 +26,7 @@ function NavItem({ item, onClose }: { item: MenuItem; onClose: () => void }) {
         [
           'flex items-center gap-3 px-4 py-2 rounded-md text-sm font-medium',
           'transition-colors duration-150',
-          'focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]',
+          'focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 focus:ring-offset-[color:var(--color-sidebar-bg)]',
           isActive
             ? 'bg-[color:var(--color-menu-item-active-bg)] text-[color:var(--color-primary)] font-semibold'
             : 'text-[color:var(--color-menu-item-text)] hover:bg-surface-raised',

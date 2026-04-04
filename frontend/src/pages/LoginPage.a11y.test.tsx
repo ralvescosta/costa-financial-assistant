@@ -18,7 +18,10 @@ import { LoginPage } from '@/pages/LoginPage'
 const server = setupServer()
 
 beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  document.documentElement.classList.remove('dark')
+})
 afterAll(() => server.close())
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -85,5 +88,23 @@ describe('LoginPage accessibility', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert')).toBeInTheDocument()
     })
+  })
+
+  it('keeps a visible contrast-safe focus ring on the sign-in button in dark mode', async () => {
+    const user = userEvent.setup()
+    document.documentElement.classList.add('dark')
+
+    render(<LoginPage />, { wrapper: Wrapper })
+
+    const username = screen.getByLabelText(/username/i)
+    const button = screen.getByRole('button', { name: /sign in/i })
+
+    username.focus()
+    await user.tab()
+    await user.tab()
+
+    expect(document.activeElement).toBe(button)
+    expect(button.className).toContain('focus:ring-[color:var(--color-primary-action-focus)]')
+    expect(button.className).toContain('focus:ring-offset-[color:var(--color-surface-raised)]')
   })
 })

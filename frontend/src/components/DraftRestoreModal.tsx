@@ -90,10 +90,13 @@ export function DraftRestoreModal({
             type="button"
             onClick={() => onRestore(null)}
             className="
-              rounded-md bg-[color:var(--color-primary)] px-4 py-2
-              text-sm font-semibold text-white
-              hover:bg-[color:var(--color-primary-hover)]
-              focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2
+              rounded-md bg-[color:var(--color-primary-action-bg)] px-4 py-2
+              text-sm font-semibold text-[color:var(--color-primary-action-fg)]
+              hover:bg-[color:var(--color-primary-action-hover)]
+              active:bg-[color:var(--color-primary-action-hover)]
+              focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary-action-focus)] focus:ring-offset-2
+              focus:ring-offset-[color:var(--color-draft-restore-modal)]
+              transition-colors duration-150
             "
           >
             Restore

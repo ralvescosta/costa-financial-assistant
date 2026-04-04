@@ -13,7 +13,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { AuthProvider } from '@/hooks/useAuthContext'
 import { useAuthRefresh } from '@/hooks/useAuthRefresh'
-import { useAuthContext } from '@/hooks/useAuthContext'
 
 vi.useFakeTimers()
 

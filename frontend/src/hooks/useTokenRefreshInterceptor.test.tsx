@@ -26,33 +26,33 @@ function Wrapper({ children }: { children: ReactNode }) {
 }
 
 describe('useTokenRefreshInterceptor', () => {
-  const originalFetch = global.fetch
+  const originalFetch = globalThis.fetch
 
   beforeEach(() => {
     localStorage.clear()
   })
 
   afterEach(() => {
-    global.fetch = originalFetch
+    globalThis.fetch = originalFetch
     localStorage.clear()
   })
 
   it('patches window.fetch on mount and restores on unmount', async () => {
-    const nativeFetch = global.fetch
+    const nativeFetch = globalThis.fetch
     const { unmount } = renderHook(() => useTokenRefreshInterceptor(), { wrapper: Wrapper })
 
     // After mount, fetch should be patched
-    expect(global.fetch).not.toBe(nativeFetch)
+    expect(globalThis.fetch).not.toBe(nativeFetch)
 
     unmount()
 
     // After unmount, native fetch should be restored
-    expect(global.fetch).toBe(nativeFetch)
+    expect(globalThis.fetch).toBe(nativeFetch)
   })
 
   it('passes through non-401 responses unchanged', async () => {
     const mockFetch = vi.fn().mockResolvedValue(new Response('ok', { status: 200 }))
-    global.fetch = mockFetch
+    globalThis.fetch = mockFetch
 
     renderHook(() => useTokenRefreshInterceptor(), { wrapper: Wrapper })
 
@@ -66,7 +66,7 @@ describe('useTokenRefreshInterceptor', () => {
 
   it('attempts refresh on 401 response', async () => {
     let callCount = 0
-    global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
       callCount++
       if (callCount === 1) {
         return new Response(JSON.stringify({ statusCode: 401, error: { code: 'SESSION_EXPIRED', message: '' } }), {
