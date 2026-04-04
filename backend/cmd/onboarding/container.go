@@ -18,6 +18,7 @@ import (
 	onboardingsvc "github.com/ralvescosta/costa-financial-assistant/backend/internals/onboarding/services"
 	onboardinggrpc "github.com/ralvescosta/costa-financial-assistant/backend/internals/onboarding/transport/grpc"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
+	pkglogger "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/logger"
 	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
 )
 
@@ -37,12 +38,7 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── Logger ──────────────────────────────────────────────────────────────
-	if err := c.Provide(func(cfg *configs.Config) (*zap.Logger, error) {
-		if cfg.Env == "production" {
-			return zap.NewProduction()
-		}
-		return zap.NewDevelopment()
-	}); err != nil {
+	if err := c.Provide(pkglogger.New); err != nil {
 		return fmt.Errorf("onboarding: provide logger: %w", err)
 	}
 

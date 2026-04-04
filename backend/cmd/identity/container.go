@@ -16,6 +16,7 @@ import (
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/services"
 	identitygrpc "github.com/ralvescosta/costa-financial-assistant/backend/internals/identity/transport/grpc"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
+	pkglogger "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/logger"
 	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
 	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 )
@@ -36,12 +37,7 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── Logger ──────────────────────────────────────────────────────────────
-	if err := c.Provide(func(cfg *configs.Config) (*zap.Logger, error) {
-		if cfg.Env == "production" {
-			return zap.NewProduction()
-		}
-		return zap.NewDevelopment()
-	}); err != nil {
+	if err := c.Provide(pkglogger.New); err != nil {
 		return fmt.Errorf("identity: provide logger: %w", err)
 	}
 

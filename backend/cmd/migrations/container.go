@@ -12,6 +12,7 @@ import (
 
 	migrationsvc "github.com/ralvescosta/costa-financial-assistant/backend/internals/migrations/services"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
+	pkglogger "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/logger"
 )
 
 type appContext struct {
@@ -29,12 +30,7 @@ func run(ctx context.Context) (*appContext, error) {
 		return nil, fmt.Errorf("migrations: provide config: %w", err)
 	}
 
-	if err := container.Provide(func(cfg *configs.Config) (*zap.Logger, error) {
-		if cfg.Env == "production" {
-			return zap.NewProduction()
-		}
-		return zap.NewDevelopment()
-	}); err != nil {
+	if err := container.Provide(pkglogger.New); err != nil {
 		return nil, fmt.Errorf("migrations: provide logger: %w", err)
 	}
 

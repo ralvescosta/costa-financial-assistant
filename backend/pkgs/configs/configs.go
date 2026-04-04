@@ -65,7 +65,7 @@ func Load(prefix string) (*Config, error) {
 	v.AutomaticEnv()
 
 	// Defaults
-	v.SetDefault("ENV", "development")
+	v.SetDefault("ENV", "local")
 	v.SetDefault("LOG_LEVEL", "trace")
 	v.SetDefault("HTTP_PORT", 8080)
 	v.SetDefault("HTTP_HOST", "0.0.0.0")
