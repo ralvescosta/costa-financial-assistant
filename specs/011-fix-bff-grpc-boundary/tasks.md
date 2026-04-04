@@ -31,8 +31,9 @@ Every feature task list includes a final mandatory governance sync phase for mem
 - [ ] T006 Wire the payments gRPC server lifecycle and graceful shutdown in `backend/cmd/payments/container.go`
 - [ ] T007 [P] Add/adjust payments transport tests in `backend/internals/payments/transport/grpc/server_test.go` and `backend/internals/payments/services/error_logging_test.go`
 - [ ] T008 [P] Extend BFF-facing contracts for the new downstream payments client in `backend/internals/bff/interfaces/services.go` and `backend/internals/bff/services/contracts/*.go`
+- [ ] T031 [P] Audit `backend/internals/bff/**` for any additional non-payments direct-access violations and record the owning service plus remediation decision in `specs/011-fix-bff-grpc-boundary/contracts/bff-route-migration-matrix.md`
 
-**Checkpoint**: The payments service exposes the missing gRPC surface and the BFF can start consuming it.
+**Checkpoint**: The payments service exposes the missing gRPC surface, the BFF can start consuming it, and any extra cross-domain violations are explicitly inventoried before user-story implementation proceeds.
 
 ---
 
@@ -46,9 +47,9 @@ Every feature task list includes a final mandatory governance sync phase for mem
 
 > Write or update these tests first and confirm the relevant behavior is covered before implementation changes are finalized.
 
-- [ ] T009 [P] [US1] Add route behavior regression coverage for payment-cycle endpoints in `backend/tests/integration/bff/payments_routes_registration_test.go`
-- [ ] T010 [P] [US1] Add route behavior regression coverage for history endpoints in `backend/tests/integration/bff/history_routes_registration_test.go` and `backend/tests/integration/cross_service/get_history_timeline_test.go`
-- [ ] T011 [P] [US1] Add route behavior regression coverage for reconciliation endpoints in `backend/tests/integration/bff/reconciliation_routes_registration_test.go` and `backend/tests/integration/cross_service/create_manual_reconciliation_link_test.go`
+- [ ] T009 [P] [US1] Add route behavior regression coverage for payment-cycle endpoints in `backend/tests/integration/bff/payments_routes_registration_test.go`, including successful responses plus `401/403` and project-membership enforcement cases
+- [ ] T010 [P] [US1] Add route behavior regression coverage for history endpoints in `backend/tests/integration/bff/history_routes_registration_test.go` and `backend/tests/integration/cross_service/get_history_timeline_test.go`, including successful responses plus `401/403` and project-membership enforcement cases
+- [ ] T011 [P] [US1] Add route behavior regression coverage for reconciliation endpoints in `backend/tests/integration/bff/reconciliation_routes_registration_test.go` and `backend/tests/integration/cross_service/create_manual_reconciliation_link_test.go`, including successful responses plus `401/403` and project-membership enforcement cases
 
 ### Implementation for User Story 1
 
@@ -67,7 +68,7 @@ Every feature task list includes a final mandatory governance sync phase for mem
 
 **Goal**: Eliminate remaining direct domain injections/imports and enforce the architecture rule that business data lives behind the owning service boundary.
 
-**Independent Test**: BFF service files and DI wiring no longer depend on `backend/internals/payments/interfaces`, repositories, or direct database-backed domain access for the supported flows; boundary tests and integration tests continue to pass.
+**Independent Test**: BFF service files and DI wiring no longer depend on `backend/internals/payments/interfaces`, repositories, or direct database-backed domain access for the supported flows; the explicit BFF audit has either removed or escalated any non-payments findings in touched routes, and boundary tests plus integration tests continue to pass.
 
 ### Tests for User Story 2 ⚠️
 
@@ -79,6 +80,7 @@ Every feature task list includes a final mandatory governance sync phase for mem
 - [ ] T020 [P] [US2] Align payments-owned service/repository signatures with the pointer policy in `backend/internals/payments/interfaces/payment_cycle_service.go`, `backend/internals/payments/interfaces/history_repository.go`, and `backend/internals/payments/interfaces/reconciliation_service.go`
 - [ ] T021 [P] [US2] Ensure AppError-first translation and logging for the new payments transport in `backend/internals/payments/transport/grpc/server.go` and `backend/pkgs/errors/*`
 - [ ] T022 [US2] Record any approved value-semantics exception or confirm none in `specs/011-fix-bff-grpc-boundary/contracts/pointer-exceptions.md`
+- [ ] T032 [US2] Remediate any non-payments direct-access violation discovered by `T031` for touched BFF routes, or record it as a blocking follow-up in `specs/011-fix-bff-grpc-boundary/contracts/bff-route-migration-matrix.md` so it cannot be silently deferred
 
 **Checkpoint**: User Story 2 is complete when the BFF no longer owns payments data access and the boundary rules are enforced in code and tests.
 
@@ -142,8 +144,8 @@ Every feature task list includes a final mandatory governance sync phase for mem
 ### Parallel Opportunities
 
 - `T002` and `T003` can run in parallel once the payments proto module name is agreed
-- `T007` and `T008` can run in parallel after the core proto shape is defined
-- `T009`, `T010`, and `T011` can run in parallel as route-specific regression tasks
+- `T007`, `T008`, and `T031` can run in parallel after the core proto shape is defined
+- `T009`, `T010`, and `T011` can run in parallel as route-specific regression tasks, each carrying both happy-path and `401/403` membership assertions
 - `T016`, `T020`, `T021`, `T026`, and `T027` are parallel-safe because they target different files or independent cleanup work
 - Governance sync tasks can be split across teammates once implementation behavior is final
 
@@ -184,7 +186,7 @@ With multiple developers:
 
 1. One developer handles proto + payments transport (`T001`–`T006`)
 2. One developer handles BFF route/service migration (`T009`–`T017`)
-3. One developer handles governance/test enforcement (`T018`–`T030`) after the core gRPC path stabilizes
+3. One developer handles governance/test enforcement and cross-BFF audit follow-up (`T018`–`T032`) after the core gRPC path stabilizes
 
 ---
 
