@@ -47,6 +47,19 @@ type HistoryDashboard struct {
 	Compliance []MonthlyComplianceEntry
 }
 
+// HistoryService defines the payments-owned use-case contract for history analytics.
+// It is implemented by services.HistoryService.
+type HistoryService interface {
+	// GetTimeline returns the monthly expenditure totals for the project.
+	GetTimeline(ctx context.Context, projectID string, months int) ([]MonthlyTimelineEntry, error)
+
+	// GetCategoryBreakdown returns per-category totals for each month in the look-back window.
+	GetCategoryBreakdown(ctx context.Context, projectID string, months int) ([]CategoryBreakdownEntry, error)
+
+	// GetComplianceMetrics returns on-time vs overdue payment counts for each month.
+	GetComplianceMetrics(ctx context.Context, projectID string, months int) ([]MonthlyComplianceEntry, error)
+}
+
 // HistoryRepository defines the read-only persistence contract for financial history analytics.
 // It is implemented by repositories.PostgresHistoryRepository.
 type HistoryRepository interface {

@@ -73,4 +73,16 @@ func TestProjectsRouteIntegration(t *testing.T) {
 		defer resp.Body.Close()
 		assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
+
+	t.Run("list-project-members accepts seeded owner context with omitted pagination", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodGet, srv.URL+"/api/v1/projects/members", nil)
+		require.NoError(t, err)
+		req.Header.Set(testAuthHeader, "ralvescosta")
+
+		resp, err := srv.Client().Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		assert.NotEqual(t, http.StatusForbidden, resp.StatusCode)
+		assert.NotEqual(t, http.StatusUnauthorized, resp.StatusCode)
+	})
 }

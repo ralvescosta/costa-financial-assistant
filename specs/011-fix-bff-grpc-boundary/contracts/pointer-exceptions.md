@@ -12,6 +12,10 @@ Use pointer semantics on modified backend boundaries when a struct:
 
 At planning time, **no pointer-policy exceptions are approved**.
 
+## Final implementation status
+
+- Verified on **2026-04-04**: no new pointer-policy exceptions were introduced while wiring `payments.v1` or the BFF service migrations.
+
 | Struct / Type | Boundary location | Reason for value semantics | Approval note |
 |---|---|---|---|
 | _None yet_ | — | — | Add only if implementation proves an explicit exception is justified |

@@ -34,13 +34,22 @@ func (s *Server) UploadDocument(ctx context.Context, req *filesv1.UploadDocument
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
 	}
+	sessionUserID, err := requireSessionUserID(req.GetSession())
+	if err != nil {
+		return nil, err
+	}
 	if req.GetFileName() == "" || req.GetFileHash() == "" {
 		return nil, status.Error(codes.InvalidArgument, "file_name and file_hash are required")
 	}
 
+	uploadedBy := sessionUserID
+	if req.GetAudit() != nil && req.GetAudit().GetPerformedBy() != "" {
+		uploadedBy = req.GetAudit().GetPerformedBy()
+	}
+
 	input := &services.UploadDocumentInput{
 		ProjectID:       req.GetCtx().GetProjectId(),
-		UploadedBy:      req.GetAudit().GetPerformedBy(),
+		UploadedBy:      uploadedBy,
 		FileName:        req.GetFileName(),
 		FileHash:        req.GetFileHash(),
 		StorageProvider: req.GetStorageProvider(),
@@ -65,6 +74,9 @@ func (s *Server) ClassifyDocument(ctx context.Context, req *filesv1.ClassifyDocu
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
 	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
+	}
 	if req.GetDocumentId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "document_id is required")
 	}
@@ -86,6 +98,9 @@ func (s *Server) ClassifyDocument(ctx context.Context, req *filesv1.ClassifyDocu
 func (s *Server) GetDocument(ctx context.Context, req *filesv1.GetDocumentRequest) (*filesv1.GetDocumentResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 	if req.GetDocumentId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "document_id is required")
@@ -112,6 +127,9 @@ func (s *Server) GetDocument(ctx context.Context, req *filesv1.GetDocumentReques
 func (s *Server) ListDocuments(ctx context.Context, req *filesv1.ListDocumentsRequest) (*filesv1.ListDocumentsResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 
 	pageSize := int32(25)
@@ -145,11 +163,20 @@ func (s *Server) CreateBankAccount(ctx context.Context, req *filesv1.CreateBankA
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
 	}
+	sessionUserID, err := requireSessionUserID(req.GetSession())
+	if err != nil {
+		return nil, err
+	}
 	if req.GetLabel() == "" {
 		return nil, status.Error(codes.InvalidArgument, "label is required")
 	}
 
-	account, err := s.bankSvc.CreateBankAccount(ctx, req.GetCtx().GetProjectId(), req.GetLabel(), req.GetAudit().GetPerformedBy())
+	performedBy := sessionUserID
+	if req.GetAudit() != nil && req.GetAudit().GetPerformedBy() != "" {
+		performedBy = req.GetAudit().GetPerformedBy()
+	}
+
+	account, err := s.bankSvc.CreateBankAccount(ctx, req.GetCtx().GetProjectId(), req.GetLabel(), performedBy)
 	if err != nil {
 		if errors.Is(err, repositories.ErrDuplicateBankAccount) {
 			return nil, status.Error(codes.AlreadyExists, "bank account label already exists in this project")
@@ -167,6 +194,9 @@ func (s *Server) ListBankAccounts(ctx context.Context, req *filesv1.ListBankAcco
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
 	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
+	}
 
 	accounts, err := s.bankSvc.ListBankAccounts(ctx, req.GetCtx().GetProjectId())
 	if err != nil {
@@ -182,6 +212,9 @@ func (s *Server) ListBankAccounts(ctx context.Context, req *filesv1.ListBankAcco
 func (s *Server) DeleteBankAccount(ctx context.Context, req *filesv1.DeleteBankAccountRequest) (*filesv1.DeleteBankAccountResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 	if req.GetBankAccountId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "bank_account_id is required")
@@ -201,6 +234,13 @@ func (s *Server) DeleteBankAccount(ctx context.Context, req *filesv1.DeleteBankA
 		return nil, status.Error(codes.Internal, "delete bank account failed")
 	}
 	return &filesv1.DeleteBankAccountResponse{Success: true}, nil
+}
+
+func requireSessionUserID(session *commonv1.Session) (string, error) {
+	if session == nil || session.GetId() == "" {
+		return "", status.Error(codes.Unauthenticated, "session is required")
+	}
+	return session.GetId(), nil
 }
 
 func toGRPCStatusError(appErr *apperrors.AppError) error {

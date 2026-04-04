@@ -31,6 +31,7 @@ func (s *ProjectsServiceImpl) GetCurrentProject(ctx context.Context, projectID, 
 			UserId:    userID,
 			Role:      role,
 		},
+		Session: sessionFromContext(ctx),
 	})
 	if err != nil {
 		s.logger.Error("projects_svc: get project downstream call failed",
@@ -53,16 +54,14 @@ func (s *ProjectsServiceImpl) GetCurrentProject(ctx context.Context, projectID, 
 
 // ListMembers returns all members for the caller's project.
 func (s *ProjectsServiceImpl) ListMembers(ctx context.Context, projectID, userID, role string, pageSize int32, pageToken string) (*bffcontracts.ListMembersResponse, error) {
-	if pageSize == 0 {
-		pageSize = 25
-	}
 	resp, err := s.onboardingClient.ListProjectMembers(ctx, &onboardingv1.ListProjectMembersRequest{
 		Ctx: &commonv1.ProjectContext{
 			ProjectId: projectID,
 			UserId:    userID,
 			Role:      role,
 		},
-		Pagination: &commonv1.Pagination{PageSize: pageSize, PageToken: pageToken},
+		Session:    sessionFromContext(ctx),
+		Pagination: defaultPagination(pageSize, pageToken, 25),
 	})
 	if err != nil {
 		s.logger.Error("projects_svc: list members downstream call failed",
@@ -101,6 +100,7 @@ func (s *ProjectsServiceImpl) InviteMember(ctx context.Context, projectID, invit
 			UserId:    inviterID,
 			Role:      inviterRole,
 		},
+		Session:      sessionFromContext(ctx),
 		InviteeEmail: email,
 		Role:         roleStringToProto(role),
 		Audit:        &commonv1.AuditMetadata{PerformedBy: inviterID},
@@ -135,6 +135,7 @@ func (s *ProjectsServiceImpl) UpdateMemberRole(ctx context.Context, projectID, c
 			UserId:    callerID,
 			Role:      callerRole,
 		},
+		Session:  sessionFromContext(ctx),
 		MemberId: memberID,
 		NewRole:  roleStringToProto(newRole),
 		Audit:    &commonv1.AuditMetadata{PerformedBy: callerID},

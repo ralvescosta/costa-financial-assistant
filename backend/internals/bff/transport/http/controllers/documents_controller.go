@@ -98,5 +98,3 @@ func (c *DocumentsController) HandleGet(ctx context.Context, input *views.GetDoc
 
 	return &struct{ Body views.DocumentDetailResponse }{Body: controllermappers.ToDocumentDetailResponse(detail)}, nil
 }
-
-

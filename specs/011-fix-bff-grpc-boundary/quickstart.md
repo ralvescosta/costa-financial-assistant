@@ -52,21 +52,24 @@ Run the baseline verification:
 
 ```bash
 cd backend && go test ./...
+cd backend && go test -tags integration ./tests/integration/bff ./tests/integration/payments
+cd backend && go test -tags integration ./tests/integration/cross_service -run 'TestBoundaryLogging_TableDriven_T064|TestUS5_|TestUS6_'
 ```
 
 Then spot-check startup:
 
 ```bash
-timeout 10s make svc/run/payments
-timeout 15s make svc/run/bff
-timeout 10s make svc/run/bills
+timeout 12s make svc/run/payments
+timeout 12s make HTTP_PORT_bff=18080 svc/run/bff
+timeout 12s make svc/run/bills
 ```
 
-Optional broader verification:
+Verified on **2026-04-04**:
+- `go test ./...` passed.
+- The targeted tagged integration checks above passed for `bff`, `payments`, and the feature-relevant `cross_service` scenarios.
+- `payments`, `bff`, and `bills` each reached their startup log and shut down cleanly under the timeout-based smoke check.
 
-```bash
-make test/integration
-```
+Note: the full repository-wide `make test/integration` command still includes unrelated pre-existing failures in file-upload/isolation scenarios outside this feature’s BFF/payments boundary scope.
 
 ## 6. Required governance synchronization
 

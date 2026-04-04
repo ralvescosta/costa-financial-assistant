@@ -125,21 +125,22 @@ flowchart LR
         FE --> BFF --> FS --> S3 --> PG1 --> MQ --> BILLS --> PG2
 ```
 
-### 2. Payment Dashboard Query Flow
+### 2. Payment & History Query Flow
 
 ```mermaid
 flowchart LR
         FE[Frontend]
-        BFF[BFF GET /payments]
+        BFF[BFF payment/history route]
+        OWN{Owning service?}
+        BILLS[Bills Service gRPC]
         PAY[Payments Service gRPC]
-        R[Redis cache-aside check]
-        MISS{Cache miss?}
         PG[PostgreSQL]
-        AGG[Sum aggregates and return]
+        RESP[Compose response]
 
-        FE --> BFF --> PAY --> R --> MISS
-        MISS -->|Yes| PG --> AGG
-        MISS -->|No| AGG
+        FE --> BFF --> OWN
+        OWN -->|dashboard / mark-paid| BILLS --> PG --> RESP
+        OWN -->|cycle / history / reconciliation| PAY --> PG --> RESP
+        RESP --> BFF --> FE
 ```
 
 ### 3. Reconciliation Flow
@@ -185,10 +186,10 @@ flowchart LR
 ---
 
 ## Last Updated
-- **Date**: 2026-03-31
-- **Version**: 1.0.0
+- **Date**: 2026-04-04
+- **Version**: 1.1.0
 - **Services Count**: 7 (bff, files, bills, payments, identity, onboarding, migrations)
-- **Services Status**: All designed, partial implementation
+- **Services Status**: BFF/payments gRPC gateway boundary verified for supported routes
 
 ## 008 AppError Update
 
@@ -208,4 +209,10 @@ flowchart LR
 - Gateway impact: BFF authenticates, authorizes, and composes frontend responses, but no longer owns a direct PostgreSQL path for domain data.
 - Ownership impact: all payment, billing, file, onboarding, and identity domain reads/writes must stay behind the owning service boundary.
 - Diagram impact: the invalid `BFF → PostgreSQL` flow has been removed; the canonical path is `Frontend → BFF → gRPC service → repository → PostgreSQL`.
+
+## 012 Restore Login & Session Update
+
+- Auth impact: the BFF now exposes public `POST /api/auth/login` and `POST /api/auth/refresh` routes, sets the `cfa_session` HTTP-only cookie, and keeps protected routes behind the existing auth + project-guard middleware.
+- Identity impact: the identity service now owns seeded-owner authentication (`ralvescosta` / `mudar@1234`) and session refresh, with JWT claims carrying `sub`, `project_id`, `role`, `email`, and `username`.
+- Downstream impact: authenticated BFF service calls now forward `common.v1.Session` on protected gRPC requests and default `common.v1.Pagination` when list/search query params are omitted.
 

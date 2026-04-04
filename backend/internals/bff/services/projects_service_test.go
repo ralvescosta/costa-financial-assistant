@@ -15,6 +15,8 @@ import (
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services"
+	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
+	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
 )
 
@@ -133,6 +135,35 @@ func TestProjectsService_ListMembers_ReturnsMembers(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	assert.Len(t, result.Items, 2)
+}
+
+func TestProjectsService_ListMembers_ForwardsSessionAndDefaultPagination(t *testing.T) {
+	// Arrange
+	client := &mockOnboardingClient{}
+	svc := newProjectsService(t, client)
+	ctx := context.WithValue(context.Background(), bffmiddleware.ProjectContextKey, &identityv1.JwtClaims{
+		Subject:   "user-1",
+		ProjectId: "proj-1",
+		Role:      "write",
+		Email:     "ralvescosta@local.dev",
+		Username:  "ralvescosta",
+	})
+
+	var capturedReq *onboardingv1.ListProjectMembersRequest
+	client.On("ListProjectMembers", ctx, mock.MatchedBy(func(req *onboardingv1.ListProjectMembersRequest) bool {
+		capturedReq = req
+		return true
+	})).Return(&onboardingv1.ListProjectMembersResponse{}, nil)
+
+	// Act
+	_, err := svc.ListMembers(ctx, "proj-1", "user-1", "write", 0, "")
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, capturedReq)
+	require.NotNil(t, capturedReq.GetSession())
+	assert.Equal(t, "user-1", capturedReq.GetSession().GetId())
+	assert.EqualValues(t, 25, capturedReq.GetPagination().GetPageSize())
 }
 
 // ─── InviteMember ─────────────────────────────────────────────────────────────

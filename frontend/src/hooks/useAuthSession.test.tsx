@@ -41,14 +41,19 @@ describe('useAuthSession — BFF /api/auth/login contract', () => {
             expiresIn: 3600,
             refreshAt: 2700,
             csrfToken: 'csrf-abc',
-            user: { id: 'u1', username: 'demo' },
+            user: { id: '00000000-0000-0000-0000-000000000001', username: 'ralvescosta' },
+            activeProject: {
+              id: '00000000-0000-0000-0000-000000000010',
+              name: 'Costa Financial Assistant',
+              role: 'write',
+            },
           },
         }),
       ),
     )
 
     const { result } = renderHook(() => useAuthSession(), { wrapper: Wrapper })
-    await act(() => result.current.login('demo', 'secret'))
+    await act(() => result.current.login('ralvescosta', 'mudar@1234'))
 
     expect(result.current.isAuthenticated).toBe(true)
     expect(result.current.error).toBeUndefined()
@@ -65,7 +70,7 @@ describe('useAuthSession — BFF /api/auth/login contract', () => {
     )
 
     const { result } = renderHook(() => useAuthSession(), { wrapper: Wrapper })
-    await act(() => result.current.login('demo', 'wrong'))
+    await act(() => result.current.login('ralvescosta', 'wrong'))
 
     expect(result.current.isAuthenticated).toBe(false)
     expect(result.current.error).toBeTruthy()
@@ -91,7 +96,7 @@ describe('useAuthSession — BFF /api/auth/login contract', () => {
     )
 
     const { result } = renderHook(() => useAuthSession(), { wrapper: Wrapper })
-    await act(() => result.current.login('demo', 'wrong'))
+    await act(() => result.current.login('ralvescosta', 'wrong'))
 
     expect(result.current.isAuthenticated).toBe(false)
     expect(result.current.lockoutUntil).toBeDefined()

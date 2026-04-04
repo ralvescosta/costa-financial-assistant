@@ -26,7 +26,9 @@ func NewPaymentsController(logger *zap.Logger, validate *validator.Validate, svc
 }
 
 // HandleGetDashboard returns outstanding bills for the project's active payment cycle.
-func (c *PaymentsController) HandleGetDashboard(ctx context.Context, input *views.GetPaymentDashboardInput) (*struct{ Body views.PaymentDashboardResponse }, error) {
+func (c *PaymentsController) HandleGetDashboard(ctx context.Context, input *views.GetPaymentDashboardInput) (*struct {
+	Body views.PaymentDashboardResponse
+}, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -38,7 +40,9 @@ func (c *PaymentsController) HandleGetDashboard(ctx context.Context, input *view
 		return nil, c.grpcToHumaError(err, "get payment dashboard failed")
 	}
 
-	return &struct{ Body views.PaymentDashboardResponse }{Body: controllermappers.ToPaymentDashboardResponse(resp)}, nil
+	return &struct {
+		Body views.PaymentDashboardResponse
+	}{Body: controllermappers.ToPaymentDashboardResponse(resp)}, nil
 }
 
 // HandleMarkPaid idempotently marks a bill as paid.
@@ -98,4 +102,3 @@ func (c *PaymentsController) HandleSetPreferredDay(ctx context.Context, input *v
 		zap.Int("day", preferredDay))
 	return &struct{ Body views.CyclePreferenceResponse }{Body: controllermappers.ToCyclePreferenceResponse(resp)}, nil
 }
-

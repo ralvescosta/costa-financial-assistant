@@ -21,6 +21,20 @@ func (paymentCycleRepoErrStub) Upsert(context.Context, string, int, string) (*in
 	return nil, errors.New("db unavailable")
 }
 
+type historyRepoErrStub struct{}
+
+func (historyRepoErrStub) GetTimeline(context.Context, string, int) ([]interfaces.MonthlyTimelineEntry, error) {
+	return nil, errors.New("db down")
+}
+
+func (historyRepoErrStub) GetCategoryBreakdown(context.Context, string, int) ([]interfaces.CategoryBreakdownEntry, error) {
+	return nil, errors.New("db down")
+}
+
+func (historyRepoErrStub) GetComplianceMetrics(context.Context, string, int) ([]interfaces.MonthlyComplianceEntry, error) {
+	return nil, errors.New("db down")
+}
+
 type reconRepoErrStub struct{}
 
 func (reconRepoErrStub) GetUnmatchedTransactionLines(context.Context, string, string) ([]interfaces.ReconciliationSummaryEntry, error) {
@@ -50,6 +64,21 @@ func TestPaymentCycleServiceBoundaryLogsOnce(t *testing.T) {
 		t.Fatalf("expected exactly 1 boundary error log, got %d", logs.Len())
 	}
 	if logs.All()[0].Message != "cycle_service: get preference failed" {
+		t.Fatalf("unexpected log message: %s", logs.All()[0].Message)
+	}
+}
+
+func TestHistoryServiceBoundaryLogsOnce(t *testing.T) {
+	core, logs := observer.New(zap.ErrorLevel)
+	logger := zap.New(core)
+	svc := NewHistoryService(historyRepoErrStub{}, logger)
+
+	_, _ = svc.GetTimeline(context.Background(), "project-1", 6)
+
+	if logs.Len() != 1 {
+		t.Fatalf("expected exactly 1 boundary error log, got %d", logs.Len())
+	}
+	if logs.All()[0].Message != "history_service: get timeline failed" {
 		t.Fatalf("unexpected log message: %s", logs.All()[0].Message)
 	}
 }

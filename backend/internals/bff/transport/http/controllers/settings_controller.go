@@ -26,7 +26,9 @@ func NewSettingsController(logger *zap.Logger, validate *validator.Validate, svc
 }
 
 // HandleList returns all bank account labels for the caller's project.
-func (c *SettingsController) HandleList(ctx context.Context, _ *struct{}) (*struct{ Body views.ListBankAccountsResponse }, error) {
+func (c *SettingsController) HandleList(ctx context.Context, _ *struct{}) (*struct {
+	Body views.ListBankAccountsResponse
+}, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error403Forbidden("missing project context")
@@ -37,7 +39,9 @@ func (c *SettingsController) HandleList(ctx context.Context, _ *struct{}) (*stru
 		return nil, c.grpcToHumaError(err, "list bank accounts failed")
 	}
 
-	return &struct{ Body views.ListBankAccountsResponse }{Body: controllermappers.ToListBankAccountsResponse(resp)}, nil
+	return &struct {
+		Body views.ListBankAccountsResponse
+	}{Body: controllermappers.ToListBankAccountsResponse(resp)}, nil
 }
 
 // HandleCreate registers a new bank account label for the caller's project.
@@ -81,4 +85,3 @@ func (c *SettingsController) HandleDelete(ctx context.Context, input *views.Dele
 		zap.String("project_id", claims.GetProjectId()))
 	return &struct{}{}, nil
 }
-

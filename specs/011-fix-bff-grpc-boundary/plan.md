@@ -7,19 +7,20 @@
 
 ## Summary
 
-Complete the BFF boundary correction by removing the last direct domain-data shortcuts and replacing them with proper downstream gRPC contracts. The implementation will add a new `payments/v1` proto and gRPC transport for cycle-preference, history, and reconciliation capabilities, wire the payments gRPC server and client into `backend/cmd/payments/container.go` and `backend/cmd/bff/container.go`, restore supported BFF flows to normal data-returning behavior, and finalize the required instruction/memory synchronization.
+Complete the BFF boundary correction by removing the last direct domain-data shortcuts and replacing them with proper downstream gRPC contracts. The implementation will add a new `payments/v1` proto and gRPC transport for cycle-preference, history, and reconciliation capabilities, wire the payments gRPC server and client into `backend/cmd/payments/container.go` and `backend/cmd/bff/container.go`, perform an explicit audit of `backend/internals/bff/**` for any additional non-payments direct-access violations, restore supported BFF flows to normal data-returning behavior, add auth/project-membership regression coverage for the migrated routes, and finalize the required instruction/memory synchronization.
 
 ## Technical Context
 
 **Language/Version**: Go 1.25.6  
 **Primary Dependencies**: `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, `google.golang.org/grpc`, generated protobuf clients in `backend/protos/generated/`, `go.uber.org/zap`, `github.com/go-playground/validator/v10`  
 **Storage**: PostgreSQL for domain data; existing Redis/S3/RabbitMQ integrations remain unchanged for this feature  
-**Testing**: `cd backend && go test ./...`, targeted BFF and payments unit tests, canonical BFF integration tests in `backend/tests/integration/bff/`, cross-service integration tests in `backend/tests/integration/cross_service/`  
+**Testing**: `cd backend && go test ./...`, targeted BFF and payments unit tests, canonical BFF integration tests in `backend/tests/integration/bff/`, cross-service integration tests in `backend/tests/integration/cross_service/`, and explicit `401/403` + project-membership regression coverage for the migrated BFF routes  
 **Target Platform**: Linux containerized backend services run locally via `make svc/run/<service>` and in CI  
 **Project Type**: Backend multi-service monorepo refactor + contract-expansion feature  
 **Performance Goals**: Preserve current supported-screen behavior and startup health while replacing in-process data shortcuts with the canonical single gRPC hop to the owning service  
 **Constraints**: BFF must not access domain DB/repositories; new inter-service behavior must be gRPC-first and proto-versioned; AppError-first error propagation must remain intact; supported routes cannot remain on permanent dependency-error fallbacks  
-**Scale/Scope**: `backend/internals/bff/**`, `backend/internals/payments/**`, `backend/protos/payments/v1/**`, `backend/protos/generated/payments/v1/**`, related tests, plus required `.specify/memory/*`, `/memories/repo/*`, and `.github/instructions/*` synchronization
+**Scale/Scope**: `backend/internals/bff/**`, `backend/internals/payments/**`, `backend/protos/payments/v1/**`, `backend/protos/generated/payments/v1/**`, related tests, plus required `.specify/memory/*`, `/memories/repo/*`, and `.github/instructions/*` synchronization  
+**Supported Scope Boundary**: Mandatory implementation and verification cover `bff`, `payments`, and `bills` for payment-cycle preference, history timeline, reconciliation, and the associated bills-backed dashboard/mark-paid interactions. `files`, `onboarding`, and `identity` are audit-in-scope and become implementation-in-scope only if the BFF audit uncovers direct-access violations in touched routes.
 
 ## Constitution Check
 
@@ -123,11 +124,12 @@ Implementation is not complete until the new payments gRPC boundary is in place 
 
 ## Phase 0: Research and Decisions
 
-1. Inventory every remaining BFF direct-access violation and classify it by owning service.
+1. Inventory every remaining BFF direct-access violation across `backend/internals/bff/**` and classify it by owning service, even if the final migration work is concentrated on the supported payment-facing routes.
 2. Define the new `payments/v1` gRPC surface needed for cycle-preference, history analytics, and reconciliation flows.
 3. Preserve the current `bills` ownership for bill-dashboard and mark-paid operations already served by `bills.v1.BillsService`.
 4. Determine the BFF migration sequence so controllers stay thin and `services/contracts`/`controllers/mappers` ownership remains intact during the swap to gRPC.
 5. Define AppError-first transport behavior, rollout sequencing, and regression verification obligations.
+6. Define explicit auth, authorization, and project-membership regression checks for the migrated BFF routes so the gateway responsibilities remain provable after the transport change.
 
 ## Phase 1: Design Outputs
 

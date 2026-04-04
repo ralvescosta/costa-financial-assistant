@@ -12,18 +12,11 @@ import (
 // JWKS cache and stores the decoded claims in the request context.
 func NewAuthMiddleware(cache *JWKSCache, logger *zap.Logger) func(huma.Context, func(huma.Context)) {
 	return func(ctx huma.Context, next func(huma.Context)) {
-		authHeader := ctx.Header("Authorization")
-		if authHeader == "" {
-			unauthorizedResponse(ctx, "missing Authorization header")
+		tokenStr, ok := extractTokenFromHeaders(ctx)
+		if !ok {
+			unauthorizedResponse(ctx, "missing session token")
 			return
 		}
-
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			unauthorizedResponse(ctx, "invalid Authorization header format")
-			return
-		}
-		tokenStr := parts[1]
 
 		kid, err := extractKID(tokenStr)
 		if err != nil {
@@ -51,4 +44,27 @@ func NewAuthMiddleware(cache *JWKSCache, logger *zap.Logger) func(huma.Context, 
 
 		next(ctx)
 	}
+}
+
+func extractTokenFromHeaders(ctx huma.Context) (string, bool) {
+	authHeader := strings.TrimSpace(ctx.Header("Authorization"))
+	if authHeader != "" {
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") && strings.TrimSpace(parts[1]) != "" {
+			return strings.TrimSpace(parts[1]), true
+		}
+		return "", false
+	}
+
+	for _, part := range strings.Split(ctx.Header("Cookie"), ";") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		name, value, found := strings.Cut(part, "=")
+		if found && strings.TrimSpace(name) == "cfa_session" && strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value), true
+		}
+	}
+	return "", false
 }

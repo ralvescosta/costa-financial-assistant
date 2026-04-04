@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package payments.v1;
+
+import "common/v1/messages.proto";
+import "payments/v1/messages.proto";
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1;paymentsv1";
+
+// PaymentsService exposes the payments-owned capabilities consumed by the BFF.
+service PaymentsService {
+  // GetCyclePreference returns the preferred payment day for the project.
+  rpc GetCyclePreference(GetCyclePreferenceRequest) returns (GetCyclePreferenceResponse);
+
+  // SetCyclePreference creates or updates the preferred payment day for the project.
+  rpc SetCyclePreference(SetCyclePreferenceRequest) returns (SetCyclePreferenceResponse);
+
+  // GetHistoryTimeline returns monthly expenditure totals for the project.
+  rpc GetHistoryTimeline(GetHistoryTimelineRequest) returns (GetHistoryTimelineResponse);
+
+  // GetHistoryCategoryBreakdown returns monthly spend totals grouped by bill type.
+  rpc GetHistoryCategoryBreakdown(GetHistoryCategoryBreakdownRequest) returns (GetHistoryCategoryBreakdownResponse);
+
+  // GetHistoryCompliance returns monthly on-time payment metrics.
+  rpc GetHistoryCompliance(GetHistoryComplianceRequest) returns (GetHistoryComplianceResponse);
+
+  // GetReconciliationSummary returns the reconciliation projection for the project and period.
+  rpc GetReconciliationSummary(GetReconciliationSummaryRequest) returns (GetReconciliationSummaryResponse);
+
+  // CreateManualLink links a transaction line to a bill record as a user-confirmed match.
+  rpc CreateManualLink(CreateManualLinkRequest) returns (CreateManualLinkResponse);
+}
+
+message GetCyclePreferenceRequest {
+  common.v1.ProjectContext ctx     = 1;
+  common.v1.Session        session = 2;
+}
+
+message GetCyclePreferenceResponse {
+  CyclePreference preference = 1;
+}
+
+message SetCyclePreferenceRequest {
+  common.v1.ProjectContext ctx = 1;
+  int32 preferred_day_of_month = 2;
+  common.v1.AuditMetadata audit = 3;
+  common.v1.Session session = 4;
+}
+
+message SetCyclePreferenceResponse {
+  CyclePreference preference = 1;
+}
+
+message GetHistoryTimelineRequest {
+  common.v1.ProjectContext ctx        = 1;
+  int32                    months     = 2;
+  common.v1.Pagination     pagination = 3;
+  common.v1.Session        session    = 4;
+}
+
+message GetHistoryTimelineResponse {
+  string project_id = 1;
+  int32 months = 2;
+  repeated MonthlyTimelineEntry entries = 3;
+}
+
+message GetHistoryCategoryBreakdownRequest {
+  common.v1.ProjectContext ctx        = 1;
+  int32                    months     = 2;
+  common.v1.Pagination     pagination = 3;
+  common.v1.Session        session    = 4;
+}
+
+message GetHistoryCategoryBreakdownResponse {
+  string project_id = 1;
+  int32 months = 2;
+  repeated CategoryBreakdownEntry entries = 3;
+}
+
+message GetHistoryComplianceRequest {
+  common.v1.ProjectContext ctx        = 1;
+  int32                    months     = 2;
+  common.v1.Pagination     pagination = 3;
+  common.v1.Session        session    = 4;
+}
+
+message GetHistoryComplianceResponse {
+  string project_id = 1;
+  int32 months = 2;
+  repeated MonthlyComplianceEntry entries = 3;
+}
+
+message GetReconciliationSummaryRequest {
+  common.v1.ProjectContext ctx         = 1;
+  string                   period_start = 2;
+  string                   period_end   = 3;
+  common.v1.Pagination     pagination   = 4;
+  common.v1.Session        session      = 5;
+}
+
+message GetReconciliationSummaryResponse {
+  ReconciliationSummary summary = 1;
+}
+
+message CreateManualLinkRequest {
+  common.v1.ProjectContext ctx = 1;
+  string transaction_line_id = 2;
+  string bill_record_id = 3;
+  common.v1.AuditMetadata audit = 4;
+  common.v1.Session session = 5;
+}
+
+message CreateManualLinkResponse {
+  ReconciliationLink link = 1;
+}

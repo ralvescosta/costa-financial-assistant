@@ -28,6 +28,7 @@ type CreateProjectRequest struct {
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Type          ProjectType            `protobuf:"varint,3,opt,name=type,proto3,enum=onboarding.v1.ProjectType" json:"type,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,4,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -83,6 +84,13 @@ func (x *CreateProjectRequest) GetType() ProjectType {
 	return ProjectType_PROJECT_TYPE_UNSPECIFIED
 }
 
+func (x *CreateProjectRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type CreateProjectResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Project       *Project               `protobuf:"bytes,1,opt,name=project,proto3" json:"project,omitempty"`
@@ -134,6 +142,7 @@ type InviteProjectMemberRequest struct {
 	InviteeEmail  string                 `protobuf:"bytes,2,opt,name=invitee_email,json=inviteeEmail,proto3" json:"invitee_email,omitempty"`
 	Role          ProjectMemberRole      `protobuf:"varint,3,opt,name=role,proto3,enum=onboarding.v1.ProjectMemberRole" json:"role,omitempty"`
 	Audit         *v1.AuditMetadata      `protobuf:"bytes,4,opt,name=audit,proto3" json:"audit,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,5,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -196,6 +205,13 @@ func (x *InviteProjectMemberRequest) GetAudit() *v1.AuditMetadata {
 	return nil
 }
 
+func (x *InviteProjectMemberRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type InviteProjectMemberResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Member        *ProjectMember         `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
@@ -247,6 +263,7 @@ type UpdateProjectMemberRoleRequest struct {
 	MemberId      string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
 	NewRole       ProjectMemberRole      `protobuf:"varint,3,opt,name=new_role,json=newRole,proto3,enum=onboarding.v1.ProjectMemberRole" json:"new_role,omitempty"`
 	Audit         *v1.AuditMetadata      `protobuf:"bytes,4,opt,name=audit,proto3" json:"audit,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,5,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -309,6 +326,13 @@ func (x *UpdateProjectMemberRoleRequest) GetAudit() *v1.AuditMetadata {
 	return nil
 }
 
+func (x *UpdateProjectMemberRoleRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type UpdateProjectMemberRoleResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Member        *ProjectMember         `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
@@ -358,6 +382,7 @@ type ListProjectMembersRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	Pagination    *v1.Pagination         `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,3,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -402,6 +427,13 @@ func (x *ListProjectMembersRequest) GetCtx() *v1.ProjectContext {
 func (x *ListProjectMembersRequest) GetPagination() *v1.Pagination {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListProjectMembersRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
 	}
 	return nil
 }
@@ -462,6 +494,7 @@ func (x *ListProjectMembersResponse) GetPagination() *v1.PaginationResult {
 type GetProjectRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,2,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -499,6 +532,13 @@ func (*GetProjectRequest) Descriptor() ([]byte, []int) {
 func (x *GetProjectRequest) GetCtx() *v1.ProjectContext {
 	if x != nil {
 		return x.Ctx
+	}
+	return nil
+}
+
+func (x *GetProjectRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
 	}
 	return nil
 }
@@ -551,39 +591,44 @@ var File_onboarding_v1_grpc_proto protoreflect.FileDescriptor
 
 const file_onboarding_v1_grpc_proto_rawDesc = "" +
 	"\n" +
-	"\x18onboarding/v1/grpc.proto\x12\ronboarding.v1\x1a\x1conboarding/v1/messages.proto\x1a\x18common/v1/messages.proto\"\x87\x01\n" +
+	"\x18onboarding/v1/grpc.proto\x12\ronboarding.v1\x1a\x1conboarding/v1/messages.proto\x1a\x18common/v1/messages.proto\"\xb5\x01\n" +
 	"\x14CreateProjectRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12.\n" +
-	"\x04type\x18\x03 \x01(\x0e2\x1a.onboarding.v1.ProjectTypeR\x04type\"I\n" +
+	"\x04type\x18\x03 \x01(\x0e2\x1a.onboarding.v1.ProjectTypeR\x04type\x12,\n" +
+	"\asession\x18\x04 \x01(\v2\x12.common.v1.SessionR\asession\"I\n" +
 	"\x15CreateProjectResponse\x120\n" +
-	"\aproject\x18\x01 \x01(\v2\x16.onboarding.v1.ProjectR\aproject\"\xd4\x01\n" +
+	"\aproject\x18\x01 \x01(\v2\x16.onboarding.v1.ProjectR\aproject\"\x82\x02\n" +
 	"\x1aInviteProjectMemberRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12#\n" +
 	"\rinvitee_email\x18\x02 \x01(\tR\finviteeEmail\x124\n" +
 	"\x04role\x18\x03 \x01(\x0e2 .onboarding.v1.ProjectMemberRoleR\x04role\x12.\n" +
-	"\x05audit\x18\x04 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"S\n" +
+	"\x05audit\x18\x04 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\x12,\n" +
+	"\asession\x18\x05 \x01(\v2\x12.common.v1.SessionR\asession\"S\n" +
 	"\x1bInviteProjectMemberResponse\x124\n" +
-	"\x06member\x18\x01 \x01(\v2\x1c.onboarding.v1.ProjectMemberR\x06member\"\xd7\x01\n" +
+	"\x06member\x18\x01 \x01(\v2\x1c.onboarding.v1.ProjectMemberR\x06member\"\x85\x02\n" +
 	"\x1eUpdateProjectMemberRoleRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x1b\n" +
 	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12;\n" +
 	"\bnew_role\x18\x03 \x01(\x0e2 .onboarding.v1.ProjectMemberRoleR\anewRole\x12.\n" +
-	"\x05audit\x18\x04 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"W\n" +
+	"\x05audit\x18\x04 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\x12,\n" +
+	"\asession\x18\x05 \x01(\v2\x12.common.v1.SessionR\asession\"W\n" +
 	"\x1fUpdateProjectMemberRoleResponse\x124\n" +
-	"\x06member\x18\x01 \x01(\v2\x1c.onboarding.v1.ProjectMemberR\x06member\"\x7f\n" +
+	"\x06member\x18\x01 \x01(\v2\x1c.onboarding.v1.ProjectMemberR\x06member\"\xad\x01\n" +
 	"\x19ListProjectMembersRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x125\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x15.common.v1.PaginationR\n" +
-	"pagination\"\x91\x01\n" +
+	"pagination\x12,\n" +
+	"\asession\x18\x03 \x01(\v2\x12.common.v1.SessionR\asession\"\x91\x01\n" +
 	"\x1aListProjectMembersResponse\x126\n" +
 	"\amembers\x18\x01 \x03(\v2\x1c.onboarding.v1.ProjectMemberR\amembers\x12;\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1b.common.v1.PaginationResultR\n" +
-	"pagination\"@\n" +
+	"pagination\"n\n" +
 	"\x11GetProjectRequest\x12+\n" +
-	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\"F\n" +
+	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12,\n" +
+	"\asession\x18\x02 \x01(\v2\x12.common.v1.SessionR\asession\"F\n" +
 	"\x12GetProjectResponse\x120\n" +
 	"\aproject\x18\x01 \x01(\v2\x16.onboarding.v1.ProjectR\aproject2\x95\x04\n" +
 	"\x11OnboardingService\x12Z\n" +
@@ -620,46 +665,52 @@ var file_onboarding_v1_grpc_proto_goTypes = []any{
 	(*GetProjectResponse)(nil),              // 9: onboarding.v1.GetProjectResponse
 	(*v1.ProjectContext)(nil),               // 10: common.v1.ProjectContext
 	(ProjectType)(0),                        // 11: onboarding.v1.ProjectType
-	(*Project)(nil),                         // 12: onboarding.v1.Project
-	(ProjectMemberRole)(0),                  // 13: onboarding.v1.ProjectMemberRole
-	(*v1.AuditMetadata)(nil),                // 14: common.v1.AuditMetadata
-	(*ProjectMember)(nil),                   // 15: onboarding.v1.ProjectMember
-	(*v1.Pagination)(nil),                   // 16: common.v1.Pagination
-	(*v1.PaginationResult)(nil),             // 17: common.v1.PaginationResult
+	(*v1.Session)(nil),                      // 12: common.v1.Session
+	(*Project)(nil),                         // 13: onboarding.v1.Project
+	(ProjectMemberRole)(0),                  // 14: onboarding.v1.ProjectMemberRole
+	(*v1.AuditMetadata)(nil),                // 15: common.v1.AuditMetadata
+	(*ProjectMember)(nil),                   // 16: onboarding.v1.ProjectMember
+	(*v1.Pagination)(nil),                   // 17: common.v1.Pagination
+	(*v1.PaginationResult)(nil),             // 18: common.v1.PaginationResult
 }
 var file_onboarding_v1_grpc_proto_depIdxs = []int32{
 	10, // 0: onboarding.v1.CreateProjectRequest.ctx:type_name -> common.v1.ProjectContext
 	11, // 1: onboarding.v1.CreateProjectRequest.type:type_name -> onboarding.v1.ProjectType
-	12, // 2: onboarding.v1.CreateProjectResponse.project:type_name -> onboarding.v1.Project
-	10, // 3: onboarding.v1.InviteProjectMemberRequest.ctx:type_name -> common.v1.ProjectContext
-	13, // 4: onboarding.v1.InviteProjectMemberRequest.role:type_name -> onboarding.v1.ProjectMemberRole
-	14, // 5: onboarding.v1.InviteProjectMemberRequest.audit:type_name -> common.v1.AuditMetadata
-	15, // 6: onboarding.v1.InviteProjectMemberResponse.member:type_name -> onboarding.v1.ProjectMember
-	10, // 7: onboarding.v1.UpdateProjectMemberRoleRequest.ctx:type_name -> common.v1.ProjectContext
-	13, // 8: onboarding.v1.UpdateProjectMemberRoleRequest.new_role:type_name -> onboarding.v1.ProjectMemberRole
-	14, // 9: onboarding.v1.UpdateProjectMemberRoleRequest.audit:type_name -> common.v1.AuditMetadata
-	15, // 10: onboarding.v1.UpdateProjectMemberRoleResponse.member:type_name -> onboarding.v1.ProjectMember
-	10, // 11: onboarding.v1.ListProjectMembersRequest.ctx:type_name -> common.v1.ProjectContext
-	16, // 12: onboarding.v1.ListProjectMembersRequest.pagination:type_name -> common.v1.Pagination
-	15, // 13: onboarding.v1.ListProjectMembersResponse.members:type_name -> onboarding.v1.ProjectMember
-	17, // 14: onboarding.v1.ListProjectMembersResponse.pagination:type_name -> common.v1.PaginationResult
-	10, // 15: onboarding.v1.GetProjectRequest.ctx:type_name -> common.v1.ProjectContext
-	12, // 16: onboarding.v1.GetProjectResponse.project:type_name -> onboarding.v1.Project
-	0,  // 17: onboarding.v1.OnboardingService.CreateProject:input_type -> onboarding.v1.CreateProjectRequest
-	2,  // 18: onboarding.v1.OnboardingService.InviteProjectMember:input_type -> onboarding.v1.InviteProjectMemberRequest
-	4,  // 19: onboarding.v1.OnboardingService.UpdateProjectMemberRole:input_type -> onboarding.v1.UpdateProjectMemberRoleRequest
-	6,  // 20: onboarding.v1.OnboardingService.ListProjectMembers:input_type -> onboarding.v1.ListProjectMembersRequest
-	8,  // 21: onboarding.v1.OnboardingService.GetProject:input_type -> onboarding.v1.GetProjectRequest
-	1,  // 22: onboarding.v1.OnboardingService.CreateProject:output_type -> onboarding.v1.CreateProjectResponse
-	3,  // 23: onboarding.v1.OnboardingService.InviteProjectMember:output_type -> onboarding.v1.InviteProjectMemberResponse
-	5,  // 24: onboarding.v1.OnboardingService.UpdateProjectMemberRole:output_type -> onboarding.v1.UpdateProjectMemberRoleResponse
-	7,  // 25: onboarding.v1.OnboardingService.ListProjectMembers:output_type -> onboarding.v1.ListProjectMembersResponse
-	9,  // 26: onboarding.v1.OnboardingService.GetProject:output_type -> onboarding.v1.GetProjectResponse
-	22, // [22:27] is the sub-list for method output_type
-	17, // [17:22] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	12, // 2: onboarding.v1.CreateProjectRequest.session:type_name -> common.v1.Session
+	13, // 3: onboarding.v1.CreateProjectResponse.project:type_name -> onboarding.v1.Project
+	10, // 4: onboarding.v1.InviteProjectMemberRequest.ctx:type_name -> common.v1.ProjectContext
+	14, // 5: onboarding.v1.InviteProjectMemberRequest.role:type_name -> onboarding.v1.ProjectMemberRole
+	15, // 6: onboarding.v1.InviteProjectMemberRequest.audit:type_name -> common.v1.AuditMetadata
+	12, // 7: onboarding.v1.InviteProjectMemberRequest.session:type_name -> common.v1.Session
+	16, // 8: onboarding.v1.InviteProjectMemberResponse.member:type_name -> onboarding.v1.ProjectMember
+	10, // 9: onboarding.v1.UpdateProjectMemberRoleRequest.ctx:type_name -> common.v1.ProjectContext
+	14, // 10: onboarding.v1.UpdateProjectMemberRoleRequest.new_role:type_name -> onboarding.v1.ProjectMemberRole
+	15, // 11: onboarding.v1.UpdateProjectMemberRoleRequest.audit:type_name -> common.v1.AuditMetadata
+	12, // 12: onboarding.v1.UpdateProjectMemberRoleRequest.session:type_name -> common.v1.Session
+	16, // 13: onboarding.v1.UpdateProjectMemberRoleResponse.member:type_name -> onboarding.v1.ProjectMember
+	10, // 14: onboarding.v1.ListProjectMembersRequest.ctx:type_name -> common.v1.ProjectContext
+	17, // 15: onboarding.v1.ListProjectMembersRequest.pagination:type_name -> common.v1.Pagination
+	12, // 16: onboarding.v1.ListProjectMembersRequest.session:type_name -> common.v1.Session
+	16, // 17: onboarding.v1.ListProjectMembersResponse.members:type_name -> onboarding.v1.ProjectMember
+	18, // 18: onboarding.v1.ListProjectMembersResponse.pagination:type_name -> common.v1.PaginationResult
+	10, // 19: onboarding.v1.GetProjectRequest.ctx:type_name -> common.v1.ProjectContext
+	12, // 20: onboarding.v1.GetProjectRequest.session:type_name -> common.v1.Session
+	13, // 21: onboarding.v1.GetProjectResponse.project:type_name -> onboarding.v1.Project
+	0,  // 22: onboarding.v1.OnboardingService.CreateProject:input_type -> onboarding.v1.CreateProjectRequest
+	2,  // 23: onboarding.v1.OnboardingService.InviteProjectMember:input_type -> onboarding.v1.InviteProjectMemberRequest
+	4,  // 24: onboarding.v1.OnboardingService.UpdateProjectMemberRole:input_type -> onboarding.v1.UpdateProjectMemberRoleRequest
+	6,  // 25: onboarding.v1.OnboardingService.ListProjectMembers:input_type -> onboarding.v1.ListProjectMembersRequest
+	8,  // 26: onboarding.v1.OnboardingService.GetProject:input_type -> onboarding.v1.GetProjectRequest
+	1,  // 27: onboarding.v1.OnboardingService.CreateProject:output_type -> onboarding.v1.CreateProjectResponse
+	3,  // 28: onboarding.v1.OnboardingService.InviteProjectMember:output_type -> onboarding.v1.InviteProjectMemberResponse
+	5,  // 29: onboarding.v1.OnboardingService.UpdateProjectMemberRole:output_type -> onboarding.v1.UpdateProjectMemberRoleResponse
+	7,  // 30: onboarding.v1.OnboardingService.ListProjectMembers:output_type -> onboarding.v1.ListProjectMembersResponse
+	9,  // 31: onboarding.v1.OnboardingService.GetProject:output_type -> onboarding.v1.GetProjectResponse
+	27, // [27:32] is the sub-list for method output_type
+	22, // [22:27] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_onboarding_v1_grpc_proto_init() }

@@ -10,6 +10,7 @@
 ### Session 2026-04-04
 
 - Q: How should affected BFF flows be handled when the owning downstream gRPC contract does not yet exist? → A: This feature must add or extend the required downstream gRPC contracts and fully migrate the affected flows; temporary dependency-error fallbacks are transition-only and are not an acceptable final state for supported paths.
+- Q: What exactly is in scope for “supported paths” and “scoped backend services”? → A: The mandatory implementation and verification scope for this feature is `bff`, `payments`, and `bills`, covering payment-cycle preference, history timeline, reconciliation, and the bills-backed dashboard/mark-paid interactions exercised by those screens. `files`, `onboarding`, and `identity` are audit-in-scope and become implementation-in-scope only if the BFF audit uncovers direct-access violations in touched routes.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -67,7 +68,7 @@ As a team lead, I need the updated BFF pattern, service-flow diagrams, and build
 
 ## Architecture & Memory Diagram Flow Impact *(mandatory)*
 
-- Affected services: `bff` (mandatory), `payments` (known hotspot), plus any downstream service whose data is currently being bypassed from the BFF such as `bills`, `files`, `onboarding`, and `identity`.
+- Affected services: `bff` (mandatory), `payments` (known hotspot), and `bills` for the already-owned dashboard/mark-paid interactions tied to the supported payment screens. `files`, `onboarding`, and `identity` remain audit targets and must be remediated within this feature if the BFF audit uncovers direct-access violations in touched routes.
 - Requires architecture diagram update (`.specify/memory/architecture-diagram.md`): **Yes**. The current system overview must explicitly remove any BFF → PostgreSQL domain-data path and show BFF → gRPC service → data store ownership instead.
 - Required service-flow file updates in `.specify/memory/`:
   - [x] `.specify/memory/bff-flows.md` (core BFF gateway rule and updated request flows)
@@ -100,13 +101,14 @@ As a team lead, I need the updated BFF pattern, service-flow diagrams, and build
 - **FR-002**: The BFF MUST NOT access domain databases, domain repositories, or domain-owned persistence abstractions directly for business reads or writes.
 - **FR-003**: All BFF business data retrieval and mutation flows MUST go through the appropriate downstream service contract for the owning domain.
 - **FR-004**: Payment-related BFF flows, including known history, cycle-preference, and reconciliation paths, MUST be reviewed and corrected by adding or extending the required downstream payments gRPC contracts so the BFF no longer reaches payments-owned data through direct in-process domain access in the final delivered state.
-- **FR-005**: Any additional BFF direct-access pattern found in other domains during implementation MUST be removed within the approved scope of this feature; if the owning service lacks a needed contract, that contract MUST be added or extended rather than leaving the BFF on a permanent degraded fallback.
+- **FR-005**: Any additional BFF direct-access pattern found by the required audit in other domains during implementation MUST be triaged explicitly and, for any touched or supported path, removed within this feature; if the owning service lacks a needed contract, that contract MUST be added or extended rather than leaving the BFF on a permanent degraded fallback.
 - **FR-006**: The boundary correction MUST preserve the externally observable behavior of supported frontend endpoints, including successful authentication/authorization outcomes and response meaning for existing screens.
 - **FR-007**: If a downstream service becomes unavailable during runtime, the BFF MUST fail safely with a sanitized error and MUST NOT bypass the service boundary to query storage directly; temporary safe fallbacks during migration are allowed only until the required downstream contract is in place.
 - **FR-008**: Updated repository instructions MUST state that the BFF is a gateway/orchestration layer and that domain data ownership belongs to the downstream services.
 - **FR-009**: Updated memory artifacts and architecture diagrams MUST remove the direct BFF database-access flow and show the corrected BFF → service → data-store pattern.
-- **FR-010**: Verification for this feature MUST include build/startup checks demonstrating that the scoped backend services still compile and can be launched with the repository’s supported commands after the boundary correction and documentation updates.
+- **FR-010**: Verification for this feature MUST include build/startup checks for `bff`, `payments`, and `bills`, plus any additional service touched by audit findings, demonstrating that they still compile and can be launched with the repository’s supported commands after the boundary correction and documentation updates.
 - **FR-011**: Regression coverage for touched BFF flows MUST verify real endpoint behavior or service behavior rather than only mock-only wiring assertions.
+- **FR-012**: Regression coverage for the migrated payment-cycle, history, and reconciliation routes MUST include unauthorized, forbidden, and project-membership failure scenarios so the BFF’s authentication and authorization responsibilities remain explicitly verified after the gRPC migration.
 
 ### Key Entities *(include if feature involves data)*
 

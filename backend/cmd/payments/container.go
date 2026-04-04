@@ -4,18 +4,25 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	_ "github.com/lib/pq"
 
+	paymentsinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/interfaces"
 	paymentsrepo "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/repositories"
 	paymentssvc "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/services"
+	paymentsgrpc "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/transport/grpc"
 	"github.com/ralvescosta/costa-financial-assistant/backend/pkgs/configs"
 	pkglogger "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/logger"
 	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
+	paymentsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1"
 )
 
 // run wires the dependency container and starts the payments service.
@@ -62,6 +69,10 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("payments: provide reconciliation repository: %w", err)
 	}
 
+	if err := c.Provide(paymentsrepo.NewHistoryRepository); err != nil {
+		return fmt.Errorf("payments: provide history repository: %w", err)
+	}
+
 	// ─── Services ─────────────────────────────────────────────────────────────
 	if err := c.Provide(paymentssvc.NewPaymentCycleService); err != nil {
 		return fmt.Errorf("payments: provide payment cycle service: %w", err)
@@ -71,14 +82,45 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("payments: provide reconciliation service: %w", err)
 	}
 
+	if err := c.Provide(paymentssvc.NewHistoryService); err != nil {
+		return fmt.Errorf("payments: provide history service: %w", err)
+	}
+
+	// ─── gRPC handler ─────────────────────────────────────────────────────────
+	if err := c.Provide(func(
+		cycleSvc paymentsinterfaces.PaymentCycleService,
+		historySvc paymentsinterfaces.HistoryService,
+		reconciliationSvc paymentsinterfaces.ReconciliationService,
+		logger *zap.Logger,
+	) paymentsv1.PaymentsServiceServer {
+		return paymentsgrpc.NewServer(cycleSvc, historySvc, reconciliationSvc, logger)
+	}); err != nil {
+		return fmt.Errorf("payments: provide grpc handler: %w", err)
+	}
+
 	// ─── Start ────────────────────────────────────────────────────────────────
-	return c.Invoke(func(cfg *configs.Config, logger *zap.Logger) error {
-		logger.Info("payments service started",
-			zap.String("env", cfg.Env),
-			zap.String("service", cfg.ServiceName))
-		<-ctx.Done()
-		logger.Info("payments: shutting down")
-		_ = logger.Sync()
-		return nil
+	return c.Invoke(func(cfg *configs.Config, logger *zap.Logger, handler paymentsv1.PaymentsServiceServer) error {
+		addr := fmt.Sprintf("%s:%d", cfg.GRPC.Host, cfg.GRPC.Port)
+		lis, err := net.Listen("tcp", addr)
+		if err != nil {
+			return fmt.Errorf("payments: listen %s: %w", addr, err)
+		}
+
+		srv := grpc.NewServer(
+			grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		)
+		paymentsv1.RegisterPaymentsServiceServer(srv, handler)
+		reflection.Register(srv)
+
+		logger.Info("payments gRPC server starting", zap.String("addr", addr))
+
+		go func() {
+			<-ctx.Done()
+			logger.Info("payments: shutting down gRPC server")
+			srv.GracefulStop()
+			_ = logger.Sync()
+		}()
+
+		return srv.Serve(lis)
 	})
 }

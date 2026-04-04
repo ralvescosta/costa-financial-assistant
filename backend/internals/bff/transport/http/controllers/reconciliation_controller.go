@@ -26,7 +26,9 @@ func NewReconciliationController(logger *zap.Logger, validate *validator.Validat
 }
 
 // HandleGetSummary returns the reconciliation summary for the project.
-func (c *ReconciliationController) HandleGetSummary(ctx context.Context, input *views.ReconciliationSummaryInput) (*struct{ Body views.ReconciliationSummaryResponse }, error) {
+func (c *ReconciliationController) HandleGetSummary(ctx context.Context, input *views.ReconciliationSummaryInput) (*struct {
+	Body views.ReconciliationSummaryResponse
+}, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error401Unauthorized("missing authentication claims")
@@ -41,11 +43,15 @@ func (c *ReconciliationController) HandleGetSummary(ctx context.Context, input *
 		return nil, huma.Error500InternalServerError("failed to retrieve reconciliation summary")
 	}
 
-	return &struct{ Body views.ReconciliationSummaryResponse }{Body: controllermappers.ToReconciliationSummaryResponse(resp)}, nil
+	return &struct {
+		Body views.ReconciliationSummaryResponse
+	}{Body: controllermappers.ToReconciliationSummaryResponse(resp)}, nil
 }
 
 // HandleCreateLink manually links a statement transaction to a bill record.
-func (c *ReconciliationController) HandleCreateLink(ctx context.Context, input *views.CreateReconciliationLinkInput) (*struct{ Body views.ReconciliationLinkResponse }, error) {
+func (c *ReconciliationController) HandleCreateLink(ctx context.Context, input *views.CreateReconciliationLinkInput) (*struct {
+	Body views.ReconciliationLinkResponse
+}, error) {
 	claims := bffmiddleware.ClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, huma.Error401Unauthorized("missing authentication claims")
@@ -66,6 +72,7 @@ func (c *ReconciliationController) HandleCreateLink(ctx context.Context, input *
 		return nil, huma.Error500InternalServerError("failed to create reconciliation link")
 	}
 
-	return &struct{ Body views.ReconciliationLinkResponse }{Body: controllermappers.ToReconciliationLinkResponse(resp)}, nil
+	return &struct {
+		Body views.ReconciliationLinkResponse
+	}{Body: controllermappers.ToReconciliationLinkResponse(resp)}, nil
 }
-

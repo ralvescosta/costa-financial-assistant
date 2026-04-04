@@ -11,6 +11,7 @@ This document maps all current Bills service gRPC RPCs and their flow through:
 
 Notes:
 - Bills exposes gRPC APIs consumed by BFF and other internal callers.
+- Feature 012 adds `common.v1.Session` on authenticated bill/payment requests while preserving the payment-dashboard first-page default of `20` unless a route-specific override is later documented.
 - Tenant isolation is enforced via `project_id` in RPC context and repository queries.
 - Idempotency for mark-paid is DB-backed (not Redis-backed).
 - `AppError` propagation is enforced across repository, service, and transport boundaries with one structured boundary log for native dependency failures.

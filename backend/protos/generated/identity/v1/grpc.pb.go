@@ -21,6 +21,240 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ─── AuthenticateUser ────────────────────────────────────────────────────────
+type AuthenticateUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthenticateUserRequest) Reset() {
+	*x = AuthenticateUserRequest{}
+	mi := &file_identity_v1_grpc_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthenticateUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthenticateUserRequest) ProtoMessage() {}
+
+func (x *AuthenticateUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_grpc_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthenticateUserRequest.ProtoReflect.Descriptor instead.
+func (*AuthenticateUserRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *AuthenticateUserRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *AuthenticateUserRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type AuthenticateUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	ExpiresAt     int64                  `protobuf:"varint,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Claims        *JwtClaims             `protobuf:"bytes,3,opt,name=claims,proto3" json:"claims,omitempty"`
+	ProjectName   string                 `protobuf:"bytes,4,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthenticateUserResponse) Reset() {
+	*x = AuthenticateUserResponse{}
+	mi := &file_identity_v1_grpc_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthenticateUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthenticateUserResponse) ProtoMessage() {}
+
+func (x *AuthenticateUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_grpc_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthenticateUserResponse.ProtoReflect.Descriptor instead.
+func (*AuthenticateUserResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *AuthenticateUserResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *AuthenticateUserResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+func (x *AuthenticateUserResponse) GetClaims() *JwtClaims {
+	if x != nil {
+		return x.Claims
+	}
+	return nil
+}
+
+func (x *AuthenticateUserResponse) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
+// ─── RefreshSession ──────────────────────────────────────────────────────────
+type RefreshSessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshSessionRequest) Reset() {
+	*x = RefreshSessionRequest{}
+	mi := &file_identity_v1_grpc_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshSessionRequest) ProtoMessage() {}
+
+func (x *RefreshSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_grpc_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshSessionRequest.ProtoReflect.Descriptor instead.
+func (*RefreshSessionRequest) Descriptor() ([]byte, []int) {
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RefreshSessionRequest) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+type RefreshSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	ExpiresAt     int64                  `protobuf:"varint,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Claims        *JwtClaims             `protobuf:"bytes,3,opt,name=claims,proto3" json:"claims,omitempty"`
+	ProjectName   string                 `protobuf:"bytes,4,opt,name=project_name,json=projectName,proto3" json:"project_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RefreshSessionResponse) Reset() {
+	*x = RefreshSessionResponse{}
+	mi := &file_identity_v1_grpc_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RefreshSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RefreshSessionResponse) ProtoMessage() {}
+
+func (x *RefreshSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_identity_v1_grpc_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RefreshSessionResponse.ProtoReflect.Descriptor instead.
+func (*RefreshSessionResponse) Descriptor() ([]byte, []int) {
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RefreshSessionResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *RefreshSessionResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+func (x *RefreshSessionResponse) GetClaims() *JwtClaims {
+	if x != nil {
+		return x.Claims
+	}
+	return nil
+}
+
+func (x *RefreshSessionResponse) GetProjectName() string {
+	if x != nil {
+		return x.ProjectName
+	}
+	return ""
+}
+
 // ─── IssueBootstrapToken ─────────────────────────────────────────────────────
 type IssueBootstrapTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -33,7 +267,7 @@ type IssueBootstrapTokenRequest struct {
 
 func (x *IssueBootstrapTokenRequest) Reset() {
 	*x = IssueBootstrapTokenRequest{}
-	mi := &file_identity_v1_grpc_proto_msgTypes[0]
+	mi := &file_identity_v1_grpc_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +279,7 @@ func (x *IssueBootstrapTokenRequest) String() string {
 func (*IssueBootstrapTokenRequest) ProtoMessage() {}
 
 func (x *IssueBootstrapTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_grpc_proto_msgTypes[0]
+	mi := &file_identity_v1_grpc_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +292,7 @@ func (x *IssueBootstrapTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueBootstrapTokenRequest.ProtoReflect.Descriptor instead.
 func (*IssueBootstrapTokenRequest) Descriptor() ([]byte, []int) {
-	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{0}
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *IssueBootstrapTokenRequest) GetUserId() string {
@@ -92,7 +326,7 @@ type IssueBootstrapTokenResponse struct {
 
 func (x *IssueBootstrapTokenResponse) Reset() {
 	*x = IssueBootstrapTokenResponse{}
-	mi := &file_identity_v1_grpc_proto_msgTypes[1]
+	mi := &file_identity_v1_grpc_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -104,7 +338,7 @@ func (x *IssueBootstrapTokenResponse) String() string {
 func (*IssueBootstrapTokenResponse) ProtoMessage() {}
 
 func (x *IssueBootstrapTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_grpc_proto_msgTypes[1]
+	mi := &file_identity_v1_grpc_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -117,7 +351,7 @@ func (x *IssueBootstrapTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IssueBootstrapTokenResponse.ProtoReflect.Descriptor instead.
 func (*IssueBootstrapTokenResponse) Descriptor() ([]byte, []int) {
-	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{1}
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *IssueBootstrapTokenResponse) GetToken() string {
@@ -144,7 +378,7 @@ type ValidateTokenRequest struct {
 
 func (x *ValidateTokenRequest) Reset() {
 	*x = ValidateTokenRequest{}
-	mi := &file_identity_v1_grpc_proto_msgTypes[2]
+	mi := &file_identity_v1_grpc_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -156,7 +390,7 @@ func (x *ValidateTokenRequest) String() string {
 func (*ValidateTokenRequest) ProtoMessage() {}
 
 func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_grpc_proto_msgTypes[2]
+	mi := &file_identity_v1_grpc_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +403,7 @@ func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenRequest.ProtoReflect.Descriptor instead.
 func (*ValidateTokenRequest) Descriptor() ([]byte, []int) {
-	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{2}
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ValidateTokenRequest) GetToken() string {
@@ -189,7 +423,7 @@ type ValidateTokenResponse struct {
 
 func (x *ValidateTokenResponse) Reset() {
 	*x = ValidateTokenResponse{}
-	mi := &file_identity_v1_grpc_proto_msgTypes[3]
+	mi := &file_identity_v1_grpc_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -201,7 +435,7 @@ func (x *ValidateTokenResponse) String() string {
 func (*ValidateTokenResponse) ProtoMessage() {}
 
 func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_grpc_proto_msgTypes[3]
+	mi := &file_identity_v1_grpc_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -214,7 +448,7 @@ func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenResponse.ProtoReflect.Descriptor instead.
 func (*ValidateTokenResponse) Descriptor() ([]byte, []int) {
-	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{3}
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ValidateTokenResponse) GetValid() bool {
@@ -240,7 +474,7 @@ type GetJwksMetadataRequest struct {
 
 func (x *GetJwksMetadataRequest) Reset() {
 	*x = GetJwksMetadataRequest{}
-	mi := &file_identity_v1_grpc_proto_msgTypes[4]
+	mi := &file_identity_v1_grpc_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -252,7 +486,7 @@ func (x *GetJwksMetadataRequest) String() string {
 func (*GetJwksMetadataRequest) ProtoMessage() {}
 
 func (x *GetJwksMetadataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_grpc_proto_msgTypes[4]
+	mi := &file_identity_v1_grpc_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -265,7 +499,7 @@ func (x *GetJwksMetadataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJwksMetadataRequest.ProtoReflect.Descriptor instead.
 func (*GetJwksMetadataRequest) Descriptor() ([]byte, []int) {
-	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{4}
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{8}
 }
 
 type GetJwksMetadataResponse struct {
@@ -277,7 +511,7 @@ type GetJwksMetadataResponse struct {
 
 func (x *GetJwksMetadataResponse) Reset() {
 	*x = GetJwksMetadataResponse{}
-	mi := &file_identity_v1_grpc_proto_msgTypes[5]
+	mi := &file_identity_v1_grpc_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -289,7 +523,7 @@ func (x *GetJwksMetadataResponse) String() string {
 func (*GetJwksMetadataResponse) ProtoMessage() {}
 
 func (x *GetJwksMetadataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_identity_v1_grpc_proto_msgTypes[5]
+	mi := &file_identity_v1_grpc_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -302,7 +536,7 @@ func (x *GetJwksMetadataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetJwksMetadataResponse.ProtoReflect.Descriptor instead.
 func (*GetJwksMetadataResponse) Descriptor() ([]byte, []int) {
-	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{5}
+	return file_identity_v1_grpc_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetJwksMetadataResponse) GetJwks() *JwksMetadata {
@@ -316,7 +550,24 @@ var File_identity_v1_grpc_proto protoreflect.FileDescriptor
 
 const file_identity_v1_grpc_proto_rawDesc = "" +
 	"\n" +
-	"\x16identity/v1/grpc.proto\x12\videntity.v1\x1a\x1aidentity/v1/messages.proto\"h\n" +
+	"\x16identity/v1/grpc.proto\x12\videntity.v1\x1a\x1aidentity/v1/messages.proto\"Q\n" +
+	"\x17AuthenticateUserRequest\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\xa2\x01\n" +
+	"\x18AuthenticateUserResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\x03R\texpiresAt\x12.\n" +
+	"\x06claims\x18\x03 \x01(\v2\x16.identity.v1.JwtClaimsR\x06claims\x12!\n" +
+	"\fproject_name\x18\x04 \x01(\tR\vprojectName\"-\n" +
+	"\x15RefreshSessionRequest\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"\xa0\x01\n" +
+	"\x16RefreshSessionResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\x03R\texpiresAt\x12.\n" +
+	"\x06claims\x18\x03 \x01(\v2\x16.identity.v1.JwtClaimsR\x06claims\x12!\n" +
+	"\fproject_name\x18\x04 \x01(\tR\vprojectName\"h\n" +
 	"\x1aIssueBootstrapTokenRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
 	"\n" +
@@ -333,8 +584,10 @@ const file_identity_v1_grpc_proto_rawDesc = "" +
 	"\x06claims\x18\x02 \x01(\v2\x16.identity.v1.JwtClaimsR\x06claims\"\x18\n" +
 	"\x16GetJwksMetadataRequest\"H\n" +
 	"\x17GetJwksMetadataResponse\x12-\n" +
-	"\x04jwks\x18\x01 \x01(\v2\x19.identity.v1.JwksMetadataR\x04jwks2\xb1\x02\n" +
-	"\x0fIdentityService\x12h\n" +
+	"\x04jwks\x18\x01 \x01(\v2\x19.identity.v1.JwksMetadataR\x04jwks2\xed\x03\n" +
+	"\x0fIdentityService\x12_\n" +
+	"\x10AuthenticateUser\x12$.identity.v1.AuthenticateUserRequest\x1a%.identity.v1.AuthenticateUserResponse\x12Y\n" +
+	"\x0eRefreshSession\x12\".identity.v1.RefreshSessionRequest\x1a#.identity.v1.RefreshSessionResponse\x12h\n" +
 	"\x13IssueBootstrapToken\x12'.identity.v1.IssueBootstrapTokenRequest\x1a(.identity.v1.IssueBootstrapTokenResponse\x12V\n" +
 	"\rValidateToken\x12!.identity.v1.ValidateTokenRequest\x1a\".identity.v1.ValidateTokenResponse\x12\\\n" +
 	"\x0fGetJwksMetadata\x12#.identity.v1.GetJwksMetadataRequest\x1a$.identity.v1.GetJwksMetadataResponseBbZ`github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1;identityv1b\x06proto3"
@@ -351,31 +604,41 @@ func file_identity_v1_grpc_proto_rawDescGZIP() []byte {
 	return file_identity_v1_grpc_proto_rawDescData
 }
 
-var file_identity_v1_grpc_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_identity_v1_grpc_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_identity_v1_grpc_proto_goTypes = []any{
-	(*IssueBootstrapTokenRequest)(nil),  // 0: identity.v1.IssueBootstrapTokenRequest
-	(*IssueBootstrapTokenResponse)(nil), // 1: identity.v1.IssueBootstrapTokenResponse
-	(*ValidateTokenRequest)(nil),        // 2: identity.v1.ValidateTokenRequest
-	(*ValidateTokenResponse)(nil),       // 3: identity.v1.ValidateTokenResponse
-	(*GetJwksMetadataRequest)(nil),      // 4: identity.v1.GetJwksMetadataRequest
-	(*GetJwksMetadataResponse)(nil),     // 5: identity.v1.GetJwksMetadataResponse
-	(*JwtClaims)(nil),                   // 6: identity.v1.JwtClaims
-	(*JwksMetadata)(nil),                // 7: identity.v1.JwksMetadata
+	(*AuthenticateUserRequest)(nil),     // 0: identity.v1.AuthenticateUserRequest
+	(*AuthenticateUserResponse)(nil),    // 1: identity.v1.AuthenticateUserResponse
+	(*RefreshSessionRequest)(nil),       // 2: identity.v1.RefreshSessionRequest
+	(*RefreshSessionResponse)(nil),      // 3: identity.v1.RefreshSessionResponse
+	(*IssueBootstrapTokenRequest)(nil),  // 4: identity.v1.IssueBootstrapTokenRequest
+	(*IssueBootstrapTokenResponse)(nil), // 5: identity.v1.IssueBootstrapTokenResponse
+	(*ValidateTokenRequest)(nil),        // 6: identity.v1.ValidateTokenRequest
+	(*ValidateTokenResponse)(nil),       // 7: identity.v1.ValidateTokenResponse
+	(*GetJwksMetadataRequest)(nil),      // 8: identity.v1.GetJwksMetadataRequest
+	(*GetJwksMetadataResponse)(nil),     // 9: identity.v1.GetJwksMetadataResponse
+	(*JwtClaims)(nil),                   // 10: identity.v1.JwtClaims
+	(*JwksMetadata)(nil),                // 11: identity.v1.JwksMetadata
 }
 var file_identity_v1_grpc_proto_depIdxs = []int32{
-	6, // 0: identity.v1.ValidateTokenResponse.claims:type_name -> identity.v1.JwtClaims
-	7, // 1: identity.v1.GetJwksMetadataResponse.jwks:type_name -> identity.v1.JwksMetadata
-	0, // 2: identity.v1.IdentityService.IssueBootstrapToken:input_type -> identity.v1.IssueBootstrapTokenRequest
-	2, // 3: identity.v1.IdentityService.ValidateToken:input_type -> identity.v1.ValidateTokenRequest
-	4, // 4: identity.v1.IdentityService.GetJwksMetadata:input_type -> identity.v1.GetJwksMetadataRequest
-	1, // 5: identity.v1.IdentityService.IssueBootstrapToken:output_type -> identity.v1.IssueBootstrapTokenResponse
-	3, // 6: identity.v1.IdentityService.ValidateToken:output_type -> identity.v1.ValidateTokenResponse
-	5, // 7: identity.v1.IdentityService.GetJwksMetadata:output_type -> identity.v1.GetJwksMetadataResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	10, // 0: identity.v1.AuthenticateUserResponse.claims:type_name -> identity.v1.JwtClaims
+	10, // 1: identity.v1.RefreshSessionResponse.claims:type_name -> identity.v1.JwtClaims
+	10, // 2: identity.v1.ValidateTokenResponse.claims:type_name -> identity.v1.JwtClaims
+	11, // 3: identity.v1.GetJwksMetadataResponse.jwks:type_name -> identity.v1.JwksMetadata
+	0,  // 4: identity.v1.IdentityService.AuthenticateUser:input_type -> identity.v1.AuthenticateUserRequest
+	2,  // 5: identity.v1.IdentityService.RefreshSession:input_type -> identity.v1.RefreshSessionRequest
+	4,  // 6: identity.v1.IdentityService.IssueBootstrapToken:input_type -> identity.v1.IssueBootstrapTokenRequest
+	6,  // 7: identity.v1.IdentityService.ValidateToken:input_type -> identity.v1.ValidateTokenRequest
+	8,  // 8: identity.v1.IdentityService.GetJwksMetadata:input_type -> identity.v1.GetJwksMetadataRequest
+	1,  // 9: identity.v1.IdentityService.AuthenticateUser:output_type -> identity.v1.AuthenticateUserResponse
+	3,  // 10: identity.v1.IdentityService.RefreshSession:output_type -> identity.v1.RefreshSessionResponse
+	5,  // 11: identity.v1.IdentityService.IssueBootstrapToken:output_type -> identity.v1.IssueBootstrapTokenResponse
+	7,  // 12: identity.v1.IdentityService.ValidateToken:output_type -> identity.v1.ValidateTokenResponse
+	9,  // 13: identity.v1.IdentityService.GetJwksMetadata:output_type -> identity.v1.GetJwksMetadataResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_identity_v1_grpc_proto_init() }
@@ -390,7 +653,7 @@ func file_identity_v1_grpc_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_identity_v1_grpc_proto_rawDesc), len(file_identity_v1_grpc_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

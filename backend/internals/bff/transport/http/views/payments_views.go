@@ -5,7 +5,7 @@ package views
 type GetPaymentDashboardInput struct {
 	CycleStart string `query:"cycleStart" doc:"ISO-8601 cycle start date (YYYY-MM-DD)"`
 	CycleEnd   string `query:"cycleEnd" doc:"ISO-8601 cycle end date (YYYY-MM-DD)"`
-	PageSize   string `query:"pageSize" doc:"Number of results per page"`
+	PageSize   string `query:"pageSize" doc:"Number of results per page (default 20 for payment dashboard queries)"`
 	PageToken  string `query:"pageToken" doc:"Opaque pagination cursor"`
 }
 
@@ -37,9 +37,9 @@ type PaymentBillTypeResponse struct {
 // PaymentDashboardEntryResponse represents a single dashboard row.
 type PaymentDashboardEntryResponse struct {
 	Bill         PaymentBillRecordResponse `json:"bill"`
-	BillType     *PaymentBillTypeResponse   `json:"billType,omitempty"`
-	IsOverdue    bool                       `json:"isOverdue"`
-	DaysUntilDue int32                      `json:"daysUntilDue"`
+	BillType     *PaymentBillTypeResponse  `json:"billType,omitempty"`
+	IsOverdue    bool                      `json:"isOverdue"`
+	DaysUntilDue int32                     `json:"daysUntilDue"`
 }
 
 // PaymentDashboardResponse is the GET payment-dashboard response body.

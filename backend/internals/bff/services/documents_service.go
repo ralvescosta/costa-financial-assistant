@@ -40,7 +40,8 @@ func (s *DocumentsServiceImpl) UploadDocument(ctx context.Context, projectID, up
 	storageKey := fmt.Sprintf("local/%s", fileHash)
 
 	resp, err := s.filesClient.UploadDocument(ctx, &filesv1.UploadDocumentRequest{
-		Ctx:             &commonv1.ProjectContext{ProjectId: projectID},
+		Ctx:             projectContextFromContext(ctx, projectID, uploadedBy),
+		Session:         sessionFromContext(ctx),
 		FileName:        fileName,
 		FileHash:        fileHash,
 		StorageProvider: "local",
@@ -65,11 +66,18 @@ func (s *DocumentsServiceImpl) UploadDocument(ctx context.Context, projectID, up
 
 // ClassifyDocument updates a document's kind.
 func (s *DocumentsServiceImpl) ClassifyDocument(ctx context.Context, projectID, documentID, kind string) (*bffcontracts.DocumentResponse, error) {
+	projectCtx := projectContextFromContext(ctx, projectID, "")
+	performedBy := projectCtx.GetUserId()
+	if performedBy == "" {
+		performedBy = projectID
+	}
+
 	resp, err := s.filesClient.ClassifyDocument(ctx, &filesv1.ClassifyDocumentRequest{
-		Ctx:        &commonv1.ProjectContext{ProjectId: projectID},
+		Ctx:        projectCtx,
+		Session:    sessionFromContext(ctx),
 		DocumentId: documentID,
 		Kind:       kindFromString(kind),
-		Audit:      &commonv1.AuditMetadata{PerformedBy: projectID},
+		Audit:      &commonv1.AuditMetadata{PerformedBy: performedBy},
 	})
 	if err != nil {
 		s.logger.Error("documents_svc: classify downstream call failed",
@@ -90,15 +98,10 @@ func (s *DocumentsServiceImpl) ClassifyDocument(ctx context.Context, projectID, 
 
 // ListDocuments returns a project-scoped page of documents.
 func (s *DocumentsServiceImpl) ListDocuments(ctx context.Context, projectID string, pageSize int32, pageToken string) (*bffcontracts.ListDocumentsResponse, error) {
-	if pageSize == 0 {
-		pageSize = 25
-	}
 	resp, err := s.filesClient.ListDocuments(ctx, &filesv1.ListDocumentsRequest{
-		Ctx: &commonv1.ProjectContext{ProjectId: projectID},
-		Pagination: &commonv1.Pagination{
-			PageSize:  pageSize,
-			PageToken: pageToken,
-		},
+		Ctx:        projectContextFromContext(ctx, projectID, ""),
+		Session:    sessionFromContext(ctx),
+		Pagination: defaultPagination(pageSize, pageToken, 25),
 	})
 	if err != nil {
 		s.logger.Error("documents_svc: list downstream call failed",
@@ -125,7 +128,8 @@ func (s *DocumentsServiceImpl) ListDocuments(ctx context.Context, projectID stri
 // GetDocument returns full document metadata including extraction fields.
 func (s *DocumentsServiceImpl) GetDocument(ctx context.Context, projectID, documentID string) (*bffcontracts.DocumentDetailResponse, error) {
 	resp, err := s.filesClient.GetDocument(ctx, &filesv1.GetDocumentRequest{
-		Ctx:        &commonv1.ProjectContext{ProjectId: projectID},
+		Ctx:        projectContextFromContext(ctx, projectID, ""),
+		Session:    sessionFromContext(ctx),
 		DocumentId: documentID,
 	})
 	if err != nil {

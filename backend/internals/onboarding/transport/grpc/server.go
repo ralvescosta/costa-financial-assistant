@@ -34,14 +34,26 @@ func NewServer(svc services.ProjectMembersServiceIface, logger *zap.Logger) (*gr
 
 // CreateProject creates a new project tenant owned by the caller.
 func (s *Server) CreateProject(ctx context.Context, req *onboardingv1.CreateProjectRequest) (*onboardingv1.CreateProjectResponse, error) {
-	if req.GetCtx() == nil || req.GetCtx().GetUserId() == "" {
+	pc := req.GetCtx()
+	if pc == nil {
+		return nil, status.Error(codes.InvalidArgument, "project context is required")
+	}
+	sessionUserID, err := requireSessionUserID(req.GetSession())
+	if err != nil {
+		return nil, err
+	}
+	ownerUserID := pc.GetUserId()
+	if ownerUserID == "" {
+		ownerUserID = sessionUserID
+	}
+	if ownerUserID == "" {
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
 	}
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project name is required")
 	}
 
-	project, err := s.svc.CreateProject(ctx, req.GetCtx().GetUserId(), req.GetName(), req.GetType())
+	project, err := s.svc.CreateProject(ctx, ownerUserID, req.GetName(), req.GetType())
 	if err != nil {
 		if appErr := apperrors.AsAppError(err); appErr != nil {
 			return nil, toGRPCStatusError(appErr)
@@ -58,6 +70,9 @@ func (s *Server) CreateProject(ctx context.Context, req *onboardingv1.CreateProj
 func (s *Server) GetProject(ctx context.Context, req *onboardingv1.GetProjectRequest) (*onboardingv1.GetProjectResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 
 	project, err := s.svc.GetProject(ctx, req.GetCtx().GetProjectId())
@@ -78,12 +93,16 @@ func (s *Server) InviteProjectMember(ctx context.Context, req *onboardingv1.Invi
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
 	}
+	sessionUserID, err := requireSessionUserID(req.GetSession())
+	if err != nil {
+		return nil, err
+	}
 	if req.GetInviteeEmail() == "" {
 		return nil, status.Error(codes.InvalidArgument, "invitee_email is required")
 	}
 
-	invitedBy := ""
-	if req.GetAudit() != nil {
+	invitedBy := sessionUserID
+	if req.GetAudit() != nil && req.GetAudit().GetPerformedBy() != "" {
 		invitedBy = req.GetAudit().GetPerformedBy()
 	}
 
@@ -105,6 +124,9 @@ func (s *Server) InviteProjectMember(ctx context.Context, req *onboardingv1.Invi
 func (s *Server) UpdateProjectMemberRole(ctx context.Context, req *onboardingv1.UpdateProjectMemberRoleRequest) (*onboardingv1.UpdateProjectMemberRoleResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 	if req.GetMemberId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "member_id is required")
@@ -128,6 +150,9 @@ func (s *Server) UpdateProjectMemberRole(ctx context.Context, req *onboardingv1.
 func (s *Server) ListProjectMembers(ctx context.Context, req *onboardingv1.ListProjectMembersRequest) (*onboardingv1.ListProjectMembersResponse, error) {
 	if req.GetCtx() == nil || req.GetCtx().GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 
 	pageSize := int32(25)
@@ -156,6 +181,13 @@ func (s *Server) ListProjectMembers(ctx context.Context, req *onboardingv1.ListP
 			NextPageToken: nextToken,
 		},
 	}, nil
+}
+
+func requireSessionUserID(session *commonv1.Session) (string, error) {
+	if session == nil || session.GetId() == "" {
+		return "", status.Error(codes.Unauthenticated, "session is required")
+	}
+	return session.GetId(), nil
 }
 
 func toGRPCStatusError(appErr *apperrors.AppError) error {

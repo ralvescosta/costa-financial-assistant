@@ -8,6 +8,49 @@ import (
 	views "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/views"
 )
 
+func TestRouteSpecificPaginationDefaults(t *testing.T) {
+	t.Parallel()
+
+	t.Run("GivenNilDocumentsInputWhenMappedThenDefaultPageSizeIs25", func(t *testing.T) {
+		// Given
+		var input *views.ListDocumentsInput
+
+		// Act
+		pageSize, pageToken := controllermappers.ToListDocumentsRequest(input)
+
+		// Then
+		if pageSize != 25 || pageToken != "" {
+			t.Fatalf("expected documents default page size of 25")
+		}
+	})
+
+	t.Run("GivenNilProjectsInputWhenMappedThenDefaultPageSizeIs25", func(t *testing.T) {
+		// Given
+		var input *views.ListMembersInput
+
+		// Act
+		pageSize, pageToken := controllermappers.ToListMembersRequest(input)
+
+		// Then
+		if pageSize != 25 || pageToken != "" {
+			t.Fatalf("expected projects default page size of 25")
+		}
+	})
+
+	t.Run("GivenNilPaymentsInputWhenMappedThenDefaultPageSizeIs20", func(t *testing.T) {
+		// Given
+		var input *views.GetPaymentDashboardInput
+
+		// Act
+		_, _, pageSize, pageToken := controllermappers.ToPaymentDashboardRequest(input)
+
+		// Then
+		if pageSize != 20 || pageToken != "" {
+			t.Fatalf("expected payments default page size of 20")
+		}
+	})
+}
+
 func TestPaymentsMapperNilSafety(t *testing.T) {
 	t.Parallel()
 

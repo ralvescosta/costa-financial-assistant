@@ -391,4 +391,5 @@ When generating code, ensure:
 10. Maintain architecture consistency
 11. Enforce integration-test standard when generating or modifying backend integration tests
 12. Preserve BFF service boundary ownership (`services/contracts` vs `transport/http/views`) and mapper-layer conversion rules deterministically
-13. Preserve pointer-threshold signature policy and record explicit value-semantics exceptions when required
+13. Preserve `common.v1.Session` on authenticated gRPC request contracts and `common.v1.Pagination` on all list/select request contracts, with BFF default query-param propagation when pagination is omitted
+14. Preserve pointer-threshold signature policy and record explicit value-semantics exceptions when required

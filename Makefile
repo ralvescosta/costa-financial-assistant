@@ -1,8 +1,9 @@
 # ─── Costa Financial Assistant — Root Makefile ──────────────────────────────
 #
 # Targets:
-#   dev-up                 Start all services and frontend in development mode
+#   dev-up                 Start infrastructure, all backend services, and frontend in development mode
 #   svc/run/<service>      Run a specific backend service
+#   svc/run/all            Run all backend services concurrently
 #   svc/test/<service>     Run unit tests for a specific backend service
 #   migrate/up/<service>   Apply DB migrations for a specific service
 #   migrate/down/<service> Rollback DB migrations for a specific service
@@ -24,6 +25,7 @@ CYAN  := \033[0;36m
 RESET := \033[0m
 
 .PHONY: help dev-up frontend/dev frontend/test frontend/build proto/generate \
+        svc/run/all \
         $(addprefix svc/run/,$(SERVICES)) \
         $(addprefix svc/test/,$(SERVICES)) \
         $(addprefix migrate/up/,$(SERVICES)) \
@@ -38,7 +40,10 @@ help: ## Show this help
 # ─── Development bootstrap ───────────────────────────────────────────────────
 dev-up: ## Start infrastructure + all backend services + frontend in dev mode
 	@docker compose --profile dev up -d
-	@make -j2 frontend/dev svc/run/bff
+	@$(MAKE) -j2 frontend/dev svc/run/all
+
+svc/run/all: ## Run all backend services concurrently
+	@$(MAKE) -j$(words $(SERVICES)) $(addprefix svc/run/,$(SERVICES))
 
 # ─── Frontend ────────────────────────────────────────────────────────────────
 frontend/dev: ## Start Vite dev server
@@ -66,6 +71,14 @@ GRPC_PORT_bills     ?= 9093
 GRPC_PORT_onboarding?= 9094
 GRPC_PORT_payments  ?= 9095
 
+# ─── Default per-service database DSNs ──────────────────────────────────────
+DB_URL_bff         ?= postgres://postgres:postgres@localhost:5432/financial_payments?sslmode=disable
+DB_URL_onboarding  ?= postgres://postgres:postgres@localhost:5432/financial_onboarding?sslmode=disable
+DB_URL_files       ?= postgres://postgres:postgres@localhost:5432/financial_files?sslmode=disable
+DB_URL_identity    ?= postgres://postgres:postgres@localhost:5432/financial_assistant?sslmode=disable
+DB_URL_bills       ?= postgres://postgres:postgres@localhost:5432/financial_bills?sslmode=disable
+DB_URL_payments    ?= postgres://postgres:postgres@localhost:5432/financial_payments?sslmode=disable
+
 # ─── Backend service targets ─────────────────────────────────────────────────
 define SERVICE_TARGETS
 svc/run/$(1): ## Run backend service: $(1)
@@ -87,12 +100,6 @@ test/integration: ## Run backend integration tests with ephemeral DB
 	@cd backend && go test -race -count=1 -v -tags integration ./tests/integration/...
 
 # ─── Migrations ──────────────────────────────────────────────────────────────
-DB_URL_bff         ?= postgres://postgres:postgres@localhost:5432/financial_payments?sslmode=disable
-DB_URL_onboarding  ?= postgres://postgres:postgres@localhost:5432/financial_onboarding?sslmode=disable
-DB_URL_files       ?= postgres://postgres:postgres@localhost:5432/financial_files?sslmode=disable
-DB_URL_bills       ?= postgres://postgres:postgres@localhost:5432/financial_bills?sslmode=disable
-DB_URL_payments    ?= postgres://postgres:postgres@localhost:5432/financial_payments?sslmode=disable
-
 MIGRATIONS_DB_DSN ?= postgres://postgres:postgres@localhost:5432/financial_assistant?sslmode=disable
 MIGRATIONS_ENV    ?= local
 
@@ -147,7 +154,7 @@ $(foreach svc,$(MIGRATION_SERVICES),$(eval $(call MIGRATE_TARGETS,$(svc))))
 # ─── Proto generation ────────────────────────────────────────────────────────
 PROTO_SRC_DIR := backend/protos
 PROTO_GEN_DIR := backend/protos/generated
-PROTO_MODULES := common/v1 onboarding/v1 identity/v1 files/v1 bills/v1
+PROTO_MODULES := common/v1 onboarding/v1 identity/v1 files/v1 bills/v1 payments/v1
 
 PROTOC_GEN_GO      := $(shell go env GOBIN)/protoc-gen-go
 PROTOC_GEN_GO_GRPC := $(shell go env GOBIN)/protoc-gen-go-grpc

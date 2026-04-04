@@ -48,6 +48,11 @@ Current backend module structure is under backend/cmd and backend/internals:
 - onboarding
 - migrations
 
+## Mock User
+
+- username: ralvescosta
+- password: mudar@1234
+
 ## License
 
 This project is licensed under the MIT License.

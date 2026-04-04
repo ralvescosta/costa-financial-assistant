@@ -35,14 +35,24 @@ type ProjectsCapability interface {
 
 // SettingsCapability is the narrow handler interface consumed by SettingsRoute.
 type SettingsCapability interface {
-	HandleList(ctx context.Context, _ *struct{}) (*struct{ Body views.ListBankAccountsResponse }, error)
+	HandleList(ctx context.Context, _ *struct{}) (*struct {
+		Body views.ListBankAccountsResponse
+	}, error)
 	HandleCreate(ctx context.Context, input *views.CreateBankAccountInput) (*struct{ Body views.BankAccountResponse }, error)
 	HandleDelete(ctx context.Context, input *views.DeleteBankAccountInput) (*struct{}, error)
 }
 
+// AuthCapability is the narrow handler interface consumed by AuthRoute.
+type AuthCapability interface {
+	HandleLogin(ctx context.Context, input *views.LoginInput) (*views.LoginOutput, error)
+	HandleRefresh(ctx context.Context, input *views.RefreshInput) (*views.RefreshOutput, error)
+}
+
 // PaymentsCapability is the narrow handler interface consumed by PaymentsRoute.
 type PaymentsCapability interface {
-	HandleGetDashboard(ctx context.Context, input *views.GetPaymentDashboardInput) (*struct{ Body views.PaymentDashboardResponse }, error)
+	HandleGetDashboard(ctx context.Context, input *views.GetPaymentDashboardInput) (*struct {
+		Body views.PaymentDashboardResponse
+	}, error)
 	HandleMarkPaid(ctx context.Context, input *views.MarkBillPaidInput) (*struct{ Body views.MarkBillPaidResponse }, error)
 	HandleGetPreferredDay(ctx context.Context, _ *struct{}) (*struct{ Body views.CyclePreferenceResponse }, error)
 	HandleSetPreferredDay(ctx context.Context, input *views.SetPreferredDayInput) (*struct{ Body views.CyclePreferenceResponse }, error)
@@ -50,14 +60,20 @@ type PaymentsCapability interface {
 
 // ReconciliationCapability is the narrow handler interface consumed by ReconciliationRoute.
 type ReconciliationCapability interface {
-	HandleGetSummary(ctx context.Context, input *views.ReconciliationSummaryInput) (*struct{ Body views.ReconciliationSummaryResponse }, error)
-	HandleCreateLink(ctx context.Context, input *views.CreateReconciliationLinkInput) (*struct{ Body views.ReconciliationLinkResponse }, error)
+	HandleGetSummary(ctx context.Context, input *views.ReconciliationSummaryInput) (*struct {
+		Body views.ReconciliationSummaryResponse
+	}, error)
+	HandleCreateLink(ctx context.Context, input *views.CreateReconciliationLinkInput) (*struct {
+		Body views.ReconciliationLinkResponse
+	}, error)
 }
 
 // HistoryCapability is the narrow handler interface consumed by HistoryRoute.
 type HistoryCapability interface {
 	HandleGetTimeline(ctx context.Context, input *views.HistoryQueryInput) (*struct{ Body views.TimelineResponse }, error)
-	HandleGetCategories(ctx context.Context, input *views.HistoryQueryInput) (*struct{ Body views.CategoryBreakdownResponse }, error)
+	HandleGetCategories(ctx context.Context, input *views.HistoryQueryInput) (*struct {
+		Body views.CategoryBreakdownResponse
+	}, error)
 	HandleGetCompliance(ctx context.Context, input *views.HistoryQueryInput) (*struct{ Body views.ComplianceResponse }, error)
 }
 
@@ -66,6 +82,7 @@ var (
 	_ Route = (*DocumentsRoute)(nil)
 	_ Route = (*ProjectsRoute)(nil)
 	_ Route = (*SettingsRoute)(nil)
+	_ Route = (*AuthRoute)(nil)
 	_ Route = (*PaymentsRoute)(nil)
 	_ Route = (*ReconciliationRoute)(nil)
 	_ Route = (*HistoryRoute)(nil)

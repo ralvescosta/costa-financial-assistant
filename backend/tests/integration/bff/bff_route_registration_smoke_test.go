@@ -228,4 +228,3 @@ func TestBFFRouteRegistrationSmoke(t *testing.T) {
 		})
 	}
 }
-

@@ -25,7 +25,9 @@ func NewSettingsService(logger *zap.Logger, filesClient bffinterfaces.FilesClien
 // ListBankAccounts returns all bank accounts for the project.
 func (s *SettingsServiceImpl) ListBankAccounts(ctx context.Context, projectID string) (*bffcontracts.ListBankAccountsResponse, error) {
 	resp, err := s.filesClient.ListBankAccounts(ctx, &filesv1.ListBankAccountsRequest{
-		Ctx: &commonv1.ProjectContext{ProjectId: projectID},
+		Ctx:        projectContextFromContext(ctx, projectID, ""),
+		Session:    sessionFromContext(ctx),
+		Pagination: defaultPagination(0, "", 20),
 	})
 	if err != nil {
 		return nil, err
@@ -42,9 +44,10 @@ func (s *SettingsServiceImpl) ListBankAccounts(ctx context.Context, projectID st
 // CreateBankAccount registers a new bank account label for the project.
 func (s *SettingsServiceImpl) CreateBankAccount(ctx context.Context, projectID, createdBy, label string) (*bffcontracts.BankAccountResponse, error) {
 	resp, err := s.filesClient.CreateBankAccount(ctx, &filesv1.CreateBankAccountRequest{
-		Ctx:   &commonv1.ProjectContext{ProjectId: projectID},
-		Label: label,
-		Audit: &commonv1.AuditMetadata{PerformedBy: createdBy},
+		Ctx:     projectContextFromContext(ctx, projectID, createdBy),
+		Session: sessionFromContext(ctx),
+		Label:   label,
+		Audit:   &commonv1.AuditMetadata{PerformedBy: createdBy},
 	})
 	if err != nil {
 		return nil, err
@@ -59,7 +62,8 @@ func (s *SettingsServiceImpl) CreateBankAccount(ctx context.Context, projectID, 
 // DeleteBankAccount removes a bank account from the project.
 func (s *SettingsServiceImpl) DeleteBankAccount(ctx context.Context, projectID, bankAccountID string) error {
 	_, err := s.filesClient.DeleteBankAccount(ctx, &filesv1.DeleteBankAccountRequest{
-		Ctx:           &commonv1.ProjectContext{ProjectId: projectID},
+		Ctx:           projectContextFromContext(ctx, projectID, ""),
+		Session:       sessionFromContext(ctx),
 		BankAccountId: bankAccountID,
 	})
 	if err != nil {

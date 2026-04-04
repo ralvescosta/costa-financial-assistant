@@ -11,6 +11,7 @@ This document maps all current Files service gRPC RPCs and their flow through:
 
 Notes:
 - Files exposes gRPC APIs consumed primarily by BFF.
+- Feature 012 requires authenticated BFF calls to carry `common.v1.Session` on these gRPC requests and keep list-style flows populated with deterministic `Pagination` defaults.
 - Project isolation is enforced with `project_id` across all repository calls.
 - Async extraction is handled by an RMQ consumer in this service, but these RPCs do not directly publish to RabbitMQ in current implementation.
 - `AppError` is the canonical boundary contract for repository->service->transport propagation and async consumer/producer sanitization. Native dependency errors are logged once and translated before crossing each layer.

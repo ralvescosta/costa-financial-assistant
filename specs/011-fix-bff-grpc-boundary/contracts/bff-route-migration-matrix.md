@@ -19,3 +19,8 @@ This matrix records the supported BFF routes that must end this feature on a cle
 - Route registration and OpenAPI metadata continue to pass in `backend/tests/integration/bff/*_routes_registration_test.go`.
 - Cross-service analytics/reconciliation behavior remains covered in `backend/tests/integration/cross_service/`.
 - No BFF service file for the routes above imports payments repositories or `backend/internals/payments/interfaces` directly in the final state.
+
+## Audit result
+
+- Verified on **2026-04-04**: no additional direct repository/SQL/service injections remain under `backend/internals/bff/**` for the supported routes in this matrix.
+- Supported payments-owned routes now resolve through `payments.v1.PaymentsService`, while dashboard and mark-paid flows remain correctly owned by `bills.v1.BillsService`.

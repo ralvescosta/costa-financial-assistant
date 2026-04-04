@@ -31,6 +31,7 @@ type UploadDocumentRequest struct {
 	StorageProvider string                 `protobuf:"bytes,4,opt,name=storage_provider,json=storageProvider,proto3" json:"storage_provider,omitempty"`
 	StorageKey      string                 `protobuf:"bytes,5,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
 	Audit           *v1.AuditMetadata      `protobuf:"bytes,6,opt,name=audit,proto3" json:"audit,omitempty"`
+	Session         *v1.Session            `protobuf:"bytes,7,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -107,6 +108,13 @@ func (x *UploadDocumentRequest) GetAudit() *v1.AuditMetadata {
 	return nil
 }
 
+func (x *UploadDocumentRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type UploadDocumentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
@@ -158,6 +166,7 @@ type ClassifyDocumentRequest struct {
 	DocumentId    string                 `protobuf:"bytes,2,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
 	Kind          DocumentKind           `protobuf:"varint,3,opt,name=kind,proto3,enum=files.v1.DocumentKind" json:"kind,omitempty"`
 	Audit         *v1.AuditMetadata      `protobuf:"bytes,4,opt,name=audit,proto3" json:"audit,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,5,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -220,6 +229,13 @@ func (x *ClassifyDocumentRequest) GetAudit() *v1.AuditMetadata {
 	return nil
 }
 
+func (x *ClassifyDocumentRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type ClassifyDocumentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Document      *Document              `protobuf:"bytes,1,opt,name=document,proto3" json:"document,omitempty"`
@@ -269,6 +285,7 @@ type GetDocumentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	DocumentId    string                 `protobuf:"bytes,2,opt,name=document_id,json=documentId,proto3" json:"document_id,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,3,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -315,6 +332,13 @@ func (x *GetDocumentRequest) GetDocumentId() string {
 		return x.DocumentId
 	}
 	return ""
+}
+
+func (x *GetDocumentRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
 }
 
 type GetDocumentResponse struct {
@@ -384,6 +408,7 @@ type ListDocumentsRequest struct {
 	StatusFilter  AnalysisStatus         `protobuf:"varint,2,opt,name=status_filter,json=statusFilter,proto3,enum=files.v1.AnalysisStatus" json:"status_filter,omitempty"` // optional
 	KindFilter    DocumentKind           `protobuf:"varint,3,opt,name=kind_filter,json=kindFilter,proto3,enum=files.v1.DocumentKind" json:"kind_filter,omitempty"`         // optional
 	Pagination    *v1.Pagination         `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,5,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -446,6 +471,13 @@ func (x *ListDocumentsRequest) GetPagination() *v1.Pagination {
 	return nil
 }
 
+func (x *ListDocumentsRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type ListDocumentsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Documents     []*Document            `protobuf:"bytes,1,rep,name=documents,proto3" json:"documents,omitempty"`
@@ -504,6 +536,7 @@ type CreateBankAccountRequest struct {
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	Label         string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
 	Audit         *v1.AuditMetadata      `protobuf:"bytes,3,opt,name=audit,proto3" json:"audit,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,4,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -559,6 +592,13 @@ func (x *CreateBankAccountRequest) GetAudit() *v1.AuditMetadata {
 	return nil
 }
 
+func (x *CreateBankAccountRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type CreateBankAccountResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BankAccount   *BankAccount           `protobuf:"bytes,1,opt,name=bank_account,json=bankAccount,proto3" json:"bank_account,omitempty"`
@@ -607,6 +647,8 @@ func (x *CreateBankAccountResponse) GetBankAccount() *BankAccount {
 type ListBankAccountsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
+	Pagination    *v1.Pagination         `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,3,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -644,6 +686,20 @@ func (*ListBankAccountsRequest) Descriptor() ([]byte, []int) {
 func (x *ListBankAccountsRequest) GetCtx() *v1.ProjectContext {
 	if x != nil {
 		return x.Ctx
+	}
+	return nil
+}
+
+func (x *ListBankAccountsRequest) GetPagination() *v1.Pagination {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListBankAccountsRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
 	}
 	return nil
 }
@@ -697,6 +753,7 @@ type DeleteBankAccountRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	BankAccountId string                 `protobuf:"bytes,2,opt,name=bank_account_id,json=bankAccountId,proto3" json:"bank_account_id,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,3,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -743,6 +800,13 @@ func (x *DeleteBankAccountRequest) GetBankAccountId() string {
 		return x.BankAccountId
 	}
 	return ""
+}
+
+func (x *DeleteBankAccountRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
 }
 
 type DeleteBankAccountResponse struct {
@@ -793,7 +857,7 @@ var File_files_v1_grpc_proto protoreflect.FileDescriptor
 
 const file_files_v1_grpc_proto_rawDesc = "" +
 	"\n" +
-	"\x13files/v1/grpc.proto\x12\bfiles.v1\x1a\x17files/v1/messages.proto\x1a\x18common/v1/messages.proto\"\xfa\x01\n" +
+	"\x13files/v1/grpc.proto\x12\bfiles.v1\x1a\x17files/v1/messages.proto\x1a\x18common/v1/messages.proto\"\xa8\x02\n" +
 	"\x15UploadDocumentRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12\x1b\n" +
@@ -801,26 +865,29 @@ const file_files_v1_grpc_proto_rawDesc = "" +
 	"\x10storage_provider\x18\x04 \x01(\tR\x0fstorageProvider\x12\x1f\n" +
 	"\vstorage_key\x18\x05 \x01(\tR\n" +
 	"storageKey\x12.\n" +
-	"\x05audit\x18\x06 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"H\n" +
+	"\x05audit\x18\x06 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\x12,\n" +
+	"\asession\x18\a \x01(\v2\x12.common.v1.SessionR\asession\"H\n" +
 	"\x16UploadDocumentResponse\x12.\n" +
-	"\bdocument\x18\x01 \x01(\v2\x12.files.v1.DocumentR\bdocument\"\xc3\x01\n" +
+	"\bdocument\x18\x01 \x01(\v2\x12.files.v1.DocumentR\bdocument\"\xf1\x01\n" +
 	"\x17ClassifyDocumentRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x1f\n" +
 	"\vdocument_id\x18\x02 \x01(\tR\n" +
 	"documentId\x12*\n" +
 	"\x04kind\x18\x03 \x01(\x0e2\x16.files.v1.DocumentKindR\x04kind\x12.\n" +
-	"\x05audit\x18\x04 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"J\n" +
+	"\x05audit\x18\x04 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\x12,\n" +
+	"\asession\x18\x05 \x01(\v2\x12.common.v1.SessionR\asession\"J\n" +
 	"\x18ClassifyDocumentResponse\x12.\n" +
-	"\bdocument\x18\x01 \x01(\v2\x12.files.v1.DocumentR\bdocument\"b\n" +
+	"\bdocument\x18\x01 \x01(\v2\x12.files.v1.DocumentR\bdocument\"\x90\x01\n" +
 	"\x12GetDocumentRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x1f\n" +
 	"\vdocument_id\x18\x02 \x01(\tR\n" +
-	"documentId\"\xc2\x01\n" +
+	"documentId\x12,\n" +
+	"\asession\x18\x03 \x01(\v2\x12.common.v1.SessionR\asession\"\xc2\x01\n" +
 	"\x13GetDocumentResponse\x12.\n" +
 	"\bdocument\x18\x01 \x01(\v2\x12.files.v1.DocumentR\bdocument\x125\n" +
 	"\vbill_record\x18\x02 \x01(\v2\x14.files.v1.BillRecordR\n" +
 	"billRecord\x12D\n" +
-	"\x10statement_record\x18\x03 \x01(\v2\x19.files.v1.StatementRecordR\x0fstatementRecord\"\xf2\x01\n" +
+	"\x10statement_record\x18\x03 \x01(\v2\x19.files.v1.StatementRecordR\x0fstatementRecord\"\xa0\x02\n" +
 	"\x14ListDocumentsRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12=\n" +
 	"\rstatus_filter\x18\x02 \x01(\x0e2\x18.files.v1.AnalysisStatusR\fstatusFilter\x127\n" +
@@ -828,25 +895,32 @@ const file_files_v1_grpc_proto_rawDesc = "" +
 	"kindFilter\x125\n" +
 	"\n" +
 	"pagination\x18\x04 \x01(\v2\x15.common.v1.PaginationR\n" +
-	"pagination\"\x86\x01\n" +
+	"pagination\x12,\n" +
+	"\asession\x18\x05 \x01(\v2\x12.common.v1.SessionR\asession\"\x86\x01\n" +
 	"\x15ListDocumentsResponse\x120\n" +
 	"\tdocuments\x18\x01 \x03(\v2\x12.files.v1.DocumentR\tdocuments\x12;\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1b.common.v1.PaginationResultR\n" +
-	"pagination\"\x8d\x01\n" +
+	"pagination\"\xbb\x01\n" +
 	"\x18CreateBankAccountRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12.\n" +
-	"\x05audit\x18\x03 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"U\n" +
+	"\x05audit\x18\x03 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\x12,\n" +
+	"\asession\x18\x04 \x01(\v2\x12.common.v1.SessionR\asession\"U\n" +
 	"\x19CreateBankAccountResponse\x128\n" +
-	"\fbank_account\x18\x01 \x01(\v2\x15.files.v1.BankAccountR\vbankAccount\"F\n" +
+	"\fbank_account\x18\x01 \x01(\v2\x15.files.v1.BankAccountR\vbankAccount\"\xab\x01\n" +
 	"\x17ListBankAccountsRequest\x12+\n" +
-	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\"V\n" +
+	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x125\n" +
+	"\n" +
+	"pagination\x18\x02 \x01(\v2\x15.common.v1.PaginationR\n" +
+	"pagination\x12,\n" +
+	"\asession\x18\x03 \x01(\v2\x12.common.v1.SessionR\asession\"V\n" +
 	"\x18ListBankAccountsResponse\x12:\n" +
-	"\rbank_accounts\x18\x01 \x03(\v2\x15.files.v1.BankAccountR\fbankAccounts\"o\n" +
+	"\rbank_accounts\x18\x01 \x03(\v2\x15.files.v1.BankAccountR\fbankAccounts\"\x9d\x01\n" +
 	"\x18DeleteBankAccountRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12&\n" +
-	"\x0fbank_account_id\x18\x02 \x01(\tR\rbankAccountId\"5\n" +
+	"\x0fbank_account_id\x18\x02 \x01(\tR\rbankAccountId\x12,\n" +
+	"\asession\x18\x03 \x01(\v2\x12.common.v1.SessionR\asession\"5\n" +
 	"\x19DeleteBankAccountResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess2\xf3\x04\n" +
 	"\fFilesService\x12S\n" +
@@ -888,58 +962,67 @@ var file_files_v1_grpc_proto_goTypes = []any{
 	(*DeleteBankAccountResponse)(nil), // 13: files.v1.DeleteBankAccountResponse
 	(*v1.ProjectContext)(nil),         // 14: common.v1.ProjectContext
 	(*v1.AuditMetadata)(nil),          // 15: common.v1.AuditMetadata
-	(*Document)(nil),                  // 16: files.v1.Document
-	(DocumentKind)(0),                 // 17: files.v1.DocumentKind
-	(*BillRecord)(nil),                // 18: files.v1.BillRecord
-	(*StatementRecord)(nil),           // 19: files.v1.StatementRecord
-	(AnalysisStatus)(0),               // 20: files.v1.AnalysisStatus
-	(*v1.Pagination)(nil),             // 21: common.v1.Pagination
-	(*v1.PaginationResult)(nil),       // 22: common.v1.PaginationResult
-	(*BankAccount)(nil),               // 23: files.v1.BankAccount
+	(*v1.Session)(nil),                // 16: common.v1.Session
+	(*Document)(nil),                  // 17: files.v1.Document
+	(DocumentKind)(0),                 // 18: files.v1.DocumentKind
+	(*BillRecord)(nil),                // 19: files.v1.BillRecord
+	(*StatementRecord)(nil),           // 20: files.v1.StatementRecord
+	(AnalysisStatus)(0),               // 21: files.v1.AnalysisStatus
+	(*v1.Pagination)(nil),             // 22: common.v1.Pagination
+	(*v1.PaginationResult)(nil),       // 23: common.v1.PaginationResult
+	(*BankAccount)(nil),               // 24: files.v1.BankAccount
 }
 var file_files_v1_grpc_proto_depIdxs = []int32{
 	14, // 0: files.v1.UploadDocumentRequest.ctx:type_name -> common.v1.ProjectContext
 	15, // 1: files.v1.UploadDocumentRequest.audit:type_name -> common.v1.AuditMetadata
-	16, // 2: files.v1.UploadDocumentResponse.document:type_name -> files.v1.Document
-	14, // 3: files.v1.ClassifyDocumentRequest.ctx:type_name -> common.v1.ProjectContext
-	17, // 4: files.v1.ClassifyDocumentRequest.kind:type_name -> files.v1.DocumentKind
-	15, // 5: files.v1.ClassifyDocumentRequest.audit:type_name -> common.v1.AuditMetadata
-	16, // 6: files.v1.ClassifyDocumentResponse.document:type_name -> files.v1.Document
-	14, // 7: files.v1.GetDocumentRequest.ctx:type_name -> common.v1.ProjectContext
-	16, // 8: files.v1.GetDocumentResponse.document:type_name -> files.v1.Document
-	18, // 9: files.v1.GetDocumentResponse.bill_record:type_name -> files.v1.BillRecord
-	19, // 10: files.v1.GetDocumentResponse.statement_record:type_name -> files.v1.StatementRecord
-	14, // 11: files.v1.ListDocumentsRequest.ctx:type_name -> common.v1.ProjectContext
-	20, // 12: files.v1.ListDocumentsRequest.status_filter:type_name -> files.v1.AnalysisStatus
-	17, // 13: files.v1.ListDocumentsRequest.kind_filter:type_name -> files.v1.DocumentKind
-	21, // 14: files.v1.ListDocumentsRequest.pagination:type_name -> common.v1.Pagination
-	16, // 15: files.v1.ListDocumentsResponse.documents:type_name -> files.v1.Document
-	22, // 16: files.v1.ListDocumentsResponse.pagination:type_name -> common.v1.PaginationResult
-	14, // 17: files.v1.CreateBankAccountRequest.ctx:type_name -> common.v1.ProjectContext
-	15, // 18: files.v1.CreateBankAccountRequest.audit:type_name -> common.v1.AuditMetadata
-	23, // 19: files.v1.CreateBankAccountResponse.bank_account:type_name -> files.v1.BankAccount
-	14, // 20: files.v1.ListBankAccountsRequest.ctx:type_name -> common.v1.ProjectContext
-	23, // 21: files.v1.ListBankAccountsResponse.bank_accounts:type_name -> files.v1.BankAccount
-	14, // 22: files.v1.DeleteBankAccountRequest.ctx:type_name -> common.v1.ProjectContext
-	0,  // 23: files.v1.FilesService.UploadDocument:input_type -> files.v1.UploadDocumentRequest
-	2,  // 24: files.v1.FilesService.ClassifyDocument:input_type -> files.v1.ClassifyDocumentRequest
-	4,  // 25: files.v1.FilesService.GetDocument:input_type -> files.v1.GetDocumentRequest
-	6,  // 26: files.v1.FilesService.ListDocuments:input_type -> files.v1.ListDocumentsRequest
-	8,  // 27: files.v1.FilesService.CreateBankAccount:input_type -> files.v1.CreateBankAccountRequest
-	10, // 28: files.v1.FilesService.ListBankAccounts:input_type -> files.v1.ListBankAccountsRequest
-	12, // 29: files.v1.FilesService.DeleteBankAccount:input_type -> files.v1.DeleteBankAccountRequest
-	1,  // 30: files.v1.FilesService.UploadDocument:output_type -> files.v1.UploadDocumentResponse
-	3,  // 31: files.v1.FilesService.ClassifyDocument:output_type -> files.v1.ClassifyDocumentResponse
-	5,  // 32: files.v1.FilesService.GetDocument:output_type -> files.v1.GetDocumentResponse
-	7,  // 33: files.v1.FilesService.ListDocuments:output_type -> files.v1.ListDocumentsResponse
-	9,  // 34: files.v1.FilesService.CreateBankAccount:output_type -> files.v1.CreateBankAccountResponse
-	11, // 35: files.v1.FilesService.ListBankAccounts:output_type -> files.v1.ListBankAccountsResponse
-	13, // 36: files.v1.FilesService.DeleteBankAccount:output_type -> files.v1.DeleteBankAccountResponse
-	30, // [30:37] is the sub-list for method output_type
-	23, // [23:30] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	16, // 2: files.v1.UploadDocumentRequest.session:type_name -> common.v1.Session
+	17, // 3: files.v1.UploadDocumentResponse.document:type_name -> files.v1.Document
+	14, // 4: files.v1.ClassifyDocumentRequest.ctx:type_name -> common.v1.ProjectContext
+	18, // 5: files.v1.ClassifyDocumentRequest.kind:type_name -> files.v1.DocumentKind
+	15, // 6: files.v1.ClassifyDocumentRequest.audit:type_name -> common.v1.AuditMetadata
+	16, // 7: files.v1.ClassifyDocumentRequest.session:type_name -> common.v1.Session
+	17, // 8: files.v1.ClassifyDocumentResponse.document:type_name -> files.v1.Document
+	14, // 9: files.v1.GetDocumentRequest.ctx:type_name -> common.v1.ProjectContext
+	16, // 10: files.v1.GetDocumentRequest.session:type_name -> common.v1.Session
+	17, // 11: files.v1.GetDocumentResponse.document:type_name -> files.v1.Document
+	19, // 12: files.v1.GetDocumentResponse.bill_record:type_name -> files.v1.BillRecord
+	20, // 13: files.v1.GetDocumentResponse.statement_record:type_name -> files.v1.StatementRecord
+	14, // 14: files.v1.ListDocumentsRequest.ctx:type_name -> common.v1.ProjectContext
+	21, // 15: files.v1.ListDocumentsRequest.status_filter:type_name -> files.v1.AnalysisStatus
+	18, // 16: files.v1.ListDocumentsRequest.kind_filter:type_name -> files.v1.DocumentKind
+	22, // 17: files.v1.ListDocumentsRequest.pagination:type_name -> common.v1.Pagination
+	16, // 18: files.v1.ListDocumentsRequest.session:type_name -> common.v1.Session
+	17, // 19: files.v1.ListDocumentsResponse.documents:type_name -> files.v1.Document
+	23, // 20: files.v1.ListDocumentsResponse.pagination:type_name -> common.v1.PaginationResult
+	14, // 21: files.v1.CreateBankAccountRequest.ctx:type_name -> common.v1.ProjectContext
+	15, // 22: files.v1.CreateBankAccountRequest.audit:type_name -> common.v1.AuditMetadata
+	16, // 23: files.v1.CreateBankAccountRequest.session:type_name -> common.v1.Session
+	24, // 24: files.v1.CreateBankAccountResponse.bank_account:type_name -> files.v1.BankAccount
+	14, // 25: files.v1.ListBankAccountsRequest.ctx:type_name -> common.v1.ProjectContext
+	22, // 26: files.v1.ListBankAccountsRequest.pagination:type_name -> common.v1.Pagination
+	16, // 27: files.v1.ListBankAccountsRequest.session:type_name -> common.v1.Session
+	24, // 28: files.v1.ListBankAccountsResponse.bank_accounts:type_name -> files.v1.BankAccount
+	14, // 29: files.v1.DeleteBankAccountRequest.ctx:type_name -> common.v1.ProjectContext
+	16, // 30: files.v1.DeleteBankAccountRequest.session:type_name -> common.v1.Session
+	0,  // 31: files.v1.FilesService.UploadDocument:input_type -> files.v1.UploadDocumentRequest
+	2,  // 32: files.v1.FilesService.ClassifyDocument:input_type -> files.v1.ClassifyDocumentRequest
+	4,  // 33: files.v1.FilesService.GetDocument:input_type -> files.v1.GetDocumentRequest
+	6,  // 34: files.v1.FilesService.ListDocuments:input_type -> files.v1.ListDocumentsRequest
+	8,  // 35: files.v1.FilesService.CreateBankAccount:input_type -> files.v1.CreateBankAccountRequest
+	10, // 36: files.v1.FilesService.ListBankAccounts:input_type -> files.v1.ListBankAccountsRequest
+	12, // 37: files.v1.FilesService.DeleteBankAccount:input_type -> files.v1.DeleteBankAccountRequest
+	1,  // 38: files.v1.FilesService.UploadDocument:output_type -> files.v1.UploadDocumentResponse
+	3,  // 39: files.v1.FilesService.ClassifyDocument:output_type -> files.v1.ClassifyDocumentResponse
+	5,  // 40: files.v1.FilesService.GetDocument:output_type -> files.v1.GetDocumentResponse
+	7,  // 41: files.v1.FilesService.ListDocuments:output_type -> files.v1.ListDocumentsResponse
+	9,  // 42: files.v1.FilesService.CreateBankAccount:output_type -> files.v1.CreateBankAccountResponse
+	11, // 43: files.v1.FilesService.ListBankAccounts:output_type -> files.v1.ListBankAccountsResponse
+	13, // 44: files.v1.FilesService.DeleteBankAccount:output_type -> files.v1.DeleteBankAccountResponse
+	38, // [38:45] is the sub-list for method output_type
+	31, // [31:38] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_files_v1_grpc_proto_init() }

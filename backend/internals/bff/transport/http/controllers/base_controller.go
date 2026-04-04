@@ -6,6 +6,8 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 )
 
 // BaseController provides shared behavior embedded by all BFF controllers.
@@ -26,6 +28,22 @@ func (b *BaseController) validateInput(v interface{}) error {
 // grpcToHumaError maps a gRPC status error to the appropriate Huma HTTP error.
 // It falls back to HTTP 500 for any code not explicitly handled.
 func (b *BaseController) grpcToHumaError(err error, fallback string) error {
+	if appErr := apperrors.AsAppError(err); appErr != nil {
+		switch appErr.Category {
+		case apperrors.CategoryValidation:
+			return huma.Error400BadRequest(appErr.Message)
+		case apperrors.CategoryAuth:
+			return huma.Error401Unauthorized(appErr.Message)
+		case apperrors.CategoryNotFound:
+			return huma.Error404NotFound(appErr.Message)
+		case apperrors.CategoryConflict:
+			return huma.Error409Conflict(appErr.Message)
+		default:
+			b.logger.Error(fallback, zap.Error(err))
+			return huma.Error500InternalServerError(fallback)
+		}
+	}
+
 	st, ok := status.FromError(err)
 	if !ok {
 		b.logger.Error(fallback, zap.Error(err))

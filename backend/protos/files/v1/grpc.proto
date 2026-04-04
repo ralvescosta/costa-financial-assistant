@@ -39,6 +39,7 @@ message UploadDocumentRequest {
   string                   storage_provider = 4;
   string                   storage_key      = 5;
   common.v1.AuditMetadata  audit            = 6;
+  common.v1.Session        session          = 7;
 }
 
 message UploadDocumentResponse {
@@ -51,6 +52,7 @@ message ClassifyDocumentRequest {
   string                   document_id = 2;
   DocumentKind             kind        = 3;
   common.v1.AuditMetadata  audit       = 4;
+  common.v1.Session        session     = 5;
 }
 
 message ClassifyDocumentResponse {
@@ -61,6 +63,7 @@ message ClassifyDocumentResponse {
 message GetDocumentRequest {
   common.v1.ProjectContext ctx         = 1;
   string                   document_id = 2;
+  common.v1.Session        session     = 3;
 }
 
 message GetDocumentResponse {
@@ -71,10 +74,11 @@ message GetDocumentResponse {
 
 // ─── ListDocuments ───────────────────────────────────────────────────────────
 message ListDocumentsRequest {
-  common.v1.ProjectContext ctx             = 1;
-  AnalysisStatus           status_filter   = 2; // optional
-  DocumentKind             kind_filter     = 3; // optional
-  common.v1.Pagination     pagination      = 4;
+  common.v1.ProjectContext ctx           = 1;
+  AnalysisStatus           status_filter = 2; // optional
+  DocumentKind             kind_filter   = 3; // optional
+  common.v1.Pagination     pagination    = 4;
+  common.v1.Session        session       = 5;
 }
 
 message ListDocumentsResponse {
@@ -84,9 +88,10 @@ message ListDocumentsResponse {
 
 // ─── CreateBankAccount ───────────────────────────────────────────────────────
 message CreateBankAccountRequest {
-  common.v1.ProjectContext ctx   = 1;
-  string                   label = 2;
-  common.v1.AuditMetadata  audit = 3;
+  common.v1.ProjectContext ctx     = 1;
+  string                   label   = 2;
+  common.v1.AuditMetadata  audit   = 3;
+  common.v1.Session        session = 4;
 }
 
 message CreateBankAccountResponse {
@@ -95,7 +100,9 @@ message CreateBankAccountResponse {
 
 // ─── ListBankAccounts ────────────────────────────────────────────────────────
 message ListBankAccountsRequest {
-  common.v1.ProjectContext ctx = 1;
+  common.v1.ProjectContext ctx        = 1;
+  common.v1.Pagination     pagination = 2;
+  common.v1.Session        session    = 3;
 }
 
 message ListBankAccountsResponse {
@@ -106,6 +113,7 @@ message ListBankAccountsResponse {
 message DeleteBankAccountRequest {
   common.v1.ProjectContext ctx             = 1;
   string                   bank_account_id = 2;
+  common.v1.Session        session         = 3;
 }
 
 message DeleteBankAccountResponse {

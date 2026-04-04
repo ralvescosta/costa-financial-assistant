@@ -8,6 +8,12 @@ option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/pr
 
 // IdentityService manages token issuance and JWKS metadata for the platform.
 service IdentityService {
+  // AuthenticateUser validates the seeded bootstrap credentials and returns a signed session.
+  rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
+
+  // RefreshSession reissues a signed session before the current token expires.
+  rpc RefreshSession(RefreshSessionRequest) returns (RefreshSessionResponse);
+
   // IssueBootstrapToken issues a signed JWT for the seeded bootstrap user/project.
   rpc IssueBootstrapToken(IssueBootstrapTokenRequest) returns (IssueBootstrapTokenResponse);
 
@@ -16,6 +22,31 @@ service IdentityService {
 
   // GetJwksMetadata returns the public JWKS for external validators (BFF).
   rpc GetJwksMetadata(GetJwksMetadataRequest) returns (GetJwksMetadataResponse);
+}
+
+// ─── AuthenticateUser ────────────────────────────────────────────────────────
+message AuthenticateUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthenticateUserResponse {
+  string    token        = 1;
+  int64     expires_at   = 2;
+  JwtClaims claims       = 3;
+  string    project_name = 4;
+}
+
+// ─── RefreshSession ──────────────────────────────────────────────────────────
+message RefreshSessionRequest {
+  string token = 1;
+}
+
+message RefreshSessionResponse {
+  string    token        = 1;
+  int64     expires_at   = 2;
+  JwtClaims claims       = 3;
+  string    project_name = 4;
 }
 
 // ─── IssueBootstrapToken ─────────────────────────────────────────────────────
