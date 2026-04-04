@@ -25,6 +25,10 @@ Monorepo web application: a multi-tenant financial bill organizer.
 - N/A for domain data; existing client-side theme preference persistence remains unchanged (010-fix-login-contrast)
 - Go 1.25.6 + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, `google.golang.org/grpc`, generated protobuf clients in `backend/protos/generated/`, `go.uber.org/zap`, `github.com/go-playground/validator/v10` (011-fix-bff-grpc-boundary)
 - PostgreSQL for domain data; existing Redis/S3/RabbitMQ integrations remain unchanged for this feature (011-fix-bff-grpc-boundary)
+- Go 1.25.6 for backend; TypeScript 5.8 / React 18 / Vite 6 for frontend + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, `google.golang.org/grpc`, generated protobuf clients in `backend/protos/generated/`, `github.com/go-playground/validator/v10`, `go.uber.org/zap`, `github.com/golang-jwt/jwt/v5`, `react-router-dom`, `zod`, `@tanstack/react-query` (012-restore-login-session)
+- PostgreSQL-backed service data with migration/seed orchestration; BFF-managed auth cookies plus frontend localStorage for non-sensitive session metadata (012-restore-login-session)
+- Go 1.25.6 for backend services; TypeScript/React (Vite) for frontend contract verification + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, `google.golang.org/grpc`, generated protobuf clients in `backend/protos/generated/`, `go.uber.org/zap`, `github.com/go-playground/validator/v10`, frontend `zod` validation in `frontend/src/types/auth-response.schema.ts` (012-restore-login-session)
+- PostgreSQL-backed identity and onboarding seed/migration flows; JWT/JWKS signing handled by the identity service (012-restore-login-session)
 
 ### Backend (Go — latest stable)
 - HTTP framework: `github.com/labstack/echo/v4` + `github.com/danielgtaylor/huma/v2` (OpenAPI-first BFF)
@@ -190,6 +194,6 @@ DI wiring in `cmd/bff/container.go`: `validator.New()` → injected into all con
 **Integration test layout**: `backend/tests/integration/bff/` — named `<resource>_routes_registration_test.go`, `bff_route_registration_smoke_test.go`, `validate_openapi_metadata_test.go`. Cross-service tests live in `backend/tests/integration/cross_service/`.
 
 ## Recent Changes
+- 012-restore-login-session: Added Go 1.25.6 for backend services; TypeScript/React (Vite) for frontend contract verification + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, `google.golang.org/grpc`, generated protobuf clients in `backend/protos/generated/`, `go.uber.org/zap`, `github.com/go-playground/validator/v10`, frontend `zod` validation in `frontend/src/types/auth-response.schema.ts`
+- 012-restore-login-session: Added Go 1.25.6 for backend; TypeScript 5.8 / React 18 / Vite 6 for frontend + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, `google.golang.org/grpc`, generated protobuf clients in `backend/protos/generated/`, `github.com/go-playground/validator/v10`, `go.uber.org/zap`, `github.com/golang-jwt/jwt/v5`, `react-router-dom`, `zod`, `@tanstack/react-query`
 - 011-fix-bff-grpc-boundary: Added Go 1.25.6 + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, `google.golang.org/grpc`, generated protobuf clients in `backend/protos/generated/`, `go.uber.org/zap`, `github.com/go-playground/validator/v10`
-- 010-fix-login-contrast: Added TypeScript 5.8.x, React 18.3.x + Vite 6.3.x, Tailwind CSS 3.4.x, `react-router-dom` 6.30.x, existing theme tokens in `frontend/src/styles/tokens.ts`
-- 009-fix-bff-service-boundary: Added Go 1.25.6 + `github.com/labstack/echo/v4`, `github.com/danielgtaylor/huma/v2`, `go.uber.org/dig`, generated gRPC clients from `backend/protos/generated`, `go.uber.org/zap`

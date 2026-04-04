@@ -168,6 +168,8 @@ func ensurePreMigrationCompatibility(dsn, sourcePath string) error {
 		project_id UUID,
 		email TEXT,
 		role TEXT,
+		username TEXT,
+		password_hash TEXT,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 	)`
@@ -249,6 +251,8 @@ func applyOnboardingCompatibilitySchema(dsn string) error {
 			project_id UUID,
 			email TEXT,
 			role TEXT,
+			username TEXT,
+			password_hash TEXT,
 			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 		)`,
@@ -275,15 +279,15 @@ func applyOnboardingCompatibilitySchema(dsn string) error {
 			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 			CONSTRAINT uq_project_members_project_user UNIQUE (project_id, user_id)
 		)`,
-		`INSERT INTO users (id, project_id, email, role)
-		 VALUES ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000010', 'integration@example.com', 'write')
+		`INSERT INTO users (id, project_id, email, role, username, password_hash)
+		 VALUES ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000010', 'ralvescosta@local.dev', 'write', 'ralvescosta', '$2a$10$AjPfEDzY4NI/NhnKuN9UEu6X6J6zRUNO2e79dfh3E1VbdkIpYHzcy')
 		 ON CONFLICT (id) DO NOTHING`,
 		`INSERT INTO projects (id, owner_user_id, owner_id, name, type)
-		 VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Integration Project', 'personal')
+		 VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'Costa Financial Assistant', 'personal')
 		 ON CONFLICT (id) DO NOTHING`,
 		`INSERT INTO project_members (project_id, user_id, role, invited_by)
 		 VALUES ('00000000-0000-0000-0000-000000000010', '00000000-0000-0000-0000-000000000001', 'write', '00000000-0000-0000-0000-000000000001')
-		 ON CONFLICT (project_id, user_id) DO NOTHING`,
+		 ON CONFLICT (project_id, user_id) DO UPDATE SET role = EXCLUDED.role, invited_by = EXCLUDED.invited_by, updated_at = NOW()`,
 	}
 
 	for _, stmt := range statements {

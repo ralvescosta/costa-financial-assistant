@@ -11,37 +11,37 @@ import (
 	apperrors "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/errors"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
+	paymentsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1"
 )
-
-const paymentCycleGRPCUnavailableMessage = "payment cycle preferences require a downstream payments gRPC contract before the BFF can serve this flow"
 
 // PaymentsServiceImpl implements bffinterfaces.PaymentsService.
 type PaymentsServiceImpl struct {
-	logger      *zap.Logger
-	billsClient billsv1.BillsServiceClient
+	logger         *zap.Logger
+	billsClient    billsv1.BillsServiceClient
+	paymentsClient paymentsv1.PaymentsServiceClient
 }
 
 // NewPaymentsService constructs a PaymentsServiceImpl.
 func NewPaymentsService(
 	logger *zap.Logger,
 	billsClient billsv1.BillsServiceClient,
+	paymentsClient paymentsv1.PaymentsServiceClient,
 ) bffinterfaces.PaymentsService {
 	return &PaymentsServiceImpl{
-		logger:      logger,
-		billsClient: billsClient,
+		logger:         logger,
+		billsClient:    billsClient,
+		paymentsClient: paymentsClient,
 	}
 }
 
 // GetPaymentDashboard returns outstanding bills for the project's active payment cycle.
 func (s *PaymentsServiceImpl) GetPaymentDashboard(ctx context.Context, projectID, userID, cycleStart, cycleEnd string, pageSize int32, pageToken string) (*bffcontracts.PaymentDashboardResponse, error) {
-	if pageSize == 0 {
-		pageSize = 20
-	}
 	resp, err := s.billsClient.GetPaymentDashboard(ctx, &billsv1.GetPaymentDashboardRequest{
-		Ctx:        &commonv1.ProjectContext{ProjectId: projectID, UserId: userID},
+		Ctx:        projectContextFromContext(ctx, projectID, userID),
+		Session:    sessionFromContext(ctx),
 		CycleStart: cycleStart,
 		CycleEnd:   cycleEnd,
-		Pagination: &commonv1.Pagination{PageSize: pageSize, PageToken: pageToken},
+		Pagination: defaultPagination(pageSize, pageToken, 20),
 	})
 	if err != nil {
 		s.logger.Error("payments_svc: dashboard downstream call failed",
@@ -80,9 +80,10 @@ func (s *PaymentsServiceImpl) GetPaymentDashboard(ctx context.Context, projectID
 // MarkBillPaid idempotently marks a bill as paid.
 func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billID, paidBy string) (*bffcontracts.MarkBillPaidResponse, error) {
 	resp, err := s.billsClient.MarkBillPaid(ctx, &billsv1.MarkBillPaidRequest{
-		Ctx:    &commonv1.ProjectContext{ProjectId: projectID, UserId: paidBy},
-		BillId: billID,
-		Audit:  &commonv1.AuditMetadata{PerformedBy: paidBy},
+		Ctx:     projectContextFromContext(ctx, projectID, paidBy),
+		Session: sessionFromContext(ctx),
+		BillId:  billID,
+		Audit:   &commonv1.AuditMetadata{PerformedBy: paidBy},
 	})
 	if err != nil {
 		s.logger.Error("payments_svc: mark paid downstream call failed",
@@ -102,18 +103,25 @@ func (s *PaymentsServiceImpl) MarkBillPaid(ctx context.Context, projectID, billI
 
 // GetCyclePreference returns the project's preferred payment day.
 func (s *PaymentsServiceImpl) GetCyclePreference(ctx context.Context, projectID string) (*bffcontracts.CyclePreferenceResponse, error) {
-	_ = ctx
-	appErr := apperrors.NewWithCategory(paymentCycleGRPCUnavailableMessage, apperrors.CategoryDependencyGRPC)
-	s.logger.Error("payments_svc: get cycle preference failed",
-		zap.String("project_id", projectID),
-		zap.Error(appErr))
-	return nil, appErr
+	resp, err := s.paymentsClient.GetCyclePreference(ctx, &paymentsv1.GetCyclePreferenceRequest{
+		Ctx:     projectContextFromContext(ctx, projectID, ""),
+		Session: sessionFromContext(ctx),
+	})
+	if err != nil {
+		s.logger.Error("payments_svc: get cycle preference failed",
+			zap.String("project_id", projectID),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
+	}
+
+	return cyclePreferenceFromProto(projectID, resp.GetPreference()), nil
 }
 
 // SetCyclePreference creates or updates the project's preferred payment day.
 func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID string, dayOfMonth int, updatedBy string) (*bffcontracts.CyclePreferenceResponse, error) {
-	_ = ctx
-	_ = updatedBy
 	if dayOfMonth < 1 || dayOfMonth > 28 {
 		return nil, apperrors.NewWithCategory(
 			fmt.Sprintf("preferredDayOfMonth must be between 1 and 28, got %d", dayOfMonth),
@@ -121,12 +129,24 @@ func (s *PaymentsServiceImpl) SetCyclePreference(ctx context.Context, projectID 
 		)
 	}
 
-	appErr := apperrors.NewWithCategory(paymentCycleGRPCUnavailableMessage, apperrors.CategoryDependencyGRPC)
-	s.logger.Error("payments_svc: set cycle preference failed",
-		zap.String("project_id", projectID),
-		zap.Int("day_of_month", dayOfMonth),
-		zap.Error(appErr))
-	return nil, appErr
+	resp, err := s.paymentsClient.SetCyclePreference(ctx, &paymentsv1.SetCyclePreferenceRequest{
+		Ctx:                 projectContextFromContext(ctx, projectID, updatedBy),
+		Session:             sessionFromContext(ctx),
+		PreferredDayOfMonth: int32(dayOfMonth),
+		Audit:               &commonv1.AuditMetadata{PerformedBy: updatedBy},
+	})
+	if err != nil {
+		s.logger.Error("payments_svc: set cycle preference failed",
+			zap.String("project_id", projectID),
+			zap.Int("day_of_month", dayOfMonth),
+			zap.Error(err))
+		if appErr := apperrors.AsAppError(err); appErr != nil {
+			return nil, appErr
+		}
+		return nil, apperrors.TranslateError(err, "service")
+	}
+
+	return cyclePreferenceFromProto(projectID, resp.GetPreference()), nil
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -150,5 +170,22 @@ func protoBillRecordToView(b *billsv1.BillRecord) bffcontracts.PaymentBillRecord
 		MarkedPaidBy:  b.GetMarkedPaidBy(),
 		CreatedAt:     b.GetCreatedAt(),
 		UpdatedAt:     b.GetUpdatedAt(),
+	}
+}
+
+func cyclePreferenceFromProto(projectID string, pref *paymentsv1.CyclePreference) *bffcontracts.CyclePreferenceResponse {
+	if pref == nil {
+		return &bffcontracts.CyclePreferenceResponse{ProjectID: projectID}
+	}
+
+	resolvedProjectID := pref.GetProjectId()
+	if resolvedProjectID == "" {
+		resolvedProjectID = projectID
+	}
+
+	return &bffcontracts.CyclePreferenceResponse{
+		ProjectID:           resolvedProjectID,
+		PreferredDayOfMonth: int(pref.GetPreferredDayOfMonth()),
+		UpdatedAt:           pref.GetUpdatedAt(),
 	}
 }

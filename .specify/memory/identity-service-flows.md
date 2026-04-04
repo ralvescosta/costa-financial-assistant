@@ -12,7 +12,8 @@ This document maps all current Identity service gRPC RPCs and their flow through
 Notes:
 - Identity is the token authority service for JWT issuance and validation.
 - BFF auth middleware consumes identity JWKS metadata for key validation cache on the BFF side.
-- Current identity RPC paths are stateless and do not persist domain records in PostgreSQL.
+- Identity now serves the seeded-owner login and refresh path in addition to bootstrap issuance/JWKS validation.
+- Login/refresh reads the bootstrap user from PostgreSQL-backed seed data and reissues JWT claims containing `sub`, `project_id`, `role`, `email`, and `username`.
 - gRPC handlers map `AppError` categories to protocol-safe status codes and avoid leaking native errors in response payloads.
 - Boundary signature policy for modified paths follows pointer-threshold defaults; intentional value semantics must be documented as explicit exceptions per feature contract.
 
@@ -47,6 +48,24 @@ flowchart LR
 
 Protocol: gRPC
 Data store: none in this path (in-memory crypto only)
+Redis: none in this path
+RabbitMQ: none in this path
+
+## RPC AuthenticateUser / RefreshSession
+
+```mermaid
+flowchart LR
+    C[Caller e.g. BFF auth service] -->|gRPC AuthenticateUser / RefreshSession| G[Identity grpc.Server]
+    G --> SVC[TokenService.AuthenticateUser / RefreshSession]
+    SVC --> LOOKUP[BootstrapAuthRepository.FindBootstrapUser]
+    LOOKUP --> DB[(PostgreSQL users + projects)]
+    DB --> LOOKUP --> SVC
+    SVC --> JWT[Sign refreshed JWT with email + username claims]
+    JWT --> G --> C
+```
+
+Protocol: gRPC
+Data store: PostgreSQL-backed bootstrap lookup for login; refresh reuses validated claims and signing key
 Redis: none in this path
 RabbitMQ: none in this path
 

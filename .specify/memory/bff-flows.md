@@ -12,6 +12,8 @@ This document maps all current BFF HTTP endpoints and their flow through:
 Notes:
 - All endpoints are registered via Huma on Echo.
 - Auth middleware uses Bearer JWT + JWKS key lookup.
+- Public auth routes now include `POST /api/auth/login` and `POST /api/auth/refresh`; they set/rotate the `cfa_session` HTTP-only cookie for the frontend's login-only flow.
+- Protected routes accept either the Bearer token or the `cfa_session` cookie and forward `common.v1.Session` plus populated `common.v1.Pagination` to downstream gRPC services.
 - JWKS cache is in-memory inside BFF (not Redis).
 - For endpoints that call downstream services via gRPC, all domain DB details happen in those services.
 - **011 gateway rule (enforced)**: BFF handles authentication, authorization, request validation, and frontend response composition only. It MUST NOT access domain repositories or domain databases directly.
@@ -53,6 +55,24 @@ flowchart LR
 ```
 
 ---
+
+## POST /api/auth/login and POST /api/auth/refresh
+
+```mermaid
+flowchart LR
+    FE[Frontend Login Page] -->|POST /api/auth/login| BFF[BFF AuthRoute + AuthController]
+    BFF --> SVC[AuthService]
+    SVC -->|gRPC| ID[Identity AuthenticateUser / RefreshSession]
+    ID -->|seed lookup + JWT signing| PG[(PostgreSQL users/projects)]
+    ID --> SVC --> BFF
+    BFF --> COOKIE[Set `cfa_session` HTTP-only cookie + session metadata JSON]
+    COOKIE --> FE
+```
+
+Protocol: HTTPS -> BFF auth service -> gRPC
+Data store: PostgreSQL (identity/bootstrap auth lookup)
+Redis: none in this path
+RabbitMQ: none in this path
 
 ## GET /api/v1/projects/current
 
@@ -336,15 +356,15 @@ flowchart LR
     C[Client] -->|HTTPS GET| BFF[BFF /payment-cycle/preferred-day]
     BFF --> AUTH[Auth + ProjectGuard read_only]
     AUTH --> PC[PaymentsController.handleGetPreferredDay]
-    PC --> SVC[PaymentCycleService.GetCyclePreference]
-    SVC -->|SQL read| PDB[(PostgreSQL via BFF payments repo: payment_cycle_preferences)]
-    PDB --> SVC
-    SVC --> PC
-    PC --> C
+    PC --> SVC[BFF PaymentsService.GetCyclePreference]
+    SVC -->|gRPC| PAY[Payments Service GetCyclePreference]
+    PAY --> PSVC[PaymentCycleService.GetCyclePreference]
+    PSVC -->|SQL read| PDB[(PostgreSQL payments: payment_cycle_preferences)]
+    PDB --> PSVC --> PAY --> SVC --> PC --> C
 ```
 
-Protocol: HTTPS + in-process service call
-Data store: PostgreSQL (direct from BFF)
+Protocol: HTTPS -> gRPC
+Data store: PostgreSQL (payments service)
 Redis: none in this path
 RabbitMQ: none in this path
 
@@ -355,15 +375,15 @@ flowchart LR
     C[Client] -->|HTTPS PUT| BFF[BFF /payment-cycle/preferred-day]
     BFF --> AUTH[Auth + ProjectGuard update]
     AUTH --> PC[PaymentsController.handleSetPreferredDay]
-    PC --> SVC[PaymentCycleService.UpsertCyclePreference]
-    SVC -->|SQL upsert| PDB[(PostgreSQL via BFF payments repo: payment_cycle_preferences)]
-    PDB --> SVC
-    SVC --> PC
-    PC --> C
+    PC --> SVC[BFF PaymentsService.SetCyclePreference]
+    SVC -->|gRPC| PAY[Payments Service SetCyclePreference]
+    PAY --> PSVC[PaymentCycleService.UpsertCyclePreference]
+    PSVC -->|SQL upsert| PDB[(PostgreSQL payments: payment_cycle_preferences)]
+    PDB --> PSVC --> PAY --> SVC --> PC --> C
 ```
 
-Protocol: HTTPS + in-process service call
-Data store: PostgreSQL (direct from BFF)
+Protocol: HTTPS -> gRPC
+Data store: PostgreSQL (payments service)
 Redis: none in this path
 RabbitMQ: none in this path
 
@@ -376,15 +396,15 @@ flowchart LR
     C[Client] -->|HTTPS GET| BFF[BFF /reconciliation/summary]
     BFF --> AUTH[Auth + ProjectGuard read_only]
     AUTH --> RC[ReconciliationController.getSummary]
-    RC --> SVC[ReconciliationService.GetSummary]
-    SVC -->|SQL read joins| RDB[(PostgreSQL via BFF payments repo: transaction_lines + reconciliation_links + bill_records)]
-    RDB --> SVC
-    SVC --> RC
-    RC --> C
+    RC --> SVC[BFF ReconciliationService.GetSummary]
+    SVC -->|gRPC| PAY[Payments Service GetReconciliationSummary]
+    PAY --> RSVC[ReconciliationService.GetSummary]
+    RSVC -->|SQL read joins| RDB[(PostgreSQL payments: transaction_lines + reconciliation_links + bill_records)]
+    RDB --> RSVC --> PAY --> SVC --> RC --> C
 ```
 
-Protocol: HTTPS + in-process service call
-Data store: PostgreSQL (direct from BFF)
+Protocol: HTTPS -> gRPC
+Data store: PostgreSQL (payments service)
 Redis: none in this path
 RabbitMQ: none in this path
 
@@ -395,17 +415,18 @@ flowchart LR
     C[Client] -->|HTTPS POST| BFF[BFF /reconciliation/links]
     BFF --> AUTH[Auth + ProjectGuard update]
     AUTH --> RC[ReconciliationController.createLink]
-    RC --> SVC[ReconciliationService.CreateManualLink]
-    SVC -->|SQL insert| LDB[(PostgreSQL via BFF payments repo: reconciliation_links)]
-    SVC -->|SQL update| TDB[(PostgreSQL via BFF payments repo: transaction_lines.status)]
-    LDB --> SVC
-    TDB --> SVC
-    SVC --> RC
-    RC --> C
+    RC --> SVC[BFF ReconciliationService.CreateManualLink]
+    SVC -->|gRPC| PAY[Payments Service CreateManualLink]
+    PAY --> RSVC[ReconciliationService.CreateManualLink]
+    RSVC -->|SQL insert| LDB[(PostgreSQL payments: reconciliation_links)]
+    RSVC -->|SQL update| TDB[(PostgreSQL payments: transaction_lines.status)]
+    LDB --> RSVC
+    TDB --> RSVC
+    RSVC --> PAY --> SVC --> RC --> C
 ```
 
-Protocol: HTTPS + in-process service call
-Data store: PostgreSQL (direct from BFF)
+Protocol: HTTPS -> gRPC
+Data store: PostgreSQL (payments service)
 Redis: none in this path
 RabbitMQ: none in this path
 
@@ -418,13 +439,15 @@ flowchart LR
     C[Client] -->|HTTPS GET| BFF[BFF /history/timeline]
     BFF --> AUTH[Auth middleware]
     AUTH --> HC[HistoryController.timeline]
-    HC -->|SQL aggregation| HDB[(PostgreSQL via BFF payments repo: bill_records)]
-    HDB --> HC
-    HC --> C
+    HC --> SVC[BFF HistoryService.GetTimeline]
+    SVC -->|gRPC| PAY[Payments Service GetHistoryTimeline]
+    PAY --> HSVC[Payments HistoryService.GetTimeline]
+    HSVC -->|SQL aggregation| HDB[(PostgreSQL payments: bill_records)]
+    HDB --> HSVC --> PAY --> SVC --> HC --> C
 ```
 
-Protocol: HTTPS + direct repository query
-Data store: PostgreSQL (direct from BFF)
+Protocol: HTTPS -> gRPC
+Data store: PostgreSQL (payments service)
 Redis: none in this path
 RabbitMQ: none in this path
 
@@ -435,13 +458,15 @@ flowchart LR
     C[Client] -->|HTTPS GET| BFF[BFF /history/categories]
     BFF --> AUTH[Auth middleware]
     AUTH --> HC[HistoryController.categories]
-    HC -->|SQL aggregation + join| HDB[(PostgreSQL via BFF payments repo: bill_records + bill_types)]
-    HDB --> HC
-    HC --> C
+    HC --> SVC[BFF HistoryService.GetCategoryBreakdown]
+    SVC -->|gRPC| PAY[Payments Service GetHistoryCategoryBreakdown]
+    PAY --> HSVC[Payments HistoryService.GetCategoryBreakdown]
+    HSVC -->|SQL aggregation + join| HDB[(PostgreSQL payments: bill_records + bill_types)]
+    HDB --> HSVC --> PAY --> SVC --> HC --> C
 ```
 
-Protocol: HTTPS + direct repository query
-Data store: PostgreSQL (direct from BFF)
+Protocol: HTTPS -> gRPC
+Data store: PostgreSQL (payments service)
 Redis: none in this path
 RabbitMQ: none in this path
 
@@ -452,12 +477,14 @@ flowchart LR
     C[Client] -->|HTTPS GET| BFF[BFF /history/compliance]
     BFF --> AUTH[Auth middleware]
     AUTH --> HC[HistoryController.compliance]
-    HC -->|SQL aggregation| HDB[(PostgreSQL via BFF payments repo: bill_records)]
-    HDB --> HC
-    HC --> C
+    HC --> SVC[BFF HistoryService.GetComplianceMetrics]
+    SVC -->|gRPC| PAY[Payments Service GetHistoryCompliance]
+    PAY --> HSVC[Payments HistoryService.GetComplianceMetrics]
+    HSVC -->|SQL aggregation| HDB[(PostgreSQL payments: bill_records)]
+    HDB --> HSVC --> PAY --> SVC --> HC --> C
 ```
 
-Protocol: HTTPS + direct repository query
+Protocol: HTTPS -> gRPC
 Data store: PostgreSQL (direct from BFF)
 Redis: none in this path
 RabbitMQ: none in this path

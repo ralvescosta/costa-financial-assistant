@@ -249,6 +249,67 @@ func (x *ProjectContext) GetRole() string {
 	return ""
 }
 
+// Session carries the authenticated caller identity across service boundaries.
+type Session struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Username      string                 `protobuf:"bytes,3,opt,name=username,proto3" json:"username,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_common_v1_messages_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_common_v1_messages_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_common_v1_messages_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Session) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Session) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Session) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
 // ErrorEnvelope wraps structured error details for gRPC responses.
 type ErrorEnvelope struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -261,7 +322,7 @@ type ErrorEnvelope struct {
 
 func (x *ErrorEnvelope) Reset() {
 	*x = ErrorEnvelope{}
-	mi := &file_common_v1_messages_proto_msgTypes[4]
+	mi := &file_common_v1_messages_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -273,7 +334,7 @@ func (x *ErrorEnvelope) String() string {
 func (*ErrorEnvelope) ProtoMessage() {}
 
 func (x *ErrorEnvelope) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_messages_proto_msgTypes[4]
+	mi := &file_common_v1_messages_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -286,7 +347,7 @@ func (x *ErrorEnvelope) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErrorEnvelope.ProtoReflect.Descriptor instead.
 func (*ErrorEnvelope) Descriptor() ([]byte, []int) {
-	return file_common_v1_messages_proto_rawDescGZIP(), []int{4}
+	return file_common_v1_messages_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ErrorEnvelope) GetCode() string {
@@ -321,7 +382,7 @@ type AuditMetadata struct {
 
 func (x *AuditMetadata) Reset() {
 	*x = AuditMetadata{}
-	mi := &file_common_v1_messages_proto_msgTypes[5]
+	mi := &file_common_v1_messages_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -333,7 +394,7 @@ func (x *AuditMetadata) String() string {
 func (*AuditMetadata) ProtoMessage() {}
 
 func (x *AuditMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_common_v1_messages_proto_msgTypes[5]
+	mi := &file_common_v1_messages_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -346,7 +407,7 @@ func (x *AuditMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditMetadata.ProtoReflect.Descriptor instead.
 func (*AuditMetadata) Descriptor() ([]byte, []int) {
-	return file_common_v1_messages_proto_rawDescGZIP(), []int{5}
+	return file_common_v1_messages_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AuditMetadata) GetPerformedBy() string {
@@ -385,7 +446,11 @@ const file_common_v1_messages_proto_rawDesc = "" +
 	"\n" +
 	"project_id\x18\x01 \x01(\tR\tprojectId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
-	"\x04role\x18\x03 \x01(\tR\x04role\"W\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\"K\n" +
+	"\aSession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
+	"\busername\x18\x03 \x01(\tR\busername\"W\n" +
 	"\rErrorEnvelope\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x18\n" +
@@ -406,14 +471,15 @@ func file_common_v1_messages_proto_rawDescGZIP() []byte {
 	return file_common_v1_messages_proto_rawDescData
 }
 
-var file_common_v1_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_common_v1_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_common_v1_messages_proto_goTypes = []any{
 	(*Pagination)(nil),       // 0: common.v1.Pagination
 	(*PaginationResult)(nil), // 1: common.v1.PaginationResult
 	(*Money)(nil),            // 2: common.v1.Money
 	(*ProjectContext)(nil),   // 3: common.v1.ProjectContext
-	(*ErrorEnvelope)(nil),    // 4: common.v1.ErrorEnvelope
-	(*AuditMetadata)(nil),    // 5: common.v1.AuditMetadata
+	(*Session)(nil),          // 4: common.v1.Session
+	(*ErrorEnvelope)(nil),    // 5: common.v1.ErrorEnvelope
+	(*AuditMetadata)(nil),    // 6: common.v1.AuditMetadata
 }
 var file_common_v1_messages_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -434,7 +500,7 @@ func file_common_v1_messages_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_common_v1_messages_proto_rawDesc), len(file_common_v1_messages_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

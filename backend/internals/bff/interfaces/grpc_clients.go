@@ -24,9 +24,11 @@ type FilesClient interface {
 	DeleteBankAccount(ctx context.Context, in *filesv1.DeleteBankAccountRequest, opts ...grpc.CallOption) (*filesv1.DeleteBankAccountResponse, error)
 }
 
-// IdentityClient defines the subset of the identity gRPC service consumed by BFF middleware.
+// IdentityClient defines the subset of the identity gRPC service consumed by the BFF auth flow and middleware.
 // The generated identityv1.IdentityServiceClient satisfies this interface.
 type IdentityClient interface {
+	AuthenticateUser(ctx context.Context, in *identityv1.AuthenticateUserRequest, opts ...grpc.CallOption) (*identityv1.AuthenticateUserResponse, error)
+	RefreshSession(ctx context.Context, in *identityv1.RefreshSessionRequest, opts ...grpc.CallOption) (*identityv1.RefreshSessionResponse, error)
 	ValidateToken(ctx context.Context, in *identityv1.ValidateTokenRequest, opts ...grpc.CallOption) (*identityv1.ValidateTokenResponse, error)
 	GetJwksMetadata(ctx context.Context, in *identityv1.GetJwksMetadataRequest, opts ...grpc.CallOption) (*identityv1.GetJwksMetadataResponse, error)
 }

@@ -49,9 +49,10 @@ func TestUS7_CrossProjectIsolation(t *testing.T) {
 
 	// ── Step 1: Create a second project (project B) ───────────────────────────
 	createResp, err := onboardingClient.CreateProject(context.Background(), &onboardingv1.CreateProjectRequest{
-		Ctx:  &commonv1.ProjectContext{ProjectId: projectAID, UserId: ownerID, Role: "write"},
-		Name: "Project B",
-		Type: onboardingv1.ProjectType_PROJECT_TYPE_PERSONAL,
+		Ctx:     &commonv1.ProjectContext{ProjectId: projectAID, UserId: ownerID, Role: "write"},
+		Session: &commonv1.Session{Id: ownerID, Email: "ralvescosta@local.dev", Username: "ralvescosta"},
+		Name:    "Project B",
+		Type:    onboardingv1.ProjectType_PROJECT_TYPE_PERSONAL,
 	})
 	require.NoError(t, err, "create project B should succeed")
 	projectBID := createResp.GetProject().GetId()
@@ -60,6 +61,7 @@ func TestUS7_CrossProjectIsolation(t *testing.T) {
 	// ── Step 2: Upload a document in project A ────────────────────────────────
 	uploadResp, err := filesClient.UploadDocument(context.Background(), &filesv1.UploadDocumentRequest{
 		Ctx:             &commonv1.ProjectContext{ProjectId: projectAID},
+		Session:         &commonv1.Session{Id: ownerID, Email: "ralvescosta@local.dev", Username: "ralvescosta"},
 		FileName:        "bill_project_a.pdf",
 		FileHash:        fileHash,
 		StorageProvider: "local",
@@ -72,6 +74,7 @@ func TestUS7_CrossProjectIsolation(t *testing.T) {
 	// ── Step 3: List documents from project A context → should see 1 doc ─────
 	listA, err := filesClient.ListDocuments(context.Background(), &filesv1.ListDocumentsRequest{
 		Ctx:        &commonv1.ProjectContext{ProjectId: projectAID},
+		Session:    &commonv1.Session{Id: ownerID, Email: "ralvescosta@local.dev", Username: "ralvescosta"},
 		Pagination: &commonv1.Pagination{PageSize: 10},
 	})
 	require.NoError(t, err, "list in project A should succeed")
@@ -86,6 +89,7 @@ func TestUS7_CrossProjectIsolation(t *testing.T) {
 	// ── Step 4: List documents from project B context → should see 0 docs ────
 	listB, err := filesClient.ListDocuments(context.Background(), &filesv1.ListDocumentsRequest{
 		Ctx:        &commonv1.ProjectContext{ProjectId: projectBID},
+		Session:    &commonv1.Session{Id: ownerID, Email: "ralvescosta@local.dev", Username: "ralvescosta"},
 		Pagination: &commonv1.Pagination{PageSize: 10},
 	})
 	require.NoError(t, err, "list in project B should succeed")
@@ -94,6 +98,7 @@ func TestUS7_CrossProjectIsolation(t *testing.T) {
 	// ── Step 5: Direct get of project A doc from project B should fail ────────
 	_, err = filesClient.GetDocument(context.Background(), &filesv1.GetDocumentRequest{
 		Ctx:        &commonv1.ProjectContext{ProjectId: projectBID},
+		Session:    &commonv1.Session{Id: ownerID, Email: "ralvescosta@local.dev", Username: "ralvescosta"},
 		DocumentId: uploadResp.Document.Id,
 	})
 	require.Error(t, err, "cross-project get must return an error")

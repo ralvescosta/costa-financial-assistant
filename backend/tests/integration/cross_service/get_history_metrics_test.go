@@ -11,9 +11,49 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/grpc"
 
+	bffservices "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services"
+	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	paymentsrepo "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/repositories"
+	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
+	paymentsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1"
 )
+
+type metricsPropagationClient struct {
+	categoryRequest   *paymentsv1.GetHistoryCategoryBreakdownRequest
+	complianceRequest *paymentsv1.GetHistoryComplianceRequest
+}
+
+func (c *metricsPropagationClient) GetCyclePreference(context.Context, *paymentsv1.GetCyclePreferenceRequest, ...grpc.CallOption) (*paymentsv1.GetCyclePreferenceResponse, error) {
+	return &paymentsv1.GetCyclePreferenceResponse{}, nil
+}
+
+func (c *metricsPropagationClient) SetCyclePreference(context.Context, *paymentsv1.SetCyclePreferenceRequest, ...grpc.CallOption) (*paymentsv1.SetCyclePreferenceResponse, error) {
+	return &paymentsv1.SetCyclePreferenceResponse{}, nil
+}
+
+func (c *metricsPropagationClient) GetHistoryTimeline(context.Context, *paymentsv1.GetHistoryTimelineRequest, ...grpc.CallOption) (*paymentsv1.GetHistoryTimelineResponse, error) {
+	return &paymentsv1.GetHistoryTimelineResponse{}, nil
+}
+
+func (c *metricsPropagationClient) GetHistoryCategoryBreakdown(_ context.Context, in *paymentsv1.GetHistoryCategoryBreakdownRequest, _ ...grpc.CallOption) (*paymentsv1.GetHistoryCategoryBreakdownResponse, error) {
+	c.categoryRequest = in
+	return &paymentsv1.GetHistoryCategoryBreakdownResponse{}, nil
+}
+
+func (c *metricsPropagationClient) GetHistoryCompliance(_ context.Context, in *paymentsv1.GetHistoryComplianceRequest, _ ...grpc.CallOption) (*paymentsv1.GetHistoryComplianceResponse, error) {
+	c.complianceRequest = in
+	return &paymentsv1.GetHistoryComplianceResponse{}, nil
+}
+
+func (c *metricsPropagationClient) GetReconciliationSummary(context.Context, *paymentsv1.GetReconciliationSummaryRequest, ...grpc.CallOption) (*paymentsv1.GetReconciliationSummaryResponse, error) {
+	return &paymentsv1.GetReconciliationSummaryResponse{}, nil
+}
+
+func (c *metricsPropagationClient) CreateManualLink(context.Context, *paymentsv1.CreateManualLinkRequest, ...grpc.CallOption) (*paymentsv1.CreateManualLinkResponse, error) {
+	return &paymentsv1.CreateManualLinkResponse{}, nil
+}
 
 // TestUS6_HistoryMetrics validates that:
 //   - Category breakdown groups bills by bill_type and month
@@ -120,6 +160,33 @@ func TestUS6_HistoryMetrics(t *testing.T) {
 		}
 		assert.True(t, foundOverdue, "expected at least one compliance row with overdue bills")
 	})
+}
+
+func TestUS6_HistoryMetrics_DefaultPaginationPropagation(t *testing.T) {
+	// Given
+	client := &metricsPropagationClient{}
+	svc := bffservices.NewHistoryService(zaptest.NewLogger(t), client)
+	ctx := context.WithValue(context.Background(), bffmiddleware.ProjectContextKey, &identityv1.JwtClaims{
+		Subject:   "00000000-0000-0000-0000-000000000001",
+		ProjectId: "00000000-0000-0000-0000-000000000010",
+		Role:      "write",
+		Email:     "ralvescosta@local.dev",
+		Username:  "ralvescosta",
+	})
+
+	// When
+	_, err := svc.GetCategoryBreakdown(ctx, "00000000-0000-0000-0000-000000000010", 6)
+	require.NoError(t, err)
+	_, err = svc.GetComplianceMetrics(ctx, "00000000-0000-0000-0000-000000000010", 6)
+
+	// Then
+	require.NoError(t, err)
+	require.NotNil(t, client.categoryRequest)
+	require.NotNil(t, client.complianceRequest)
+	assert.EqualValues(t, 20, client.categoryRequest.GetPagination().GetPageSize())
+	assert.EqualValues(t, 20, client.complianceRequest.GetPagination().GetPageSize())
+	assert.Equal(t, "ralvescosta@local.dev", client.categoryRequest.GetSession().GetEmail())
+	assert.Equal(t, "ralvescosta", client.complianceRequest.GetSession().GetUsername())
 }
 
 // parseAmount converts a decimal string like "120.00" to float64 for test assertions.

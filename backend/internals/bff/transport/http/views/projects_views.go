@@ -19,7 +19,7 @@ type UpdateMemberRoleInput struct {
 
 // ListMembersInput carries optional pagination for member listing.
 type ListMembersInput struct {
-	PageSize  int32  `query:"pageSize"  minimum:"1" maximum:"100" doc:"Page size (default 25)"`
+	PageSize  int32  `query:"pageSize"  minimum:"1" maximum:"100" doc:"Page size (default 25 for project-member lists)"`
 	PageToken string `query:"pageToken" doc:"Opaque cursor from a previous list response"`
 }
 

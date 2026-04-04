@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package payments.v1;
+
+option go_package = "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1;paymentsv1";
+
+// ReconciliationLinkType classifies how a transaction line was linked to a bill.
+enum ReconciliationLinkType {
+  RECONCILIATION_LINK_TYPE_UNSPECIFIED = 0;
+  RECONCILIATION_LINK_TYPE_AUTO = 1;
+  RECONCILIATION_LINK_TYPE_MANUAL = 2;
+}
+
+// TransactionReconciliationStatus tracks the matching state of a transaction line.
+enum TransactionReconciliationStatus {
+  TRANSACTION_RECONCILIATION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_RECONCILIATION_STATUS_UNMATCHED = 1;
+  TRANSACTION_RECONCILIATION_STATUS_MATCHED_AUTO = 2;
+  TRANSACTION_RECONCILIATION_STATUS_MATCHED_MANUAL = 3;
+  TRANSACTION_RECONCILIATION_STATUS_AMBIGUOUS = 4;
+}
+
+// CyclePreference is the project-scoped preferred payment day configuration.
+message CyclePreference {
+  string id = 1;
+  string project_id = 2;
+  int32 preferred_day_of_month = 3;
+  string updated_by = 4;
+  string updated_at = 5;
+}
+
+// MonthlyTimelineEntry is one row of expenditure totals for a calendar month.
+message MonthlyTimelineEntry {
+  string month = 1;
+  string total_amount = 2;
+  int32 bill_count = 3;
+}
+
+// CategoryBreakdownEntry is one bill-type total for a calendar month.
+message CategoryBreakdownEntry {
+  string month = 1;
+  string bill_type_name = 2;
+  string total_amount = 3;
+  int32 bill_count = 4;
+}
+
+// MonthlyComplianceEntry is one monthly compliance metric row.
+message MonthlyComplianceEntry {
+  string month = 1;
+  int32 total_bills = 2;
+  int32 paid_on_time = 3;
+  int32 overdue = 4;
+  string compliance_rate = 5;
+}
+
+// ReconciliationSummaryEntry combines one transaction line with its linked bill details, if any.
+message ReconciliationSummaryEntry {
+  string transaction_line_id = 1;
+  string transaction_date = 2;
+  string description = 3;
+  string amount = 4;
+  string direction = 5;
+  TransactionReconciliationStatus reconciliation_status = 6;
+  optional string linked_bill_id = 7;
+  optional string linked_bill_due_date = 8;
+  optional string linked_bill_amount = 9;
+  optional ReconciliationLinkType link_type = 10;
+}
+
+// ReconciliationSummary is the project-scoped reconciliation projection for a date range.
+message ReconciliationSummary {
+  string project_id = 1;
+  string period_start = 2;
+  string period_end = 3;
+  repeated ReconciliationSummaryEntry entries = 4;
+}
+
+// ReconciliationLink is the persisted relationship between a transaction line and a bill.
+message ReconciliationLink {
+  string id = 1;
+  string project_id = 2;
+  string transaction_line_id = 3;
+  string bill_record_id = 4;
+  ReconciliationLinkType link_type = 5;
+  optional string linked_by = 6;
+  string created_at = 7;
+}

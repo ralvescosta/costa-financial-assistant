@@ -25,7 +25,9 @@ import (
 	pkgotel "github.com/ralvescosta/costa-financial-assistant/backend/pkgs/otel"
 	billsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/bills/v1"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
+	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
+	paymentsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1"
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	bffservices "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services"
@@ -86,6 +88,21 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("bff: provide onboarding client: %w", err)
 	}
 
+	// ─── Identity gRPC client ────────────────────────────────────────────────
+	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (identityv1.IdentityServiceClient, error) {
+		conn, err := grpc.NewClient(
+			cfg.Services.IdentityGRPCAddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("bff: dial identity grpc: %w", err)
+		}
+		logger.Info("identity gRPC client connected", zap.String("addr", cfg.Services.IdentityGRPCAddr))
+		return identityv1.NewIdentityServiceClient(conn), nil
+	}); err != nil {
+		return fmt.Errorf("bff: provide identity client: %w", err)
+	}
+
 	// ─── Bills gRPC client ───────────────────────────────────────────────────
 	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (billsv1.BillsServiceClient, error) {
 		conn, err := grpc.NewClient(
@@ -101,6 +118,21 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("bff: provide bills client: %w", err)
 	}
 
+	// ─── Payments gRPC client ────────────────────────────────────────────────
+	if err := c.Provide(func(cfg *configs.Config, logger *zap.Logger) (paymentsv1.PaymentsServiceClient, error) {
+		conn, err := grpc.NewClient(
+			cfg.Services.PaymentsGRPCAddr,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("bff: dial payments grpc: %w", err)
+		}
+		logger.Info("payments gRPC client connected", zap.String("addr", cfg.Services.PaymentsGRPCAddr))
+		return paymentsv1.NewPaymentsServiceClient(conn), nil
+	}); err != nil {
+		return fmt.Errorf("bff: provide payments client: %w", err)
+	}
+
 	// ─── BFF interface adapters (concrete gRPC → BFF narrow interfaces) ────────
 	if err := c.Provide(func(c filesv1.FilesServiceClient) bffinterfaces.FilesClient {
 		return c
@@ -114,7 +146,17 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("bff: provide onboarding bff interface: %w", err)
 	}
 
+	if err := c.Provide(func(c identityv1.IdentityServiceClient) bffinterfaces.IdentityClient {
+		return c
+	}); err != nil {
+		return fmt.Errorf("bff: provide identity bff interface: %w", err)
+	}
+
 	// ─── BFF Services ────────────────────────────────────────────────────────
+	if err := c.Provide(bffservices.NewAuthService); err != nil {
+		return fmt.Errorf("bff: provide auth service: %w", err)
+	}
+
 	if err := c.Provide(bffservices.NewDocumentsService); err != nil {
 		return fmt.Errorf("bff: provide documents service: %w", err)
 	}
@@ -145,6 +187,10 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── Controllers (provided as capability interfaces) ────────────────────
+	if err := c.Provide(controllers.NewAuthController, dig.As(new(bfftransportroutes.AuthCapability))); err != nil {
+		return fmt.Errorf("bff: provide auth controller: %w", err)
+	}
+
 	if err := c.Provide(controllers.NewDocumentsController, dig.As(new(bfftransportroutes.DocumentsCapability))); err != nil {
 		return fmt.Errorf("bff: provide documents controller: %w", err)
 	}
@@ -170,6 +216,10 @@ func run(ctx context.Context) error {
 	}
 
 	// ─── Route modules ────────────────────────────────────────────────────────
+	if err := c.Provide(bfftransportroutes.NewAuthRoute); err != nil {
+		return fmt.Errorf("bff: provide auth route: %w", err)
+	}
+
 	if err := c.Provide(bfftransportroutes.NewDocumentsRoute); err != nil {
 		return fmt.Errorf("bff: provide documents route: %w", err)
 	}
@@ -199,6 +249,7 @@ func run(ctx context.Context) error {
 		cfg *configs.Config,
 		logger *zap.Logger,
 		jwksCache *bffmiddleware.JWKSCache,
+		authRoute *bfftransportroutes.AuthRoute,
 		docRoute *bfftransportroutes.DocumentsRoute,
 		settingsRoute *bfftransportroutes.SettingsRoute,
 		projectsRoute *bfftransportroutes.ProjectsRoute,
@@ -230,6 +281,7 @@ func run(ctx context.Context) error {
 		authMiddleware := bffmiddleware.NewAuthMiddleware(jwksCache, logger)
 
 		// Register route modules
+		authRoute.Register(api, authMiddleware)
 		docRoute.Register(api, authMiddleware)
 		settingsRoute.Register(api, authMiddleware)
 		projectsRoute.Register(api, authMiddleware)

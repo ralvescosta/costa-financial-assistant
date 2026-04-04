@@ -19,6 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	IdentityService_AuthenticateUser_FullMethodName    = "/identity.v1.IdentityService/AuthenticateUser"
+	IdentityService_RefreshSession_FullMethodName      = "/identity.v1.IdentityService/RefreshSession"
 	IdentityService_IssueBootstrapToken_FullMethodName = "/identity.v1.IdentityService/IssueBootstrapToken"
 	IdentityService_ValidateToken_FullMethodName       = "/identity.v1.IdentityService/ValidateToken"
 	IdentityService_GetJwksMetadata_FullMethodName     = "/identity.v1.IdentityService/GetJwksMetadata"
@@ -30,6 +32,10 @@ const (
 //
 // IdentityService manages token issuance and JWKS metadata for the platform.
 type IdentityServiceClient interface {
+	// AuthenticateUser validates the seeded bootstrap credentials and returns a signed session.
+	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error)
+	// RefreshSession reissues a signed session before the current token expires.
+	RefreshSession(ctx context.Context, in *RefreshSessionRequest, opts ...grpc.CallOption) (*RefreshSessionResponse, error)
 	// IssueBootstrapToken issues a signed JWT for the seeded bootstrap user/project.
 	IssueBootstrapToken(ctx context.Context, in *IssueBootstrapTokenRequest, opts ...grpc.CallOption) (*IssueBootstrapTokenResponse, error)
 	// ValidateToken verifies a JWT and returns the decoded claims.
@@ -44,6 +50,26 @@ type identityServiceClient struct {
 
 func NewIdentityServiceClient(cc grpc.ClientConnInterface) IdentityServiceClient {
 	return &identityServiceClient{cc}
+}
+
+func (c *identityServiceClient) AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthenticateUserResponse)
+	err := c.cc.Invoke(ctx, IdentityService_AuthenticateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *identityServiceClient) RefreshSession(ctx context.Context, in *RefreshSessionRequest, opts ...grpc.CallOption) (*RefreshSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefreshSessionResponse)
+	err := c.cc.Invoke(ctx, IdentityService_RefreshSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *identityServiceClient) IssueBootstrapToken(ctx context.Context, in *IssueBootstrapTokenRequest, opts ...grpc.CallOption) (*IssueBootstrapTokenResponse, error) {
@@ -82,6 +108,10 @@ func (c *identityServiceClient) GetJwksMetadata(ctx context.Context, in *GetJwks
 //
 // IdentityService manages token issuance and JWKS metadata for the platform.
 type IdentityServiceServer interface {
+	// AuthenticateUser validates the seeded bootstrap credentials and returns a signed session.
+	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error)
+	// RefreshSession reissues a signed session before the current token expires.
+	RefreshSession(context.Context, *RefreshSessionRequest) (*RefreshSessionResponse, error)
 	// IssueBootstrapToken issues a signed JWT for the seeded bootstrap user/project.
 	IssueBootstrapToken(context.Context, *IssueBootstrapTokenRequest) (*IssueBootstrapTokenResponse, error)
 	// ValidateToken verifies a JWT and returns the decoded claims.
@@ -98,6 +128,12 @@ type IdentityServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedIdentityServiceServer struct{}
 
+func (UnimplementedIdentityServiceServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AuthenticateUser not implemented")
+}
+func (UnimplementedIdentityServiceServer) RefreshSession(context.Context, *RefreshSessionRequest) (*RefreshSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RefreshSession not implemented")
+}
 func (UnimplementedIdentityServiceServer) IssueBootstrapToken(context.Context, *IssueBootstrapTokenRequest) (*IssueBootstrapTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IssueBootstrapToken not implemented")
 }
@@ -126,6 +162,42 @@ func RegisterIdentityServiceServer(s grpc.ServiceRegistrar, srv IdentityServiceS
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&IdentityService_ServiceDesc, srv)
+}
+
+func _IdentityService_AuthenticateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).AuthenticateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_AuthenticateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).AuthenticateUser(ctx, req.(*AuthenticateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _IdentityService_RefreshSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(IdentityServiceServer).RefreshSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: IdentityService_RefreshSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(IdentityServiceServer).RefreshSession(ctx, req.(*RefreshSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _IdentityService_IssueBootstrapToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -189,6 +261,14 @@ var IdentityService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "identity.v1.IdentityService",
 	HandlerType: (*IdentityServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AuthenticateUser",
+			Handler:    _IdentityService_AuthenticateUser_Handler,
+		},
+		{
+			MethodName: "RefreshSession",
+			Handler:    _IdentityService_RefreshSession_Handler,
+		},
 		{
 			MethodName: "IssueBootstrapToken",
 			Handler:    _IdentityService_IssueBootstrapToken_Handler,

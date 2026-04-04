@@ -29,6 +29,8 @@ type JwtClaims struct {
 	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"` // read_only | update | write
 	IssuedAt      int64                  `protobuf:"varint,4,opt,name=issued_at,json=issuedAt,proto3" json:"issued_at,omitempty"`
 	ExpiresAt     int64                  `protobuf:"varint,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Email         string                 `protobuf:"bytes,6,opt,name=email,proto3" json:"email,omitempty"`
+	Username      string                 `protobuf:"bytes,7,opt,name=username,proto3" json:"username,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -96,6 +98,20 @@ func (x *JwtClaims) GetExpiresAt() int64 {
 		return x.ExpiresAt
 	}
 	return 0
+}
+
+func (x *JwtClaims) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *JwtClaims) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
 }
 
 // JwksKey represents a single JSON Web Key from the JWKS endpoint.
@@ -232,7 +248,7 @@ var File_identity_v1_messages_proto protoreflect.FileDescriptor
 
 const file_identity_v1_messages_proto_rawDesc = "" +
 	"\n" +
-	"\x1aidentity/v1/messages.proto\x12\videntity.v1\"\x94\x01\n" +
+	"\x1aidentity/v1/messages.proto\x12\videntity.v1\"\xc6\x01\n" +
 	"\tJwtClaims\x12\x18\n" +
 	"\asubject\x18\x01 \x01(\tR\asubject\x12\x1d\n" +
 	"\n" +
@@ -240,7 +256,9 @@ const file_identity_v1_messages_proto_rawDesc = "" +
 	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1b\n" +
 	"\tissued_at\x18\x04 \x01(\x03R\bissuedAt\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x05 \x01(\x03R\texpiresAt\"m\n" +
+	"expires_at\x18\x05 \x01(\x03R\texpiresAt\x12\x14\n" +
+	"\x05email\x18\x06 \x01(\tR\x05email\x12\x1a\n" +
+	"\busername\x18\a \x01(\tR\busername\"m\n" +
 	"\aJwksKey\x12\x10\n" +
 	"\x03kty\x18\x01 \x01(\tR\x03kty\x12\x10\n" +
 	"\x03use\x18\x02 \x01(\tR\x03use\x12\x10\n" +

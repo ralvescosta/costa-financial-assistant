@@ -12,6 +12,7 @@ This document maps all current Onboarding service gRPC RPCs and their flow throu
 Notes:
 - Onboarding manages tenant/project lifecycle and collaboration membership.
 - RPCs are project-scoped and rely on `ProjectContext` user/project fields.
+- Feature 012 adds the seeded owner membership path through local migrations and forwards `common.v1.Session` on authenticated onboarding requests; list-member flows continue to require populated `Pagination`.
 - This service is the source of truth for projects and memberships used by BFF guards.
 - Repository and service layers propagate sanitized `AppError` values only; transport maps categories to gRPC status and suppresses native dependency details.
 - Pointer-threshold policy applies on modified service boundaries: use pointers by default for large/reference-like structs and log explicit value-semantics exceptions in feature contracts.

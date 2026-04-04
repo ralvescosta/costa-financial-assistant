@@ -32,6 +32,9 @@ func (s *Server) GetPaymentDashboard(ctx context.Context, req *billsv1.GetPaymen
 	if pc == nil || pc.GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
 	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
+	}
 
 	var pageSize int32 = 20
 	var pageToken string
@@ -77,12 +80,16 @@ func (s *Server) MarkBillPaid(ctx context.Context, req *billsv1.MarkBillPaidRequ
 	if pc == nil || pc.GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
 	}
+	sessionUserID, err := requireSessionUserID(req.GetSession())
+	if err != nil {
+		return nil, err
+	}
 	if req.GetBillId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "bill_id is required")
 	}
 
-	markedBy := ""
-	if a := req.GetAudit(); a != nil {
+	markedBy := sessionUserID
+	if a := req.GetAudit(); a != nil && a.GetPerformedBy() != "" {
 		markedBy = a.GetPerformedBy()
 	}
 
@@ -105,6 +112,9 @@ func (s *Server) GetBill(ctx context.Context, req *billsv1.GetBillRequest) (*bil
 	pc := req.GetCtx()
 	if pc == nil || pc.GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 	if req.GetBillId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "bill_id is required")
@@ -132,6 +142,9 @@ func (s *Server) ListBills(ctx context.Context, req *billsv1.ListBillsRequest) (
 	pc := req.GetCtx()
 	if pc == nil || pc.GetProjectId() == "" {
 		return nil, status.Error(codes.InvalidArgument, "project_id is required")
+	}
+	if _, err := requireSessionUserID(req.GetSession()); err != nil {
+		return nil, err
 	}
 
 	var pageSize int32 = 20
@@ -163,6 +176,13 @@ func (s *Server) ListBills(ctx context.Context, req *billsv1.ListBillsRequest) (
 		Bills:      bills,
 		Pagination: pagination,
 	}, nil
+}
+
+func requireSessionUserID(session *commonv1.Session) (string, error) {
+	if session == nil || session.GetId() == "" {
+		return "", status.Error(codes.Unauthenticated, "session is required")
+	}
+	return session.GetId(), nil
 }
 
 func toGRPCStatusError(appErr *apperrors.AppError) error {

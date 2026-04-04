@@ -24,10 +24,11 @@ service BillsService {
 
 // ─── GetPaymentDashboard ─────────────────────────────────────────────────────
 message GetPaymentDashboardRequest {
-  common.v1.ProjectContext ctx           = 1;
-  string                   cycle_start  = 2; // ISO-8601 date
-  string                   cycle_end    = 3; // ISO-8601 date
-  common.v1.Pagination     pagination   = 4;
+  common.v1.ProjectContext ctx         = 1;
+  string                   cycle_start = 2; // ISO-8601 date
+  string                   cycle_end   = 3; // ISO-8601 date
+  common.v1.Pagination     pagination  = 4;
+  common.v1.Session        session     = 5;
 }
 
 message GetPaymentDashboardResponse {
@@ -40,6 +41,7 @@ message MarkBillPaidRequest {
   common.v1.ProjectContext ctx     = 1;
   string                   bill_id = 2;
   common.v1.AuditMetadata  audit   = 3;
+  common.v1.Session        session = 4;
 }
 
 message MarkBillPaidResponse {
@@ -50,6 +52,7 @@ message MarkBillPaidResponse {
 message GetBillRequest {
   common.v1.ProjectContext ctx     = 1;
   string                   bill_id = 2;
+  common.v1.Session        session = 3;
 }
 
 message GetBillResponse {
@@ -58,9 +61,10 @@ message GetBillResponse {
 
 // ─── ListBills ───────────────────────────────────────────────────────────────
 message ListBillsRequest {
-  common.v1.ProjectContext ctx            = 1;
-  PaymentStatus            status_filter  = 2; // optional
-  common.v1.Pagination     pagination     = 3;
+  common.v1.ProjectContext ctx           = 1;
+  PaymentStatus            status_filter = 2; // optional
+  common.v1.Pagination     pagination    = 3;
+  common.v1.Session        session       = 4;
 }
 
 message ListBillsResponse {

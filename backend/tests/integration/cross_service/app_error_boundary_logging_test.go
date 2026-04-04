@@ -7,6 +7,9 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	bffservices "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services"
 	billsservices "github.com/ralvescosta/costa-financial-assistant/backend/internals/bills/services"
@@ -16,6 +19,7 @@ import (
 	commonv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/common/v1"
 	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 	onboardingv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/onboarding/v1"
+	paymentsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,6 +47,12 @@ func (billsRepoBoundaryErrStub) ListBills(context.Context, string, billsv1.Payme
 
 type identitySvcBoundaryErrStub struct{}
 
+func (identitySvcBoundaryErrStub) AuthenticateUser(context.Context, string, string) (string, int64, *identityv1.JwtClaims, string, error) {
+	return "", 0, nil, "", nativeerrors.New("token signer unavailable")
+}
+func (identitySvcBoundaryErrStub) RefreshSession(context.Context, string) (string, int64, *identityv1.JwtClaims, string, error) {
+	return "", 0, nil, "", nativeerrors.New("token signer unavailable")
+}
 func (identitySvcBoundaryErrStub) IssueBootstrapToken(context.Context, string, string, string) (string, int64, error) {
 	return "", 0, nativeerrors.New("token signer unavailable")
 }
@@ -71,6 +81,30 @@ func (onboardingSvcBoundaryErrStub) ListProjectMembers(context.Context, string, 
 	return nil, "", nil
 }
 
+type paymentsClientBoundaryErrStub struct{}
+
+func (paymentsClientBoundaryErrStub) GetCyclePreference(context.Context, *paymentsv1.GetCyclePreferenceRequest, ...grpc.CallOption) (*paymentsv1.GetCyclePreferenceResponse, error) {
+	return nil, status.Error(codes.Unavailable, "payments unavailable")
+}
+func (paymentsClientBoundaryErrStub) SetCyclePreference(context.Context, *paymentsv1.SetCyclePreferenceRequest, ...grpc.CallOption) (*paymentsv1.SetCyclePreferenceResponse, error) {
+	return nil, status.Error(codes.Unavailable, "payments unavailable")
+}
+func (paymentsClientBoundaryErrStub) GetHistoryTimeline(context.Context, *paymentsv1.GetHistoryTimelineRequest, ...grpc.CallOption) (*paymentsv1.GetHistoryTimelineResponse, error) {
+	return nil, status.Error(codes.Unavailable, "payments unavailable")
+}
+func (paymentsClientBoundaryErrStub) GetHistoryCategoryBreakdown(context.Context, *paymentsv1.GetHistoryCategoryBreakdownRequest, ...grpc.CallOption) (*paymentsv1.GetHistoryCategoryBreakdownResponse, error) {
+	return nil, status.Error(codes.Unavailable, "payments unavailable")
+}
+func (paymentsClientBoundaryErrStub) GetHistoryCompliance(context.Context, *paymentsv1.GetHistoryComplianceRequest, ...grpc.CallOption) (*paymentsv1.GetHistoryComplianceResponse, error) {
+	return nil, status.Error(codes.Unavailable, "payments unavailable")
+}
+func (paymentsClientBoundaryErrStub) GetReconciliationSummary(context.Context, *paymentsv1.GetReconciliationSummaryRequest, ...grpc.CallOption) (*paymentsv1.GetReconciliationSummaryResponse, error) {
+	return nil, status.Error(codes.Unavailable, "payments unavailable")
+}
+func (paymentsClientBoundaryErrStub) CreateManualLink(context.Context, *paymentsv1.CreateManualLinkRequest, ...grpc.CallOption) (*paymentsv1.CreateManualLinkResponse, error) {
+	return nil, status.Error(codes.Unavailable, "payments unavailable")
+}
+
 func TestBoundaryLogging_TableDriven_T064(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -82,7 +116,7 @@ func TestBoundaryLogging_TableDriven_T064(t *testing.T) {
 		{
 			name: "Given BFF boundary failure When service call fails Then one structured boundary log is emitted",
 			run: func(ctx context.Context, logger *zap.Logger) error {
-				svc := bffservices.NewHistoryService(logger)
+				svc := bffservices.NewHistoryService(logger, paymentsClientBoundaryErrStub{})
 				_, err := svc.GetTimeline(ctx, "project-1", 1)
 				return err
 			},
@@ -119,9 +153,10 @@ func TestBoundaryLogging_TableDriven_T064(t *testing.T) {
 			run: func(ctx context.Context, logger *zap.Logger) error {
 				_, server := onboardinggrpc.NewServer(onboardingSvcBoundaryErrStub{}, logger)
 				_, err := server.CreateProject(ctx, &onboardingv1.CreateProjectRequest{
-					Ctx:  &commonv1.ProjectContext{UserId: "user-1"},
-					Name: "Test project",
-					Type: onboardingv1.ProjectType_PROJECT_TYPE_PERSONAL,
+					Ctx:     &commonv1.ProjectContext{UserId: "user-1"},
+					Session: &commonv1.Session{Id: "user-1"},
+					Name:    "Test project",
+					Type:    onboardingv1.ProjectType_PROJECT_TYPE_PERSONAL,
 				})
 				return err
 			},

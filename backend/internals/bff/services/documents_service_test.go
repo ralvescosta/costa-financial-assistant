@@ -15,7 +15,9 @@ import (
 
 	bffinterfaces "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/interfaces"
 	"github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services"
+	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	filesv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/files/v1"
+	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
 )
 
 // ─── mock: FilesClient ────────────────────────────────────────────────────────
@@ -196,6 +198,36 @@ func TestDocumentsService_ListDocuments_DefaultsPageSize(t *testing.T) {
 	// Assert
 	require.NoError(t, err)
 	assert.EqualValues(t, 25, capturedReq.Pagination.PageSize)
+}
+
+func TestDocumentsService_ListDocuments_ForwardsSessionClaims(t *testing.T) {
+	// Arrange
+	client := &mockFilesClient{}
+	svc := newDocumentsService(t, client)
+	ctx := context.WithValue(context.Background(), bffmiddleware.ProjectContextKey, &identityv1.JwtClaims{
+		Subject:   "user-1",
+		ProjectId: "proj-1",
+		Role:      "write",
+		Email:     "ralvescosta@local.dev",
+		Username:  "ralvescosta",
+	})
+
+	var capturedReq *filesv1.ListDocumentsRequest
+	client.On("ListDocuments", ctx, mock.MatchedBy(func(req *filesv1.ListDocumentsRequest) bool {
+		capturedReq = req
+		return true
+	})).Return(&filesv1.ListDocumentsResponse{}, nil)
+
+	// Act
+	_, err := svc.ListDocuments(ctx, "proj-1", 0, "")
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, capturedReq)
+	require.NotNil(t, capturedReq.GetSession())
+	assert.Equal(t, "user-1", capturedReq.GetSession().GetId())
+	assert.Equal(t, "ralvescosta", capturedReq.GetSession().GetUsername())
+	assert.EqualValues(t, 25, capturedReq.GetPagination().GetPageSize())
 }
 
 // ─── GetDocument ──────────────────────────────────────────────────────────────

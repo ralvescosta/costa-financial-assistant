@@ -10,9 +10,47 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+	"google.golang.org/grpc"
 
+	bffservices "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services"
+	bffmiddleware "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/transport/http/middleware"
 	paymentsrepo "github.com/ralvescosta/costa-financial-assistant/backend/internals/payments/repositories"
+	identityv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/identity/v1"
+	paymentsv1 "github.com/ralvescosta/costa-financial-assistant/backend/protos/generated/payments/v1"
 )
+
+type timelinePropagationClient struct {
+	request *paymentsv1.GetHistoryTimelineRequest
+}
+
+func (c *timelinePropagationClient) GetCyclePreference(context.Context, *paymentsv1.GetCyclePreferenceRequest, ...grpc.CallOption) (*paymentsv1.GetCyclePreferenceResponse, error) {
+	return &paymentsv1.GetCyclePreferenceResponse{}, nil
+}
+
+func (c *timelinePropagationClient) SetCyclePreference(context.Context, *paymentsv1.SetCyclePreferenceRequest, ...grpc.CallOption) (*paymentsv1.SetCyclePreferenceResponse, error) {
+	return &paymentsv1.SetCyclePreferenceResponse{}, nil
+}
+
+func (c *timelinePropagationClient) GetHistoryTimeline(_ context.Context, in *paymentsv1.GetHistoryTimelineRequest, _ ...grpc.CallOption) (*paymentsv1.GetHistoryTimelineResponse, error) {
+	c.request = in
+	return &paymentsv1.GetHistoryTimelineResponse{}, nil
+}
+
+func (c *timelinePropagationClient) GetHistoryCategoryBreakdown(context.Context, *paymentsv1.GetHistoryCategoryBreakdownRequest, ...grpc.CallOption) (*paymentsv1.GetHistoryCategoryBreakdownResponse, error) {
+	return &paymentsv1.GetHistoryCategoryBreakdownResponse{}, nil
+}
+
+func (c *timelinePropagationClient) GetHistoryCompliance(context.Context, *paymentsv1.GetHistoryComplianceRequest, ...grpc.CallOption) (*paymentsv1.GetHistoryComplianceResponse, error) {
+	return &paymentsv1.GetHistoryComplianceResponse{}, nil
+}
+
+func (c *timelinePropagationClient) GetReconciliationSummary(context.Context, *paymentsv1.GetReconciliationSummaryRequest, ...grpc.CallOption) (*paymentsv1.GetReconciliationSummaryResponse, error) {
+	return &paymentsv1.GetReconciliationSummaryResponse{}, nil
+}
+
+func (c *timelinePropagationClient) CreateManualLink(context.Context, *paymentsv1.CreateManualLinkRequest, ...grpc.CallOption) (*paymentsv1.CreateManualLinkResponse, error) {
+	return &paymentsv1.CreateManualLinkResponse{}, nil
+}
 
 // TestUS6_HistoryTimeline validates that the monthly expenditure timeline:
 //   - Returns one entry per calendar month with correct totals
@@ -105,4 +143,27 @@ func TestUS6_HistoryTimeline(t *testing.T) {
 		require.NoError(t, err)
 		assert.GreaterOrEqual(t, len(entries), 2)
 	})
+}
+
+func TestUS6_HistoryTimeline_DefaultPaginationPropagation(t *testing.T) {
+	// Given
+	client := &timelinePropagationClient{}
+	svc := bffservices.NewHistoryService(zaptest.NewLogger(t), client)
+	ctx := context.WithValue(context.Background(), bffmiddleware.ProjectContextKey, &identityv1.JwtClaims{
+		Subject:   "00000000-0000-0000-0000-000000000001",
+		ProjectId: "00000000-0000-0000-0000-000000000010",
+		Role:      "write",
+		Email:     "ralvescosta@local.dev",
+		Username:  "ralvescosta",
+	})
+
+	// When
+	_, err := svc.GetTimeline(ctx, "00000000-0000-0000-0000-000000000010", 6)
+
+	// Then
+	require.NoError(t, err)
+	require.NotNil(t, client.request)
+	require.NotNil(t, client.request.GetSession())
+	assert.Equal(t, "00000000-0000-0000-0000-000000000001", client.request.GetSession().GetId())
+	assert.EqualValues(t, 20, client.request.GetPagination().GetPageSize())
 }

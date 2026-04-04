@@ -27,9 +27,10 @@ service OnboardingService {
 
 // ─── CreateProject ───────────────────────────────────────────────────────────
 message CreateProjectRequest {
-  common.v1.ProjectContext ctx  = 1;
-  string                   name = 2;
-  ProjectType              type = 3;
+  common.v1.ProjectContext ctx     = 1;
+  string                   name    = 2;
+  ProjectType              type    = 3;
+  common.v1.Session        session = 4;
 }
 
 message CreateProjectResponse {
@@ -42,6 +43,7 @@ message InviteProjectMemberRequest {
   string                   invitee_email = 2;
   ProjectMemberRole        role          = 3;
   common.v1.AuditMetadata  audit         = 4;
+  common.v1.Session        session       = 5;
 }
 
 message InviteProjectMemberResponse {
@@ -54,6 +56,7 @@ message UpdateProjectMemberRoleRequest {
   string                   member_id  = 2;
   ProjectMemberRole        new_role   = 3;
   common.v1.AuditMetadata  audit      = 4;
+  common.v1.Session        session    = 5;
 }
 
 message UpdateProjectMemberRoleResponse {
@@ -64,6 +67,7 @@ message UpdateProjectMemberRoleResponse {
 message ListProjectMembersRequest {
   common.v1.ProjectContext ctx        = 1;
   common.v1.Pagination     pagination = 2;
+  common.v1.Session        session    = 3;
 }
 
 message ListProjectMembersResponse {
@@ -73,7 +77,8 @@ message ListProjectMembersResponse {
 
 // ─── GetProject ──────────────────────────────────────────────────────────────
 message GetProjectRequest {
-  common.v1.ProjectContext ctx = 1;
+  common.v1.ProjectContext ctx     = 1;
+  common.v1.Session        session = 2;
 }
 
 message GetProjectResponse {

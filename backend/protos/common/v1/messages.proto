@@ -30,6 +30,13 @@ message ProjectContext {
   string role       = 3; // read_only | update | write
 }
 
+// Session carries the authenticated caller identity across service boundaries.
+message Session {
+  string id       = 1;
+  string email    = 2;
+  string username = 3;
+}
+
 // ErrorEnvelope wraps structured error details for gRPC responses.
 message ErrorEnvelope {
   string code    = 1; // machine-readable error code

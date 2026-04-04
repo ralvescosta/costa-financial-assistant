@@ -147,7 +147,7 @@ $(foreach svc,$(MIGRATION_SERVICES),$(eval $(call MIGRATE_TARGETS,$(svc))))
 # ─── Proto generation ────────────────────────────────────────────────────────
 PROTO_SRC_DIR := backend/protos
 PROTO_GEN_DIR := backend/protos/generated
-PROTO_MODULES := common/v1 onboarding/v1 identity/v1 files/v1 bills/v1
+PROTO_MODULES := common/v1 onboarding/v1 identity/v1 files/v1 bills/v1 payments/v1
 
 PROTOC_GEN_GO      := $(shell go env GOBIN)/protoc-gen-go
 PROTOC_GEN_GO_GRPC := $(shell go env GOBIN)/protoc-gen-go-grpc

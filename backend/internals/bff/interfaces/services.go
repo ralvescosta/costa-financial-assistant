@@ -10,6 +10,15 @@ import (
 	bffcontracts "github.com/ralvescosta/costa-financial-assistant/backend/internals/bff/services/contracts"
 )
 
+// AuthService defines the transport-agnostic authentication operations consumed by the BFF.
+type AuthService interface {
+	// Login validates the seeded owner credentials and returns the authenticated session payload.
+	Login(ctx context.Context, username, password string) (*bffcontracts.AuthSessionResponse, error)
+
+	// Refresh validates the current session token and returns a refreshed session payload.
+	Refresh(ctx context.Context, token string) (*bffcontracts.RefreshSessionResponse, error)
+}
+
 // DocumentsService defines the transport-agnostic document operations consumed by the BFF.
 // Pointer policy: struct payloads crossing service boundaries use pointer semantics.
 type DocumentsService interface {

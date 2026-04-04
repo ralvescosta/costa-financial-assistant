@@ -29,6 +29,7 @@ type GetPaymentDashboardRequest struct {
 	CycleStart    string                 `protobuf:"bytes,2,opt,name=cycle_start,json=cycleStart,proto3" json:"cycle_start,omitempty"` // ISO-8601 date
 	CycleEnd      string                 `protobuf:"bytes,3,opt,name=cycle_end,json=cycleEnd,proto3" json:"cycle_end,omitempty"`       // ISO-8601 date
 	Pagination    *v1.Pagination         `protobuf:"bytes,4,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,5,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -91,6 +92,13 @@ func (x *GetPaymentDashboardRequest) GetPagination() *v1.Pagination {
 	return nil
 }
 
+func (x *GetPaymentDashboardRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type GetPaymentDashboardResponse struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
 	Entries       []*PaymentDashboardEntry `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
@@ -149,6 +157,7 @@ type MarkBillPaidRequest struct {
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	BillId        string                 `protobuf:"bytes,2,opt,name=bill_id,json=billId,proto3" json:"bill_id,omitempty"`
 	Audit         *v1.AuditMetadata      `protobuf:"bytes,3,opt,name=audit,proto3" json:"audit,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,4,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -204,6 +213,13 @@ func (x *MarkBillPaidRequest) GetAudit() *v1.AuditMetadata {
 	return nil
 }
 
+func (x *MarkBillPaidRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 type MarkBillPaidResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Bill          *BillRecord            `protobuf:"bytes,1,opt,name=bill,proto3" json:"bill,omitempty"`
@@ -253,6 +269,7 @@ type GetBillRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	BillId        string                 `protobuf:"bytes,2,opt,name=bill_id,json=billId,proto3" json:"bill_id,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,3,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -299,6 +316,13 @@ func (x *GetBillRequest) GetBillId() string {
 		return x.BillId
 	}
 	return ""
+}
+
+func (x *GetBillRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
 }
 
 type GetBillResponse struct {
@@ -351,6 +375,7 @@ type ListBillsRequest struct {
 	Ctx           *v1.ProjectContext     `protobuf:"bytes,1,opt,name=ctx,proto3" json:"ctx,omitempty"`
 	StatusFilter  PaymentStatus          `protobuf:"varint,2,opt,name=status_filter,json=statusFilter,proto3,enum=bills.v1.PaymentStatus" json:"status_filter,omitempty"` // optional
 	Pagination    *v1.Pagination         `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Session       *v1.Session            `protobuf:"bytes,4,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -402,6 +427,13 @@ func (x *ListBillsRequest) GetStatusFilter() PaymentStatus {
 func (x *ListBillsRequest) GetPagination() *v1.Pagination {
 	if x != nil {
 		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListBillsRequest) GetSession() *v1.Session {
+	if x != nil {
+		return x.Session
 	}
 	return nil
 }
@@ -462,7 +494,7 @@ var File_bills_v1_grpc_proto protoreflect.FileDescriptor
 
 const file_bills_v1_grpc_proto_rawDesc = "" +
 	"\n" +
-	"\x13bills/v1/grpc.proto\x12\bbills.v1\x1a\x17bills/v1/messages.proto\x1a\x18common/v1/messages.proto\"\xbe\x01\n" +
+	"\x13bills/v1/grpc.proto\x12\bbills.v1\x1a\x17bills/v1/messages.proto\x1a\x18common/v1/messages.proto\"\xec\x01\n" +
 	"\x1aGetPaymentDashboardRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x1f\n" +
 	"\vcycle_start\x18\x02 \x01(\tR\n" +
@@ -470,29 +502,33 @@ const file_bills_v1_grpc_proto_rawDesc = "" +
 	"\tcycle_end\x18\x03 \x01(\tR\bcycleEnd\x125\n" +
 	"\n" +
 	"pagination\x18\x04 \x01(\v2\x15.common.v1.PaginationR\n" +
-	"pagination\"\x95\x01\n" +
+	"pagination\x12,\n" +
+	"\asession\x18\x05 \x01(\v2\x12.common.v1.SessionR\asession\"\x95\x01\n" +
 	"\x1bGetPaymentDashboardResponse\x129\n" +
 	"\aentries\x18\x01 \x03(\v2\x1f.bills.v1.PaymentDashboardEntryR\aentries\x12;\n" +
 	"\n" +
 	"pagination\x18\x02 \x01(\v2\x1b.common.v1.PaginationResultR\n" +
-	"pagination\"\x8b\x01\n" +
+	"pagination\"\xb9\x01\n" +
 	"\x13MarkBillPaidRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x17\n" +
 	"\abill_id\x18\x02 \x01(\tR\x06billId\x12.\n" +
-	"\x05audit\x18\x03 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\"@\n" +
+	"\x05audit\x18\x03 \x01(\v2\x18.common.v1.AuditMetadataR\x05audit\x12,\n" +
+	"\asession\x18\x04 \x01(\v2\x12.common.v1.SessionR\asession\"@\n" +
 	"\x14MarkBillPaidResponse\x12(\n" +
-	"\x04bill\x18\x01 \x01(\v2\x14.bills.v1.BillRecordR\x04bill\"V\n" +
+	"\x04bill\x18\x01 \x01(\v2\x14.bills.v1.BillRecordR\x04bill\"\x84\x01\n" +
 	"\x0eGetBillRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12\x17\n" +
-	"\abill_id\x18\x02 \x01(\tR\x06billId\";\n" +
+	"\abill_id\x18\x02 \x01(\tR\x06billId\x12,\n" +
+	"\asession\x18\x03 \x01(\v2\x12.common.v1.SessionR\asession\";\n" +
 	"\x0fGetBillResponse\x12(\n" +
-	"\x04bill\x18\x01 \x01(\v2\x14.bills.v1.BillRecordR\x04bill\"\xb4\x01\n" +
+	"\x04bill\x18\x01 \x01(\v2\x14.bills.v1.BillRecordR\x04bill\"\xe2\x01\n" +
 	"\x10ListBillsRequest\x12+\n" +
 	"\x03ctx\x18\x01 \x01(\v2\x19.common.v1.ProjectContextR\x03ctx\x12<\n" +
 	"\rstatus_filter\x18\x02 \x01(\x0e2\x17.bills.v1.PaymentStatusR\fstatusFilter\x125\n" +
 	"\n" +
 	"pagination\x18\x03 \x01(\v2\x15.common.v1.PaginationR\n" +
-	"pagination\"|\n" +
+	"pagination\x12,\n" +
+	"\asession\x18\x04 \x01(\v2\x12.common.v1.SessionR\asession\"|\n" +
 	"\x11ListBillsResponse\x12*\n" +
 	"\x05bills\x18\x01 \x03(\v2\x14.bills.v1.BillRecordR\x05bills\x12;\n" +
 	"\n" +
@@ -528,40 +564,45 @@ var file_bills_v1_grpc_proto_goTypes = []any{
 	(*ListBillsResponse)(nil),           // 7: bills.v1.ListBillsResponse
 	(*v1.ProjectContext)(nil),           // 8: common.v1.ProjectContext
 	(*v1.Pagination)(nil),               // 9: common.v1.Pagination
-	(*PaymentDashboardEntry)(nil),       // 10: bills.v1.PaymentDashboardEntry
-	(*v1.PaginationResult)(nil),         // 11: common.v1.PaginationResult
-	(*v1.AuditMetadata)(nil),            // 12: common.v1.AuditMetadata
-	(*BillRecord)(nil),                  // 13: bills.v1.BillRecord
-	(PaymentStatus)(0),                  // 14: bills.v1.PaymentStatus
+	(*v1.Session)(nil),                  // 10: common.v1.Session
+	(*PaymentDashboardEntry)(nil),       // 11: bills.v1.PaymentDashboardEntry
+	(*v1.PaginationResult)(nil),         // 12: common.v1.PaginationResult
+	(*v1.AuditMetadata)(nil),            // 13: common.v1.AuditMetadata
+	(*BillRecord)(nil),                  // 14: bills.v1.BillRecord
+	(PaymentStatus)(0),                  // 15: bills.v1.PaymentStatus
 }
 var file_bills_v1_grpc_proto_depIdxs = []int32{
 	8,  // 0: bills.v1.GetPaymentDashboardRequest.ctx:type_name -> common.v1.ProjectContext
 	9,  // 1: bills.v1.GetPaymentDashboardRequest.pagination:type_name -> common.v1.Pagination
-	10, // 2: bills.v1.GetPaymentDashboardResponse.entries:type_name -> bills.v1.PaymentDashboardEntry
-	11, // 3: bills.v1.GetPaymentDashboardResponse.pagination:type_name -> common.v1.PaginationResult
-	8,  // 4: bills.v1.MarkBillPaidRequest.ctx:type_name -> common.v1.ProjectContext
-	12, // 5: bills.v1.MarkBillPaidRequest.audit:type_name -> common.v1.AuditMetadata
-	13, // 6: bills.v1.MarkBillPaidResponse.bill:type_name -> bills.v1.BillRecord
-	8,  // 7: bills.v1.GetBillRequest.ctx:type_name -> common.v1.ProjectContext
-	13, // 8: bills.v1.GetBillResponse.bill:type_name -> bills.v1.BillRecord
-	8,  // 9: bills.v1.ListBillsRequest.ctx:type_name -> common.v1.ProjectContext
-	14, // 10: bills.v1.ListBillsRequest.status_filter:type_name -> bills.v1.PaymentStatus
-	9,  // 11: bills.v1.ListBillsRequest.pagination:type_name -> common.v1.Pagination
-	13, // 12: bills.v1.ListBillsResponse.bills:type_name -> bills.v1.BillRecord
-	11, // 13: bills.v1.ListBillsResponse.pagination:type_name -> common.v1.PaginationResult
-	0,  // 14: bills.v1.BillsService.GetPaymentDashboard:input_type -> bills.v1.GetPaymentDashboardRequest
-	2,  // 15: bills.v1.BillsService.MarkBillPaid:input_type -> bills.v1.MarkBillPaidRequest
-	4,  // 16: bills.v1.BillsService.GetBill:input_type -> bills.v1.GetBillRequest
-	6,  // 17: bills.v1.BillsService.ListBills:input_type -> bills.v1.ListBillsRequest
-	1,  // 18: bills.v1.BillsService.GetPaymentDashboard:output_type -> bills.v1.GetPaymentDashboardResponse
-	3,  // 19: bills.v1.BillsService.MarkBillPaid:output_type -> bills.v1.MarkBillPaidResponse
-	5,  // 20: bills.v1.BillsService.GetBill:output_type -> bills.v1.GetBillResponse
-	7,  // 21: bills.v1.BillsService.ListBills:output_type -> bills.v1.ListBillsResponse
-	18, // [18:22] is the sub-list for method output_type
-	14, // [14:18] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	10, // 2: bills.v1.GetPaymentDashboardRequest.session:type_name -> common.v1.Session
+	11, // 3: bills.v1.GetPaymentDashboardResponse.entries:type_name -> bills.v1.PaymentDashboardEntry
+	12, // 4: bills.v1.GetPaymentDashboardResponse.pagination:type_name -> common.v1.PaginationResult
+	8,  // 5: bills.v1.MarkBillPaidRequest.ctx:type_name -> common.v1.ProjectContext
+	13, // 6: bills.v1.MarkBillPaidRequest.audit:type_name -> common.v1.AuditMetadata
+	10, // 7: bills.v1.MarkBillPaidRequest.session:type_name -> common.v1.Session
+	14, // 8: bills.v1.MarkBillPaidResponse.bill:type_name -> bills.v1.BillRecord
+	8,  // 9: bills.v1.GetBillRequest.ctx:type_name -> common.v1.ProjectContext
+	10, // 10: bills.v1.GetBillRequest.session:type_name -> common.v1.Session
+	14, // 11: bills.v1.GetBillResponse.bill:type_name -> bills.v1.BillRecord
+	8,  // 12: bills.v1.ListBillsRequest.ctx:type_name -> common.v1.ProjectContext
+	15, // 13: bills.v1.ListBillsRequest.status_filter:type_name -> bills.v1.PaymentStatus
+	9,  // 14: bills.v1.ListBillsRequest.pagination:type_name -> common.v1.Pagination
+	10, // 15: bills.v1.ListBillsRequest.session:type_name -> common.v1.Session
+	14, // 16: bills.v1.ListBillsResponse.bills:type_name -> bills.v1.BillRecord
+	12, // 17: bills.v1.ListBillsResponse.pagination:type_name -> common.v1.PaginationResult
+	0,  // 18: bills.v1.BillsService.GetPaymentDashboard:input_type -> bills.v1.GetPaymentDashboardRequest
+	2,  // 19: bills.v1.BillsService.MarkBillPaid:input_type -> bills.v1.MarkBillPaidRequest
+	4,  // 20: bills.v1.BillsService.GetBill:input_type -> bills.v1.GetBillRequest
+	6,  // 21: bills.v1.BillsService.ListBills:input_type -> bills.v1.ListBillsRequest
+	1,  // 22: bills.v1.BillsService.GetPaymentDashboard:output_type -> bills.v1.GetPaymentDashboardResponse
+	3,  // 23: bills.v1.BillsService.MarkBillPaid:output_type -> bills.v1.MarkBillPaidResponse
+	5,  // 24: bills.v1.BillsService.GetBill:output_type -> bills.v1.GetBillResponse
+	7,  // 25: bills.v1.BillsService.ListBills:output_type -> bills.v1.ListBillsResponse
+	22, // [22:26] is the sub-list for method output_type
+	18, // [18:22] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_bills_v1_grpc_proto_init() }

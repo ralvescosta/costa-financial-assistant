@@ -11,6 +11,8 @@ message JwtClaims {
   string role       = 3; // read_only | update | write
   int64  issued_at  = 4;
   int64  expires_at = 5;
+  string email      = 6;
+  string username   = 7;
 }
 
 // JwksKey represents a single JSON Web Key from the JWKS endpoint.

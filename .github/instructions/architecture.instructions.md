@@ -226,6 +226,27 @@ go func() {
 
 ---
 
+## Rule: Shared Session + Pagination gRPC Contracts
+
+**Description**: Authenticated request context and list pagination MUST be standardized through the common proto package so the BFF and all downstream services receive the same caller identity and paging behavior.
+
+**When it applies**: Adding or modifying protobuf request messages, BFF request mappers, or downstream gRPC handlers.
+
+**Copilot MUST**:
+- Define and preserve `common.v1.Session` in `backend/protos/common/v1/messages.proto` as the canonical logged-in user envelope containing `id`, `email`, and `username`.
+- Keep `Session.id` aligned to the authenticated user identifier in UUIDv7 format.
+- Include `common.v1.Session` on every gRPC request message that participates in authenticated application flows.
+- Preserve `common.v1.ProjectContext` for verified tenant scope; `Session` supplements caller identity and does not replace project isolation.
+- Include `common.v1.Pagination` on every list/select request that can return more than one record.
+- Have the BFF read pagination query params and always forward a populated pagination object to downstream gRPC calls, applying deterministic default values when the frontend omits them.
+
+**Copilot MUST NOT**:
+- Add new authenticated gRPC request messages without a `Session` field.
+- Create or preserve multi-record list/select requests that omit `Pagination`.
+- Let the BFF pass empty pagination to downstream list flows when default first-page behavior is required.
+
+---
+
 ## Rule: Dependency Injection via dig
 
 **Description**: All service wiring MUST use `go.uber.org/dig` in each service's `container.go`.
